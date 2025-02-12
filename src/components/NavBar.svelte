@@ -36,7 +36,11 @@
             </DropdownHeader>
             <DropdownUl>
               <DropdownLi href="/">Dashboard</DropdownLi>
-              <DropdownLi href="/vulnerabilityreports">Vulnerability Reports</DropdownLi>
+              <DropdownLi href="/vulnerabilityreports">Vulnerability</DropdownLi>
+              <DropdownLi href="/configauditreports">Config Audit</DropdownLi>
+              <DropdownLi href="/sbomreports">SBOM</DropdownLi>
+              <DropdownLi href="/infraassessmentreports">Infra Assessment</DropdownLi>
+              <DropdownLi href="/rbacassessmentreports">RBAC Assessment</DropdownLi>
             </DropdownUl>
             <DropdownFooter class="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Sign out</DropdownFooter>
           </Dropdown>
@@ -46,8 +50,11 @@
     {/snippet}
     <NavUl class="order-1" {activeUrl}>
       <NavLi href="/">Dashboard</NavLi>
-      <NavLi href="/vulnerabilityreports">Vulnerability Reports</NavLi>
-
+      <NavLi href="/vulnerabilityreports">Vulnerability</NavLi>
+      <NavLi href="/configauditreports">Config Audit</NavLi>
+      <NavLi href="/sbomreports">SBOM</NavLi>
+      <NavLi href="/infraassessmentreports">Infra Assessment</NavLi>
+      <NavLi href="/rbacassessmentreports">RBAC Assessment</NavLi>
     </NavUl>
   </Navbar>
 </div>

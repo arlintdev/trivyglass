@@ -20,7 +20,7 @@
 
 <div class="flex flex-col h-screen">
 	<NavBar ></NavBar>
-	<SidebarButton onclick={demoSidebarUi.toggle} class="mb-2" />
+	<!-- <SidebarButton onclick={demoSidebarUi.toggle} class="mb-2" /> -->
 	<div class="relative">
 	  <Sidebar {activeUrl} backdrop={false} isOpen={isDemoOpen} closeSidebar={closeDemoSidebar} params={{ x: -50, duration: 50 }} class="z-50 h-full pt-6 flex flex-col" position="absolute" activeClass="p-2" nonActiveClass="p-2">
 	    <CloseButton onclick={closeDemoSidebar} color="gray" class="absolute right-2 top-2 p-2 md:hidden" />
@@ -40,6 +40,11 @@
 	          <GridSolid class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" />
 	        {/snippet}
 	      </SidebarItem>
+	      <SidebarItem label="Cluster Compliance" href="/clustercompliancereports">
+	        {#snippet iconSlot()}
+	          <UserSolid class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" />
+	        {/snippet}
+	      </SidebarItem>
 	      <SidebarItem label="SBOM" href="/sbomreports">
 	        {#snippet iconSlot()}
 	          <UserSolid class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" />
@@ -57,7 +62,7 @@
 	      </SidebarItem>
 	    </SidebarGroup>
 	  </Sidebar>
-	  <div class="h-96 overflow-auto px-4 md:ml-64">
+	  <div class="h-screen overflow-auto px-4 md:ml-64">
 	    <div class="rounded-lg border-2 border-dashed border-gray-200 p-4 dark:border-gray-700">
 			{@render children()}
 

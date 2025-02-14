@@ -26,5 +26,5 @@
   }
 </script>
 
-<ReportHeader title="Vulnerability Reports" clusterName={data.clusterName} summaryCounts={summaryCounts} />
-<ReportTable reports={data.reports} reportType="vulnerabilityreports" />
+<ReportHeader title="Infra Assessment Reports" clusterName={data.clusterName} summaryCounts={summaryCounts} />
+<ReportTable reports={data.reports} reportType="infraassessmentreports" />

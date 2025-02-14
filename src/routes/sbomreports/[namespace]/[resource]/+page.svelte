@@ -1,0 +1,143 @@
+<script lang="ts">
+	import {
+		Table,
+		TableHead,
+		TableBody,
+		TableBodyRow,
+		TableBodyCell,
+		TableHeadCell
+	} from 'svelte-5-ui-lib';
+	import { Badge } from 'svelte-5-ui-lib';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+	import { Card, Button } from 'svelte-5-ui-lib';
+	import { ArrowRightOutline } from 'flowbite-svelte-icons';
+	import { P } from 'svelte-5-ui-lib';
+
+	export let data: {
+		report: InfraAssessmentReport;
+		clusterName: string;
+	};
+
+	interface InfraAssessmentReport {
+		metadata: {
+			uid: string;
+			name: string;
+			namespace: string;
+		};
+		report: {
+			summary: {
+				CRITICALCount: number;
+				HIGHCount: number;
+				MEDIUMCount: number;
+				lowCount: number;
+				noneCount: number;
+				unknownCount: number;
+			};
+		};
+	}
+
+	const { report, clusterName } = data;
+
+	let summaryCounts = report.report.summary;
+
+	$: page.subscribe(($page) => {
+		const { namespace, resource } = $page.params;
+		// Use namespace and resource if needed
+	});
+</script>
+
+<div class="p-2 sm:p-6">
+	<Breadcrumb>
+		<BreadcrumbItem href="/" home>Home</BreadcrumbItem>
+		<BreadcrumbItem href="/infraassessmentreports">Infra Assessment Reports</BreadcrumbItem>
+		<BreadcrumbItem>{report.metadata.name}</BreadcrumbItem>
+	</Breadcrumb>
+</div>
+
+<div class="">
+	<header class="mb-8">
+		<div class="mt-4 text-center">
+			<P size="xl" weight="bold" space="wide" height="loose" align="center"
+				>{report.metadata.namespace}/{report.metadata.name}</P
+			>
+			{#each Object.entries(report.report.summary) as [key, value]}
+				<Badge
+					color={key === 'criticalCount'
+						? 'red'
+						: key === 'highCount'
+							? 'orange'
+							: key === 'mediumCount'
+								? 'yellow'
+								: key === 'lowCount'
+									? 'green'
+									: key === 'noneCount'
+										? 'gray'
+										: 'blue'}
+				>
+					{`${key}: ${value}`}
+				</Badge>
+			{/each}
+		</div>
+	</header>
+
+	<main class="space-y-4">
+		<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+			{#each report.report.vulnerabilities as vuln}
+				<Card
+					class={vuln.severity === 'CRITICAL'
+						? 'bg-red-100'
+						: vuln.severity === 'HIGH'
+							? 'bg-orange-100'
+							: vuln.severity === 'MEDIUM'
+								? 'bg-yellow-100'
+								: vuln.severity === 'LOW'
+									? 'bg-green-100'
+									: 'bg-gray-100'}
+				>
+					<!-- Card Header: Vulnerability Title -->
+					<h5
+						class={vuln.severity === 'CRITICAL'
+							? 'mb-2 text-2xl font-bold tracking-tight text-red-900 dark:text-red-400'
+							: vuln.severity === 'HIGH'
+								? 'mb-2 text-2xl font-bold tracking-tight text-orange-900 dark:text-orange-400'
+								: vuln.severity === 'MEDIUM'
+									? 'mb-2 text-2xl font-bold tracking-tight text-yellow-900 dark:text-yellow-400'
+									: vuln.severity === 'LOW'
+										? 'mb-2 text-2xl font-bold tracking-tight text-green-900 dark:text-green-400'
+										: 'mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-400'}
+					>
+						{vuln.title}
+					</h5>
+
+					<!-- Card Body: Vulnerability Details -->
+					<p class="mb-3 font-normal leading-tight text-gray-700 dark:text-gray-400">
+						<strong>ID:</strong>
+						{vuln.vulnerabilityID} <br />
+						<strong>Package:</strong>
+						{vuln.resource} <br />
+						<strong>Installed:</strong>
+						{vuln.installedVersion} <br />
+						<strong>Fixed:</strong>
+						{vuln.fixedVersion || 'N/A'} <br />
+						<strong>Score:</strong>
+						{vuln.score} <br />
+						<strong>Severity:</strong>
+						{vuln.severity} <br />
+						<strong>Published:</strong>
+						{vuln.publishedDate}
+					</p>
+
+					<!-- Card Footer: Read More Button -->
+					<Button class="w-fit" onclick={() => window.open(vuln.primaryLink, '_blank')}>
+						Read more <ArrowRightOutline class="ms-2 h-3.5 w-3.5 text-white" />
+					</Button>
+				</Card>
+			{/each}
+		</div>
+	</main>
+</div>
+
+<style>
+</style>

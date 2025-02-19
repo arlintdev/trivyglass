@@ -1,0 +1,26 @@
+image:
+  # -- image repository
+  repository: registry1.dso.mil/cnap/trivy-glass
+  # -- image tag
+  tag: "latest"
+  # -- pull policy
+  pullPolicy: Always
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## Example:
+  ## pullSecrets:
+  ##   - name: myRegistryKeySecretName
+  # -- pull secrets
+  pullSecrets: []
+
+labels:
+
+settings:
+  cluster: "cnap"
+
+configMap:
+  enabled: false
+  name: apps-config
+  data: |
+  

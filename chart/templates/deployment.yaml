@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "trivy-glass.name" . }}
+  namespace: {{ include "trivy-glass.namespace" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "trivy-glass.name" . }}
+      instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "trivy-glass.name" . }}
+        instance: {{ .Release.Name }}
+        helm.sh/chart: {{ include "trivy-glass.chart" . }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        {{- if .Values.labels }}
+          {{- toYaml .Values.labels | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range . }}
+        - name: {{ .name }}
+      {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ include "trivy-glass.name" . }}
+          image: {{ .Values.image.repository | default "dashboard" }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: CLUSTER
+              value: {{ .Values.settings.cluster | default "default-cluster" | quote }}
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 3000
+          volumeMounts:
+            {{- if .Values.configMap.enabled }}
+            - name: apps-config-volume
+              mountPath: /var/www/html/config.json
+              subPath: config.json
+            {{- end }}
+      volumes:
+        {{- if .Values.configMap.enabled }}
+        - name: apps-config-volume
+          configMap:
+            name: {{ .Values.configMap.name }}
+        {{- end }}

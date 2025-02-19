@@ -39,7 +39,7 @@ build-push-image:
     # Build image and output tar
     - |
       /kaniko/executor \
-      --context docker/ \
+      --context . \
       --dockerfile Dockerfile \
       --destination $REGISTRY:$tag \
       --label "source=code.il4.dso.mil/cnap/dashboard" \

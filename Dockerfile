@@ -1,12 +1,12 @@
-FROM node:22 AS builder
+FROM registry1.dso.mil/ironbank/opensource/nodejs/nodejs-current:v22.10.0 AS builder
 WORKDIR /app
-COPY package*.json .
+COPY --chown=node:node package*.json .
 RUN npm ci
-COPY . .
+COPY --chown=node:node . .
 RUN npm run build
 RUN npm prune --production
 
-FROM node:22 
+FROM registry1.dso.mil/ironbank/opensource/nodejs/nodejs-current:v22.10.0 
 WORKDIR /app
 COPY --from=builder /app/build build/
 COPY --from=builder /app/node_modules node_modules/

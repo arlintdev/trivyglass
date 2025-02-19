@@ -21,9 +21,9 @@ build-push-image:
   stage: publish
   image:
     name: registry1.dso.mil/cnap/tool/kaniko:33cf33c-3852872
-    entrypoint: ['']
+    entrypoint: [ "" ]
   variables:
-    REGISTRY: registry1.dso.mil/cnap/dashboard-ui
+    REGISTRY: registry1.dso.mil/cnap/trivy-glass
   before_script:
     - mkdir -p /kaniko/.docker
     - echo "$DOCKER_AUTH_CONFIG_CNAP_WRITE" > /kaniko/.docker/config.json
@@ -39,6 +39,8 @@ build-push-image:
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
     - when: never
+
+
 
 # Prevent scanning pushes to Main as code has already been scanned on Merge Request
 svelte-lint:
@@ -67,7 +69,7 @@ clamav_scan:
       when: never
     - when: always
 
-kics-iac-sast:
+kics-iac-sast :
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

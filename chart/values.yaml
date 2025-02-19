@@ -18,6 +18,11 @@ labels:
 
 settings:
   cluster: "cnap"
+  
+serviceAccount:
+  create: true
+  name: trivy-glass
+  annotations: {}
 
 configMap:
   enabled: false

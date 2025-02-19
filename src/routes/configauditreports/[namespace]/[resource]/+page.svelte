@@ -12,10 +12,8 @@
 	} from 'svelte-5-ui-lib';
 	import { onMount } from 'svelte';
 
-	export let data: {
-		report: VulnerabilityReport;
-		clusterName: string;
-	};
+	const { data } = $props();
+	let { report } = data;
 
 	interface VulnerabilityReport {
 		metadata: { uid: string; name: string; namespace: string };
@@ -44,7 +42,6 @@
 	}
 
 	let searchTerm = '';
-	let { report } = data;
 	let filteredChecks = [];
 
 	const severityOrder = {
@@ -56,13 +53,15 @@
 		NONE: 6
 	};
 
-	$: filteredChecks = report.report.checks
-		.filter(
-			(check) =>
-				check.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				check.checkID.toLowerCase().includes(searchTerm.toLowerCase())
-		)
-		.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+	$effect(() => {
+		filteredChecks = report.report.checks
+			.filter(
+				(check) =>
+					check.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					check.checkID.toLowerCase().includes(searchTerm.toLowerCase())
+			)
+			.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+	});
 
 	import { Modal, uiHelpers } from 'svelte-5-ui-lib';
 	const modalExample = uiHelpers();
@@ -78,7 +77,9 @@
 		modalExample.open();
 	}
 
-	$: modalStatus = modalExample.isOpen;
+	$effect(() => {
+		modalStatus = modalExample.isOpen;
+	});
 </script>
 
 <div class="p-2 sm:p-6">

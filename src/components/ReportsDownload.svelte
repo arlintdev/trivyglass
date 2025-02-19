@@ -2,7 +2,7 @@
 	export let title: string;
 	export let clusterName: string;
 	export let summaryCounts: Record<string, number> = {};
-    export let showSummary = true;
+	export let showSummary = true;
 	import { Heading, P } from 'svelte-5-ui-lib';
 	function getTextColor(key: string) {
 		switch (key) {
@@ -27,11 +27,11 @@
 		{title}
 	</Heading>
 	<P align="center" class="text-xl font-bold">Cluster: {clusterName}</P>
-    {#if showSummary}
-        <div class="mt-4 flex justify-center space-x-4">
-            {#each Object.entries(summaryCounts) as [key, value]}
-                <p class={getTextColor(key)}>{key.replace('Count', '')}: {value}</p>
-            {/each}
-        </div>
-    {/if}
+	{#if showSummary}
+		<div class="mt-4 flex justify-center space-x-4">
+			{#each Object.entries(summaryCounts) as [key, value]}
+				<p class={getTextColor(key)}>{key.replace('Count', '')}: {value}</p>
+			{/each}
+		</div>
+	{/if}
 </header>

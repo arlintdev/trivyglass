@@ -8,7 +8,7 @@
 		Badge,
 		Breadcrumb,
 		BreadcrumbItem,
-		Button,
+		Button
 	} from 'svelte-5-ui-lib';
 	import { onMount } from 'svelte';
 
@@ -16,7 +16,7 @@
 		report: VulnerabilityReport;
 		clusterName: string;
 	};
-	
+
 	interface VulnerabilityReport {
 		metadata: { uid: string; name: string; namespace: string };
 		report: {
@@ -48,28 +48,29 @@
 	let filteredChecks = [];
 
 	const severityOrder = {
-		'CRITICAL': 1,
-		'HIGH': 2,
-		'MEDIUM': 3,
-		'LOW': 4,
-		'UNKNOWN': 5,
-		'NONE': 6
+		CRITICAL: 1,
+		HIGH: 2,
+		MEDIUM: 3,
+		LOW: 4,
+		UNKNOWN: 5,
+		NONE: 6
 	};
 
 	$: filteredChecks = report.report.checks
-		.filter((check) =>
-			check.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			check.checkID.toLowerCase().includes(searchTerm.toLowerCase())
+		.filter(
+			(check) =>
+				check.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				check.checkID.toLowerCase().includes(searchTerm.toLowerCase())
 		)
 		.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 
-		import { Modal, uiHelpers } from 'svelte-5-ui-lib';
-		const modalExample = uiHelpers();
-		let modalStatus = $state(false);
-		const closeModal = modalExample.close;
-		$effect(() => {
-			modalStatus = modalExample.isOpen;
-		});
+	import { Modal, uiHelpers } from 'svelte-5-ui-lib';
+	const modalExample = uiHelpers();
+	let modalStatus = $state(false);
+	const closeModal = modalExample.close;
+	$effect(() => {
+		modalStatus = modalExample.isOpen;
+	});
 	let selectedCheck: Check | null = null;
 
 	function openCheckModal(check: Check) {
@@ -77,22 +78,8 @@
 		modalExample.open();
 	}
 
-
-
 	$: modalStatus = modalExample.isOpen;
 </script>
-
-<style>
-	.table-full-width {
-		width: 100%;
-	}
-	.word-wrap {
-		word-wrap: break-word;
-	}
-	.overflow-auto {
-		overflow-x: auto;
-	}
-</style>
 
 <div class="p-2 sm:p-6">
 	<Breadcrumb>
@@ -106,7 +93,8 @@
 			class="table-full-width"
 			placeholder="Search checks by title or ID"
 			hoverable={true}
-			bind:inputValue={searchTerm}>
+			bind:inputValue={searchTerm}
+		>
 			<TableHead items={['Title', 'ID', 'Category', 'Severity', 'Status', 'Action']} />
 			<TableBody>
 				<TableBodyRow>
@@ -126,38 +114,38 @@
 						<TableBodyCell>{check.category}</TableBodyCell>
 						<TableBodyCell>
 							<Badge
-								color={
-									check.severity === 'CRITICAL'
-										? 'red'
-										: check.severity === 'HIGH'
+								color={check.severity === 'CRITICAL'
+									? 'red'
+									: check.severity === 'HIGH'
 										? 'orange'
 										: check.severity === 'MEDIUM'
-										? 'yellow'
-										: check.severity === 'LOW'
-										? 'green'
-										: 'gray'
-								}>
+											? 'yellow'
+											: check.severity === 'LOW'
+												? 'green'
+												: 'gray'}
+							>
 								{check.severity}
 							</Badge>
 						</TableBodyCell>
 						<TableBodyCell>{check.success ? 'Passed' : 'Failed'}</TableBodyCell>
 						<TableBodyCell>
-							<Button
-								size="sm"
-								onclick={() => openCheckModal(check)}>
-								Details
-							</Button>
+							<Button size="sm" onclick={() => openCheckModal(check)}>Details</Button>
 						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>
 		</TableSearch>
 	</div>
-	<Modal title="Check Details" {modalStatus} {closeModal}>
-		Modal content
-	  </Modal>
+	<Modal title="Check Details" {modalStatus} {closeModal}>Modal content</Modal>
 </div>
-<Modal title="Check Details" {modalStatus} {closeModal} size="xl" outsideClose={false} params={{ duration: 500 }}>
+<Modal
+	title="Check Details"
+	{modalStatus}
+	{closeModal}
+	size="xl"
+	outsideClose={false}
+	params={{ duration: 500 }}
+>
 	{#if selectedCheck}
 		<pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
 			<strong>Title:</strong> {selectedCheck.title}
@@ -170,3 +158,15 @@
 		</pre>
 	{/if}
 </Modal>
+
+<style>
+	.table-full-width {
+		width: 100%;
+	}
+	.word-wrap {
+		word-wrap: break-word;
+	}
+	.overflow-auto {
+		overflow-x: auto;
+	}
+</style>

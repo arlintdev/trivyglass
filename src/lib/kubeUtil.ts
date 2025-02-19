@@ -1,9 +1,21 @@
-// src/lib/kubeUtils.ts
 import { KubeConfig, CustomObjectsApi } from '@kubernetes/client-node';
 
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+}
 
+const cache: Record<string, CacheEntry> = {};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export async function loadReports(crdPlural: string) {
+  const now = Date.now();
+  if (cache[crdPlural] && (now - cache[crdPlural].timestamp < CACHE_DURATION)) {
+    console.log(`Using cache for ${crdPlural}`);
+    return cache[crdPlural].data;
+  }
+
+  console.log(`Renewing cache for ${crdPlural}`);
   const kc = new KubeConfig();
   let clusterName = 'Unknown Cluster';
 
@@ -26,8 +38,13 @@ export async function loadReports(crdPlural: string) {
       plural: crdPlural
     });
     const items = (result as any).items || [];
-    return { reports: items, clusterName };
+    const data = { reports: items, clusterName };
+    cache[crdPlural] = { data, timestamp: now };
+    return data;
   } catch (err: any) {
-    return { reports: [], error: err.message, clusterName };
+    console.log(`Error fetching ${crdPlural}: ${err.message}`);
+    const data = { reports: [], error: err.message, clusterName };
+    cache[crdPlural] = { data, timestamp: now };
+    return data;
   }
 }

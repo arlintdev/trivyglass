@@ -1,9 +1,10 @@
 <script lang="ts">
 	import ReportHeader from '../../components/ReportHeader.svelte';
 	import ReportTable from '../../components/ReportTable.svelte';
-
+	import { P } from 'svelte-5-ui-lib';
 	export let data: {
 		reports: any[];
+		error: any;
 		clusterName: string;
 	};
 
@@ -17,18 +18,22 @@
 	};
 </script>
 
-<ReportHeader
-	title="Cluster Compliance Reports"
-	clusterName={data.clusterName}
-	showSummary={false}
-/>
-<ReportTable
-	reports={data.reports}
-	reportType="clustercompliancereports"
-	columns={[
-		{ header: 'Fail Count', value: 'status.summary.failCount', color: 'red' },
-		{ header: 'Pass Count', value: 'status.summary.passCount', color: 'green' }
-	]}
-	showSummary={false}
-	showNamespace={false}
-/>
+{#if data.error}
+	<P class="error">There was an error fetching the data: {data.error}</P>
+{:else}
+	<ReportHeader
+		title="Cluster Compliance Reports"
+		clusterName={data.clusterName}
+		showSummary={false}
+	/>
+	<ReportTable
+		reports={data.reports}
+		reportType="clustercompliancereports"
+		columns={[
+			{ header: 'Fail Count', value: 'status.summary.failCount', color: 'red' },
+			{ header: 'Pass Count', value: 'status.summary.passCount', color: 'green' }
+		]}
+		showSummary={false}
+		showNamespace={false}
+	/>
+{/if}

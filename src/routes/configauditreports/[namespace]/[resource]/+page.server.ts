@@ -25,16 +25,11 @@ export const load: PageServerLoad = async ({ params }) => {
 
   const CRD_GROUP = 'aquasecurity.github.io';
   const CRD_VERSION = 'v1alpha1';
-  const CRD_PLURAL = 'infraassessmentreports';
+  const CRD_PLURAL = 'configauditreports';
 
   try {
-    const result = await customObjectsApi.getNamespacedCustomObject({
-      group: CRD_GROUP,
-      version: CRD_VERSION,
-      namespace,
-      plural: CRD_PLURAL,
-      name: resource
-    });
+    const result = await customObjectsApi.getNamespacedCustomObject({ group: CRD_GROUP, version: CRD_VERSION, namespace, plural: CRD_PLURAL, name: resource }
+    );
     const report = result;
     return { report, clusterName };
   } catch (err: any) {

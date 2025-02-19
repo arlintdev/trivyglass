@@ -1,11 +1,18 @@
 <script lang="ts">
-  // Use $props() for runes mode
   let { reports = [], reportType, showSummary = true, showNamespace = true, columns = [] } = $props();
 
-  import { Table, TableHead, TableBody, TableBodyRow, TableBodyCell, TableHeadCell } from 'svelte-5-ui-lib';
-  import { Badge, Button } from 'svelte-5-ui-lib';
-  import { P } from 'svelte-5-ui-lib';
-  import { Modal, uiHelpers } from 'svelte-5-ui-lib';
+  import {
+    TableSearch,
+    TableHead,
+    TableBody,
+    TableBodyRow,
+    TableBodyCell,
+    Badge,
+    Button,
+    P,
+    Modal,
+    uiHelpers
+  } from 'svelte-5-ui-lib';
 
   const modalExample = uiHelpers();
   let modalStatus = $state(false);
@@ -15,7 +22,6 @@
   });
 
   let selectedReport: any = null;
-
   function openJsonModal(report: any) {
     selectedReport = report;
     modalExample.toggle();
@@ -47,24 +53,45 @@
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  // Search functionality
+  let searchTerm = $state("");
+  let filteredReports = $derived(
+    reports.filter(report => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      let values = [];
+      if (showNamespace) values.push(report.metadata.namespace);
+      values.push(report.metadata.name);
+      columns.forEach(column => {
+        const value = column.value.includes('.')
+          ? get(report, column.value)
+          : report[column.value];
+        values.push(value);
+      });
+      return values.some(val => String(val).toLowerCase().includes(term));
+    })
+  );
+
+  // Compute table headers
+  let headItems = [];
+  if (showNamespace) headItems.push("Namespace");
+  headItems.push("Name");
+  for (let column of columns) {
+    headItems.push(column.header);
+  }
+  headItems.push("Actions");
 </script>
 
 {#if reports.length === 0}
   <P class="text-center">No {reportType} reports found.</P>
+{:else if filteredReports.length === 0}
+  <P class="text-center">No matching {reportType} reports found.</P>
 {:else}
-  <Table>
-    <TableHead>
-      {#if showNamespace}
-        <TableHeadCell>Namespace</TableHeadCell>
-      {/if}
-      <TableHeadCell>Name</TableHeadCell>
-      {#each columns as column}
-        <TableHeadCell>{column.header}</TableHeadCell>
-      {/each}
-      <TableHeadCell>Actions</TableHeadCell>
-    </TableHead>
+  <TableSearch placeholder="Search reports" hoverable={true} bind:inputValue={searchTerm}>
+    <TableHead {headItems} />
     <TableBody>
-      {#each reports as report (report.metadata.uid)}
+      {#each filteredReports as report (report.metadata.uid)}
         <TableBodyRow>
           {#if showNamespace}
             <TableBodyCell>{report.metadata.namespace}</TableBodyCell>
@@ -91,7 +118,7 @@
               {/if}
             </TableBodyCell>
           {/each}
-          <TableBodyCell class="flex space-x-2">
+          <TableBodyCell>
             <Button href={`/${reportType}/${report.metadata.namespace}/${report.metadata.name}`} color="blue" size="sm">
               View Details
             </Button>
@@ -105,13 +132,13 @@
         </TableBodyRow>
       {/each}
     </TableBody>
-  </Table>
+  </TableSearch>
 {/if}
 
 <Modal title="Report JSON" {modalStatus} {closeModal}
-size="xl"
-outsideClose={false}
-params={{duration:500}}
+  size="xl"
+  outsideClose={false}
+  params={{ duration: 500 }}
 >
   {#if selectedReport}
     <pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">

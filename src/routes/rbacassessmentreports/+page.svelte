@@ -27,4 +27,9 @@
 </script>
 
 <ReportHeader title="RBAC Assessment Reports" clusterName={data.clusterName} summaryCounts={summaryCounts} />
-<ReportTable reports={data.reports} reportType="rbacassessmentreports" />
+<ReportTable reports={data.reports} reportType="rbacassessmentreports" columns={[
+  { header: 'Critical', value: 'report.summary.criticalCount', color: 'red' },
+  { header: 'High', value: 'report.summary.highCount', color: 'orange' },
+  { header: 'Medium', value: 'report.summary.mediumCount', color: 'yellow' },
+  { header: 'Low', value: 'report.summary.lowCount', color: 'green' },
+]} />

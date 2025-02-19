@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Navbar, NavBrand, NavUl, NavLi, uiHelpers, NavHamburger, Dropdown, DropdownHeader, DropdownUl, DropdownLi, Avatar, DropdownFooter } from 'svelte-5-ui-lib';
+  import { MegaMenu, Navbar, NavBrand, NavUl, NavLi, uiHelpers, NavHamburger, Dropdown, DropdownHeader, DropdownUl, DropdownLi, Avatar, DropdownFooter } from 'svelte-5-ui-lib';
+  import { ChevronDownOutline } from "flowbite-svelte-icons";
   import { page } from "$app/stores";
   let activeUrl = $state($page.url.pathname);
   import { sineIn } from "svelte/easing";
@@ -9,6 +10,27 @@
   let dropdownUser = uiHelpers();
   let dropdownUserStatus = $state(false);
   let closeDropdownUser = dropdownUser.close;
+  let menu = [
+    { name: "About us", href: "/about" },
+    { name: "Blog", href: "/blog" },
+    { name: "Contact us", href: "/contact" },
+    { name: "Library", href: "/library" },
+    { name: "Newsletter", href: "/news" },
+    { name: "Support Center", href: "/support" },
+    { name: "Resources", href: "/resource" },
+    { name: "Playground", href: "/play" },
+    { name: "Terms", href: "/terms" },
+    { name: "Pro Version", href: "/pro" },
+    { name: "License", href: "/license" }
+  ];
+  let closeNav = nav.close;
+  let mega = uiHelpers();
+  let megaStatus = $state(false);
+  const toggleMega = mega.toggle;
+  $effect(() => {
+    navStatus = nav.isOpen;
+    megaStatus = mega.isOpen;
+  });
   import { Darkmode } from 'svelte-5-ui-lib';
   $effect(() => {
     dropdownUserStatus = dropdownUser.isOpen;
@@ -32,8 +54,15 @@
       </div>
     {/snippet}
     <NavUl class="order-1" {activeUrl}>
-      <NavLi href="/">Dashboard</NavLi>
+      <NavLi href="/">.</NavLi>
 
     </NavUl>
   </Navbar>
+  <div class="relative">
+    <MegaMenu items={menu} dropdownStatus={megaStatus} class="absolute -top-[20px] left-[300px] w-[400px]">
+      {#snippet children(prop)}
+        <a href={prop.item.href} class="hover:text-primary-600 dark:hover:text-primary-500">{prop.item.name}</a>
+      {/snippet}
+    </MegaMenu>
+  </div>
 </div>

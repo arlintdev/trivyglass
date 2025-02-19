@@ -1,143 +1,172 @@
 <script lang="ts">
 	import {
-		Table,
+		TableSearch,
 		TableHead,
 		TableBody,
 		TableBodyRow,
 		TableBodyCell,
-		TableHeadCell
+		Badge,
+		Breadcrumb,
+		BreadcrumbItem,
+		Button,
 	} from 'svelte-5-ui-lib';
-	import { Badge } from 'svelte-5-ui-lib';
-	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
-	import { Card, Button } from 'svelte-5-ui-lib';
-	import { ArrowRightOutline } from 'flowbite-svelte-icons';
-	import { P } from 'svelte-5-ui-lib';
 
 	export let data: {
-		report: InfraAssessmentReport;
+		report: VulnerabilityReport;
 		clusterName: string;
 	};
-
-	interface InfraAssessmentReport {
-		metadata: {
-			uid: string;
-			name: string;
-			namespace: string;
-		};
+	
+	interface VulnerabilityReport {
+		metadata: { uid: string; name: string; namespace: string };
 		report: {
+			checks: Check[];
+			scanner: { name: string; vendor: string; version: string };
 			summary: {
-				CRITICALCount: number;
-				HIGHCount: number;
-				MEDIUMCount: number;
+				criticalCount: number;
+				highCount: number;
+				mediumCount: number;
 				lowCount: number;
-				noneCount: number;
-				unknownCount: number;
 			};
+			updateTimestamp: string;
 		};
 	}
 
-	const { report, clusterName } = data;
+	interface Check {
+		category: string;
+		checkID: string;
+		description: string;
+		messages: string[];
+		remediation: string;
+		severity: string;
+		success: boolean;
+		title: string;
+	}
 
-	let summaryCounts = report.report.summary;
+	let searchTerm = '';
+	let { report } = data;
+	let filteredChecks = [];
 
-	$: page.subscribe(($page) => {
-		const { namespace, resource } = $page.params;
-		// Use namespace and resource if needed
-	});
+	const severityOrder = {
+		'CRITICAL': 1,
+		'HIGH': 2,
+		'MEDIUM': 3,
+		'LOW': 4,
+		'UNKNOWN': 5,
+		'NONE': 6
+	};
+
+	$: filteredChecks = report.report.checks
+		.filter((check) =>
+			check.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			check.checkID.toLowerCase().includes(searchTerm.toLowerCase())
+		)
+		.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+		import { Modal, uiHelpers } from 'svelte-5-ui-lib';
+		const modalExample = uiHelpers();
+		let modalStatus = $state(false);
+		const closeModal = modalExample.close;
+		$effect(() => {
+			modalStatus = modalExample.isOpen;
+		});
+	let selectedCheck: Check | null = null;
+
+	function openCheckModal(check: Check) {
+		selectedCheck = check;
+		modalExample.open();
+	}
+
+
+
+	$: modalStatus = modalExample.isOpen;
 </script>
+
+<style>
+	.table-full-width {
+		width: 100%;
+	}
+	.word-wrap {
+		word-wrap: break-word;
+	}
+	.overflow-auto {
+		overflow-x: auto;
+	}
+</style>
 
 <div class="p-2 sm:p-6">
 	<Breadcrumb>
 		<BreadcrumbItem href="/" home>Home</BreadcrumbItem>
-		<BreadcrumbItem href="/infraassessmentreports">Infra Assessment Reports</BreadcrumbItem>
+		<BreadcrumbItem href="/securitychecks">Security Checks</BreadcrumbItem>
 		<BreadcrumbItem>{report.metadata.name}</BreadcrumbItem>
 	</Breadcrumb>
+
+	<div class="overflow-auto">
+		<TableSearch
+			class="table-full-width"
+			placeholder="Search checks by title or ID"
+			hoverable={true}
+			bind:inputValue={searchTerm}>
+			<TableHead items={['Title', 'ID', 'Category', 'Severity', 'Status', 'Action']} />
+			<TableBody>
+				<TableBodyRow>
+					<TableBodyCell><strong>Title</strong></TableBodyCell>
+					<TableBodyCell><strong>ID</strong></TableBodyCell>
+					<TableBodyCell><strong>Category</strong></TableBodyCell>
+					<TableBodyCell><strong>Severity</strong></TableBodyCell>
+					<TableBodyCell><strong>Status</strong></TableBodyCell>
+					<TableBodyCell><strong>Action</strong></TableBodyCell>
+				</TableBodyRow>
+				{#each filteredChecks as check}
+					<TableBodyRow>
+						<TableBodyCell>
+							{check.title.length > 50 ? check.title.slice(0, 50) + '...' : check.title}
+						</TableBodyCell>
+						<TableBodyCell>{check.checkID}</TableBodyCell>
+						<TableBodyCell>{check.category}</TableBodyCell>
+						<TableBodyCell>
+							<Badge
+								color={
+									check.severity === 'CRITICAL'
+										? 'red'
+										: check.severity === 'HIGH'
+										? 'orange'
+										: check.severity === 'MEDIUM'
+										? 'yellow'
+										: check.severity === 'LOW'
+										? 'green'
+										: 'gray'
+								}>
+								{check.severity}
+							</Badge>
+						</TableBodyCell>
+						<TableBodyCell>{check.success ? 'Passed' : 'Failed'}</TableBodyCell>
+						<TableBodyCell>
+							<Button
+								size="sm"
+								onclick={() => openCheckModal(check)}>
+								Details
+							</Button>
+						</TableBodyCell>
+					</TableBodyRow>
+				{/each}
+			</TableBody>
+		</TableSearch>
+	</div>
+	<Modal title="Check Details" {modalStatus} {closeModal}>
+		Modal content
+	  </Modal>
 </div>
-
-<div class="">
-	<header class="mb-8">
-		<div class="mt-4 text-center">
-			<P size="xl" weight="bold" space="wide" height="loose" align="center"
-				>{report.metadata.namespace}/{report.metadata.name}</P
-			>
-			{#each Object.entries(report.report.summary) as [key, value]}
-				<Badge
-					color={key === 'criticalCount'
-						? 'red'
-						: key === 'highCount'
-							? 'orange'
-							: key === 'mediumCount'
-								? 'yellow'
-								: key === 'lowCount'
-									? 'green'
-									: key === 'noneCount'
-										? 'gray'
-										: 'blue'}
-				>
-					{`${key}: ${value}`}
-				</Badge>
-			{/each}
-		</div>
-	</header>
-
-	<main class="space-y-4">
-		<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-			{#each report.report.vulnerabilities as vuln}
-				<Card
-					class={vuln.severity === 'CRITICAL'
-						? 'bg-red-100'
-						: vuln.severity === 'HIGH'
-							? 'bg-orange-100'
-							: vuln.severity === 'MEDIUM'
-								? 'bg-yellow-100'
-								: vuln.severity === 'LOW'
-									? 'bg-green-100'
-									: 'bg-gray-100'}
-				>
-					<!-- Card Header: Vulnerability Title -->
-					<h5
-						class={vuln.severity === 'CRITICAL'
-							? 'mb-2 text-2xl font-bold tracking-tight text-red-900 dark:text-red-400'
-							: vuln.severity === 'HIGH'
-								? 'mb-2 text-2xl font-bold tracking-tight text-orange-900 dark:text-orange-400'
-								: vuln.severity === 'MEDIUM'
-									? 'mb-2 text-2xl font-bold tracking-tight text-yellow-900 dark:text-yellow-400'
-									: vuln.severity === 'LOW'
-										? 'mb-2 text-2xl font-bold tracking-tight text-green-900 dark:text-green-400'
-										: 'mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-400'}
-					>
-						{vuln.title}
-					</h5>
-
-					<!-- Card Body: Vulnerability Details -->
-					<p class="mb-3 font-normal leading-tight text-gray-700 dark:text-gray-400">
-						<strong>ID:</strong>
-						{vuln.vulnerabilityID} <br />
-						<strong>Package:</strong>
-						{vuln.resource} <br />
-						<strong>Installed:</strong>
-						{vuln.installedVersion} <br />
-						<strong>Fixed:</strong>
-						{vuln.fixedVersion || 'N/A'} <br />
-						<strong>Score:</strong>
-						{vuln.score} <br />
-						<strong>Severity:</strong>
-						{vuln.severity} <br />
-						<strong>Published:</strong>
-						{vuln.publishedDate}
-					</p>
-
-					<!-- Card Footer: Read More Button -->
-					<Button class="w-fit" onclick={() => window.open(vuln.primaryLink, '_blank')}>
-						Read more <ArrowRightOutline class="ms-2 h-3.5 w-3.5 text-white" />
-					</Button>
-				</Card>
-			{/each}
-		</div>
-	</main>
-</div>
-
-<style>
-</style>
+<Modal title="Check Details" {modalStatus} {closeModal} size="xl" outsideClose={false} params={{ duration: 500 }}>
+	{#if selectedCheck}
+		<pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+			<strong>Title:</strong> {selectedCheck.title}
+			<br />
+			<strong>Description:</strong> {selectedCheck.description}
+			<br />
+			<strong>Remediation:</strong> {selectedCheck.remediation}
+			<br />
+			<strong>Messages:</strong> {selectedCheck.messages.join(', ')}
+		</pre>
+	{/if}
+</Modal>

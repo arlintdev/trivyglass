@@ -72,42 +72,107 @@
 
   // Search functionality
   let searchTerm = $state(''); // Simple state for search term
-  
+
+  // Sorting state
+  let sortColumn = $state(''); // Column to sort by (e.g., 'Namespace / Name', or a column header)
+  let sortDirection = $state('asc'); // 'asc' or 'desc'
+
+  // Utility function to compare values for sorting, now handling numbers correctly
+  function compareValues(a: any, b: any, column: string, direction: 'asc' | 'desc') {
+    let valueA, valueB;
+
+    if (column === 'Namespace / Name') {
+      // Sort by namespace first, then name
+      valueA = `${a.metadata?.namespace || ''}:${a.metadata?.name || ''}`;
+      valueB = `${b.metadata?.namespace || ''}:${b.metadata?.name || ''}`;
+    } else {
+      // Find the column in tableColumns to get the value path
+      const col = tableColumns.find((c) => c.header === column);
+      if (col) {
+        valueA = col.value.includes('.') ? get(a, col.value) : a[col.value];
+        valueB = col.value.includes('.') ? get(b, col.value) : b[col.value];
+      } else {
+        return 0; // No sorting if column not found
+      }
+    }
+
+    // Handle undefined or null values
+    if (valueA === undefined || valueA === null) valueA = '';
+    if (valueB === undefined || valueB === null) valueB = '';
+
+    // Check if values are numeric (including integers and floats)
+    const isNumericA = !isNaN(Number(valueA)) && typeof valueA !== 'boolean';
+    const isNumericB = !isNaN(Number(valueB)) && typeof valueB !== 'boolean';
+
+    if (isNumericA && isNumericB) {
+      // Sort as numbers
+      const numA = Number(valueA);
+      const numB = Number(valueB);
+      if (numA < numB) return direction === 'asc' ? -1 : 1;
+      if (numA > numB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    } else {
+      // Sort as strings (for non-numeric values)
+      valueA = String(valueA).toLowerCase();
+      valueB = String(valueB).toLowerCase();
+
+      if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+      if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    }
+  }
+
+  // Filtered and sorted reports
   let filteredReports = $derived(
-    reports.filter((report) => {
-      if (!searchTerm) return true;
-      const term = searchTerm.toLowerCase();
-      let values: any[] = [];
-      
-      if (showNamespace && report.metadata?.namespace) {
-        values.push(report.metadata.namespace);
-      }
-      if (report.metadata?.name) {
-        values.push(report.metadata.name);
-      }
-      
-      tableColumns.forEach((column) => {
-        const value = column.value.includes('.') 
-          ? get(report, column.value) 
-          : report[column.value];
-        if (value !== undefined && value !== null) {
-          values.push(value);
+    reports
+      .filter((report) => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        let values: any[] = [];
+        
+        if (showNamespace && report.metadata?.namespace) {
+          values.push(report.metadata.namespace);
         }
-      });
-      
-      return values.some((val) => 
-        String(val).toLowerCase().includes(term)
-      );
-    })
+        if (report.metadata?.name) {
+          values.push(report.metadata.name);
+        }
+        
+        tableColumns.forEach((column) => {
+          const value = column.value.includes('.') 
+            ? get(report, column.value) 
+            : report[column.value];
+          if (value !== undefined && value !== null) {
+            values.push(value);
+          }
+        });
+        
+        return values.some((val) => 
+          String(val).toLowerCase().includes(term)
+        );
+      })
+      .sort((a, b) => {
+        if (!sortColumn) return 0;
+        return compareValues(a, b, sortColumn, sortDirection);
+      })
   );
 
-  // Compute table headers
+  // Compute table headers with sorting
   let headItems = [];
   headItems.push('Namespace / Name');
   for (let column of tableColumns) {
     headItems.push(column.header);
   }
   headItems.push('Actions');
+
+  // Function to toggle sorting
+  function toggleSort(column: string) {
+    if (sortColumn === column) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = column;
+      sortDirection = 'asc';
+    }
+  }
 
   // Tight table styling
   const tightTableClasses = {
@@ -127,7 +192,23 @@
       placeholder="Search reports" 
       hoverable={true} 
       bind:inputValue={searchTerm}>
-      <TableHead {headItems} />
+      <TableHead>
+        {#each headItems as header, index}
+          <th 
+            on:click={() => toggleSort(header)}
+            class="px-2 py-1 text-sm cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            <div class="flex items-center gap-1">
+              {header}
+              {#if sortColumn === header}
+                {sortDirection === 'asc' ? '▲' : '▼'}
+              {:else}
+                <!-- nothing -->
+              {/if}
+            </div>
+          </th>
+        {/each}
+      </TableHead>
       <TableBody class={tightTableClasses.table}>
         {#if filteredReports.length === 0}
           <TableBodyRow>

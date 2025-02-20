@@ -6,6 +6,7 @@
 		reports: any[];
 		error: any;
 		clusterName: string;
+		columns: any[];
 	};
 
 	let summaryCounts = {
@@ -29,10 +30,7 @@
 	<ReportTable
 		reports={data.reports}
 		reportType="clustercompliancereports"
-		columns={[
-			{ header: 'Fail Count', value: 'status.summary.failCount', color: 'red' },
-			{ header: 'Pass Count', value: 'status.summary.passCount', color: 'green' }
-		]}
+		columns= {data.columns}
 		showSummary={false}
 		showNamespace={false}
 	/>

@@ -5,6 +5,7 @@
 	export let data: {
 		reports: any[];
 		clusterName: string;
+		columns: any[];
 	};
 
 	let summaryCounts = {
@@ -27,4 +28,4 @@
 </script>
 
 <ReportHeader title="SBOM Reports" clusterName={data.clusterName} {summaryCounts} />
-<ReportTable reports={data.reports} reportType="sbombreports" />
+<ReportTable reports={data.reports} reportType="sbombreports" 	columns={data.columns}/>

@@ -16,7 +16,7 @@ RUN npm prune --production
 FROM registry1.dso.mil/ironbank/opensource/nodejs/nodejs-current:v22.10.0 
 # Update OS libraries in the runtime image
 USER root
-RUN microdnf update -y krb5-libs openssl-libs && microdnf clean all
+RUN microdnf update -y && microdnf clean all
 
 USER node
 WORKDIR /app

@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const CRD_GROUP = 'aquasecurity.github.io';
 	const CRD_VERSION = 'v1alpha1';
-	const CRD_PLURAL = 'infraassessmentreports';
+	const CRD_PLURAL = 'rbacassessmentreports';
 
 	try {
 		const result = await customObjectsApi.getNamespacedCustomObject({

@@ -103,8 +103,7 @@
 
   // Compute table headers
   let headItems = [];
-  if (showNamespace) headItems.push('Namespace');
-  headItems.push('Name');
+  headItems.push('Namespace / Name');
   for (let column of tableColumns) {
     headItems.push(column.header);
   }
@@ -139,14 +138,11 @@
         {:else}
           {#each filteredReports as report (report.metadata.uid)}
             <TableBodyRow class="cursor-pointer">
-              {#if showNamespace}
-                <TableBodyCell class={tightTableClasses.cell}>
-                  <span title={report.metadata.namespace}>
-                    {report.metadata.namespace || 'N/A'}
-                  </span>
-                </TableBodyCell>
-              {/if}
               <TableBodyCell class={tightTableClasses.cell}>
+                <span title={report.metadata.namespace}>
+                  {report.metadata.namespace || 'N/A'}
+                </span>
+                <br />
                 <span title={report.metadata.name}>
                   {report.metadata.name}
                 </span>

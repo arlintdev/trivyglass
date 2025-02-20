@@ -154,7 +154,7 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
             plural: 'customresourcedefinitions',
             name: crdName,
         });
-        console.log(crdResult);
+
         const crdSpec = (crdResult as any).spec;
         if (!crdSpec) {
             throw new Error(`CRD ${crdName} did not return a valid spec`);

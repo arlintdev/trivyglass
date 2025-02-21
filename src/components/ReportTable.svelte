@@ -9,7 +9,8 @@
     Button,
     P,
     Modal,
-    uiHelpers
+    uiHelpers,
+    ButtonGroup // Assuming this exists in svelte-5-ui-lib
   } from 'svelte-5-ui-lib';
 
   let {
@@ -82,43 +83,32 @@
     let valueA, valueB;
 
     if (column === 'Namespace / Name') {
-      // Sort by namespace first, then name
       valueA = `${a.metadata?.namespace || ''}:${a.metadata?.name || ''}`;
       valueB = `${b.metadata?.namespace || ''}:${b.metadata?.name || ''}`;
     } else {
-      // Find the column in tableColumns to get the value path
       const col = tableColumns.find((c) => c.header === column);
       if (col) {
         valueA = col.value.includes('.') ? get(a, col.value) : a[col.value];
         valueB = col.value.includes('.') ? get(b, col.value) : b[col.value];
       } else {
-        return 0; // No sorting if column not found
+        return 0;
       }
     }
 
-    // Handle undefined or null values
     if (valueA === undefined || valueA === null) valueA = '';
     if (valueB === undefined || valueB === null) valueB = '';
 
-    // Check if values are numeric (including integers and floats)
     const isNumericA = !isNaN(Number(valueA)) && typeof valueA !== 'boolean';
     const isNumericB = !isNaN(Number(valueB)) && typeof valueB !== 'boolean';
 
     if (isNumericA && isNumericB) {
-      // Sort as numbers
       const numA = Number(valueA);
       const numB = Number(valueB);
-      if (numA < numB) return direction === 'asc' ? -1 : 1;
-      if (numA > numB) return direction === 'asc' ? 1 : -1;
-      return 0;
+      return direction === 'asc' ? numA - numB : numB - numA;
     } else {
-      // Sort as strings (for non-numeric values)
       valueA = String(valueA).toLowerCase();
       valueB = String(valueB).toLowerCase();
-
-      if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-      if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-      return 0;
+      return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
     }
   }
 
@@ -182,18 +172,111 @@
     badge: 'py-0.5 px-1 text-xs',
     button: 'py-1 px-2 text-xs'
   };
+
+  // Export functions
+  function escapeCsvValue(value: any): string {
+    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return String(value);
+  }
+
+  function generateCsv(): string {
+    const headers = ['Namespace', 'Name', ...tableColumns.map(col => col.header)];
+    const rows = filteredReports.map(report => [
+      report.metadata.namespace || '',
+      report.metadata.name,
+      ...tableColumns.map(col => get(report, col.value) || '')
+    ]);
+    return [
+      headers.map(escapeCsvValue).join(','),
+      ...rows.map(row => row.map(escapeCsvValue).join(','))
+    ].join('\n');
+  }
+
+  function generateMarkdown(): string {
+    const headers = ['Namespace', 'Name', ...tableColumns.map(col => col.header)];
+    const rows = filteredReports.map(report => [
+      report.metadata.namespace || '',
+      report.metadata.name,
+      ...tableColumns.map(col => get(report, col.value) || '')
+    ]);
+    return [
+      '| ' + headers.join(' | ') + ' |',
+      '| ' + headers.map(() => '---').join(' | ') + ' |',
+      ...rows.map(row => '| ' + row.join(' | ') + ' |')
+    ].join('\n');
+  }
+
+  function generateJson(): string {
+    const data = filteredReports.map(report => ({
+      Namespace: report.metadata.namespace || '',
+      Name: report.metadata.name,
+      ...Object.fromEntries(tableColumns.map(col => [col.header, get(report, col.value) || '']))
+    }));
+    return JSON.stringify(data, null, 2);
+  }
+
+  function downloadFile(content: string, filename: string, mimeType: string) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportData(format: string) {
+    let content: string, filename: string, mimeType: string;
+    switch (format) {
+      case 'csv':
+        content = generateCsv();
+        filename = 'reports.csv';
+        mimeType = 'text/csv';
+        break;
+      case 'markdown':
+        content = generateMarkdown();
+        filename = 'reports.md';
+        mimeType = 'text/markdown';
+        break;
+      case 'json':
+        content = generateJson();
+        filename = 'reports.json';
+        mimeType = 'application/json';
+        break;
+      default:
+        return;
+    }
+    downloadFile(content, filename, mimeType);
+  }
+
+  function generateLink(report: any) {
+    if (report.metadata.namespace) {
+      return `/${reportType}/namespace/${report.metadata.namespace}/${report.metadata.name}`;
+    } else {
+      return `/${reportType}/cluster/${report.metadata.name}`;
+    }
+  }
 </script>
 
 {#if reports.length === 0}
   <P class="text-center">No {reportType} reports found.</P>
 {:else}
-  <div class={tightTableClasses.wrapper}> 
+  <div class={tightTableClasses.wrapper}>
+    <div class="mb-4 flex justify-end">
+      <ButtonGroup>
+        <Button onclick={() => exportData('csv')}>CSV</Button>
+        <Button onclick={() => exportData('markdown')}>Markdown</Button>
+        <Button onclick={() => exportData('json')}>JSON</Button>
+      </ButtonGroup>
+    </div>
     <TableSearch 
       placeholder="Search reports" 
       hoverable={true} 
       bind:inputValue={searchTerm}>
       <TableHead>
-        {#each headItems as header, index}
+        {#each headItems as header}
           <th 
             on:click={() => toggleSort(header)}
             class="px-2 py-1 text-sm cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -202,8 +285,6 @@
               {header}
               {#if sortColumn === header}
                 {sortDirection === 'asc' ? '▲' : '▼'}
-              {:else}
-                <!-- nothing -->
               {/if}
             </div>
           </th>
@@ -254,7 +335,7 @@
               <TableBodyCell class={tightTableClasses.cell}>
                 <div class="flex flex-wrap gap-1">
                   <Button
-                    href={`/${reportType}/${report.metadata.namespace}/${report.metadata.name}`}
+                    href={generateLink(report)}
                     color="blue"
                     size="sm"
                     class={tightTableClasses.button}
@@ -286,7 +367,6 @@
     </TableSearch>
   </div>
 {/if}
-
 <Modal
   title="Report JSON"
   {modalStatus}

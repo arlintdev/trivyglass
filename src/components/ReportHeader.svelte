@@ -1,9 +1,9 @@
 <script lang="ts">
 	export let title: string;
-	export let clusterName: string;
+	export let name: string | null;
 	export let summaryCounts: Record<string, number> = {};
 	export let showSummary = true;
-	import { Heading, P } from 'svelte-5-ui-lib';
+	import { Heading, P, Popover, Button, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
 	function getTextColor(key: string) {
 		switch (key) {
 			case 'criticalCount':
@@ -21,14 +21,19 @@
 		}
 	}
 </script>
-
-<header class="mb-8 text-center">
+<Breadcrumb>
+	<BreadcrumbItem href="/" home>Home</BreadcrumbItem>
+	<BreadcrumbItem href="/{title}">{title}</BreadcrumbItem>
+	{#if name}
+		<BreadcrumbItem href="/{title}/{name}">{name}</BreadcrumbItem>
+	{/if}
+</Breadcrumb>
+<header class="mb-8">
 	<Heading tag="h1" class="text-primary-700 dark:text-primary-500">
 		{title}
 	</Heading>
-	<P align="center" class="text-xl font-bold">Cluster: {clusterName}</P>
 	{#if showSummary}
-		<div class="mt-4 flex justify-center space-x-4">
+		<div class="mt-4 flex space-x-4">
 			{#each Object.entries(summaryCounts) as [key, value]}
 				<p class={getTextColor(key)}>{key.replace('Count', '')}: {value}</p>
 			{/each}

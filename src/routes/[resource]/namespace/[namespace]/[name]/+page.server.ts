@@ -7,7 +7,7 @@ export const csr = dev;
 export const prerender = false;
 
 export const load: PageServerLoad = async ({ params }) => {
-	const { namespace, resource } = params;
+	const { namespace, resource, name } = params;
 	const kc = new KubeConfig();
 	let clusterName = 'Unknown Cluster';
 
@@ -25,19 +25,19 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const CRD_GROUP = 'aquasecurity.github.io';
 	const CRD_VERSION = 'v1alpha1';
-	const CRD_PLURAL = 'infraassessmentreports';
 
 	try {
 		const result = await customObjectsApi.getNamespacedCustomObject({
 			group: CRD_GROUP,
 			version: CRD_VERSION,
 			namespace,
-			plural: CRD_PLURAL,
-			name: resource
+			plural: resource,
+			name: name
 		});
-		const report = result;
-		return { report, clusterName };
+		const manifest = result;
+		console.log(name, namespace, resource)
+		return { manifest, clusterName, namespace, resource, name };
 	} catch (err: any) {
-		return { report: null, error: err.message, clusterName };
+		return { manifest: null, error: err.message, clusterName };
 	}
 };

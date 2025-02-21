@@ -60,25 +60,7 @@
     }
 </script>
 <div class="container mx-auto p-4 space-y-4">
-    <!-- Summary Section -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <div class="p-2 bg-gray-50 dark:bg-gray-800 rounded">
-            <h2 class="text-sm font-bold">Total Checks</h2>
-            <p class="text-base">{data.manifest.status.summary.passCount + data.manifest.status.summary.failCount}</p>
-        </div>
-        <div class="p-2 bg-green-50 dark:bg-green-900 rounded">
-            <h2 class="text-sm font-bold text-green-800 dark:text-green-200">Passed</h2>
-            <p class="text-base">{data.manifest.status.summary.passCount}</p>
-        </div>
-        <div class="p-2 bg-red-50 dark:bg-red-900 rounded">
-            <h2 class="text-sm font-bold text-red-800 dark:text-red-200">Failed</h2>
-            <p class="text-base">{data.manifest.status.summary.failCount}</p>
-        </div>
-        <div class="p-2 bg-purple-50 dark:bg-purple-900 rounded">
-            <h2 class="text-sm font-bold text-purple-800 dark:text-purple-200">Last Updated</h2>
-            <p class="text-base">{new Date(data.manifest.status.updateTimestamp).toLocaleString()}</p>
-        </div>
-    </div>
+
 
     <!-- Compact Controls Table -->
     <Table hoverable={true}>

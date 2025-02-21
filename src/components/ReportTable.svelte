@@ -264,7 +264,9 @@
   <P class="text-center">No {reportType} reports found.</P>
 {:else}
   <div class={tightTableClasses.wrapper}>
-    <div class="mb-4 flex justify-end">
+    
+    <div class="mb-4 flex justify">
+      
       <ButtonGroup>
         <Button onclick={() => exportData('csv')}>CSV</Button>
         <Button onclick={() => exportData('markdown')}>Markdown</Button>
@@ -342,14 +344,14 @@
                   >
                     Details
                   </Button>
-                  <Button
+                  <!-- <Button
                     color="gray"
                     size="sm"
                     class={tightTableClasses.button}
                     onclick={() => openJsonModal(report.status)}
                   >
                     Summary
-                  </Button>
+                  </Button> -->
                   <Button
                     color="green"
                     size="sm"

@@ -21,20 +21,45 @@
     columns = [] // New CRD columns, e.g. { name, jsonPath, type, … }
   } = $props();
 
-  // Map the CRD columns to the expected table column format
-  const tableColumns = columns.map((col: any) => ({
-    header: col.name,
-    value: col.jsonPath,
-    color:
-      col.name.toLowerCase().includes('fail') ? 'red' :
-      col.name.toLowerCase().includes('pass') ? 'green' :
-      col.name.toLowerCase().includes('unknown') ? 'gray' :
-      col.name.toLowerCase().includes('critical') ? 'red' :
-      col.name.toLowerCase().includes('high') ? 'orange' :
-      col.name.toLowerCase().includes('medium') ? 'yellow' :
-      col.name.toLowerCase().includes('low') ? 'green' :
-      col.name.toLowerCase().includes('none') ? 'gray' : undefined
-  }));
+  // Define color logic function
+  function getColor(header: string): string | undefined {
+    const lowerHeader = header.toLowerCase();
+    if (lowerHeader.includes('fail')) return 'red';
+    if (lowerHeader.includes('pass')) return 'green';
+    if (lowerHeader.includes('unknown')) return 'gray';
+    if (lowerHeader.includes('critical')) return 'red';
+    if (lowerHeader.includes('high')) return 'orange';
+    if (lowerHeader.includes('medium')) return 'yellow';
+    if (lowerHeader.includes('low')) return 'green';
+    if (lowerHeader.includes('none')) return 'gray';
+    return undefined;
+  }
+
+  // Define table columns
+  let tableColumns = $state([]);
+  if (columns.length > 0) {
+    // Use provided columns
+    tableColumns = columns.map((col: any) => ({
+      header: col.name,
+      value: col.jsonPath,
+      color: getColor(col.name)
+    }));
+  } else {
+    // Dynamically determine columns from report data
+    const allKeys = new Set<string>();
+    reports.forEach((report: any) => {
+      Object.keys(report).forEach((key: string) => {
+        if (key !== 'metadata') {
+          allKeys.add(key);
+        }
+      });
+    });
+    tableColumns = Array.from(allKeys).map((key: string) => ({
+      header: key,
+      value: key,
+      color: getColor(key)
+    }));
+  }
 
   // Modal setup
   const modalExample = uiHelpers();
@@ -303,8 +328,8 @@
           {#each filteredReports as report (report.metadata.uid)}
             <TableBodyRow class="cursor-pointer">
               <TableBodyCell class={tightTableClasses.cell}>
-                <span title={report.metadata.namespace}>
-                  {report.metadata.namespace || 'N/A'}
+                <span>
+                  {report?.metadata?.namespace || 'N/A'}
                 </span>
                 <br />
                 <span title={report.metadata.name}>

@@ -45,6 +45,7 @@
 		"@kubernetes/client-node": "^1.0.0",
 		"flowbite-svelte-icons": "^2.0.2",
 		"kampsy-ui": "^1.3.0",
+		"redis": "^4.7.0",
 		"svelte-5-ui-lib": "^0.12.2"
 	}
 }

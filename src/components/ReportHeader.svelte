@@ -5,16 +5,28 @@
 	export let showSummary = true;
 	import { Heading, P, Popover, Button, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
 	function getTextColor(key: string) {
-		switch (key) {
-			case 'criticalCount':
+		switch (key.toLowerCase()) {
+			case 'critical':
 				return 'text-red-600';
-			case 'highCount':
-				return 'text-orange-600';
-			case 'mediumCount':
+			case 'fail':
+				return 'text-red-600';
+			case 'error':
+				return 'text-red-600';
+			case 'warning':
 				return 'text-yellow-600';
-			case 'lowCount':
+			case 'info':
+				return 'text-blue-600';
+			case 'pass':
 				return 'text-green-600';
-			case 'noneCount':
+			case 'success':
+				return 'text-green-600';
+			case 'high':
+				return 'text-orange-600';
+			case 'medium':
+				return 'text-yellow-600';
+			case 'low':
+				return 'text-green-600';
+			case 'none':
 				return 'text-gray-600';
 			default:
 				return 'text-blue-600';

@@ -10,7 +10,7 @@
     P,
     Modal,
     uiHelpers,
-    ButtonGroup // Assuming this exists in svelte-5-ui-lib
+    ButtonGroup
   } from 'svelte-5-ui-lib';
 
   let {
@@ -18,10 +18,9 @@
     reportType,
     showSummary = true,
     showNamespace = true,
-    columns = [] // New CRD columns, e.g. { name, jsonPath, type, … }
+    columns = []
   } = $props();
 
-  // Define color logic function
   function getColor(header: string): string | undefined {
     const lowerHeader = header.toLowerCase();
     if (lowerHeader.includes('fail')) return 'red';
@@ -35,17 +34,14 @@
     return undefined;
   }
 
-  // Define table columns
   let tableColumns = $state([]);
   if (columns.length > 0) {
-    // Use provided columns
     tableColumns = columns.map((col: any) => ({
       header: col.name,
       value: col.jsonPath,
       color: getColor(col.name)
     }));
   } else {
-    // Dynamically determine columns from report data
     const allKeys = new Set<string>();
     reports.forEach((report: any) => {
       Object.keys(report).forEach((key: string) => {
@@ -61,7 +57,6 @@
     }));
   }
 
-  // Modal setup
   const modalExample = uiHelpers();
   let modalStatus = $state(false);
   const closeModal = modalExample.close;
@@ -75,7 +70,6 @@
     modalExample.toggle();
   }
 
-  // Utility function to handle leading dots and undefined values
   function get(obj: any, path: string): any {
     if (!obj || !path) return undefined;
     if (path.startsWith('.')) {
@@ -85,7 +79,9 @@
   }
 
   function downloadReport(report: any) {
-    const filename = `${report.metadata.namespace ? report.metadata.namespace + '-' : ''}${report.metadata.name}.json`;
+    const date = new Date().toISOString().split('T')[0];
+    const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
+    const filename = `${date}_${reportType}_${namespace}${report.metadata.name}.json`;
     const jsonStr = JSON.stringify(report, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -96,14 +92,10 @@
     URL.revokeObjectURL(url);
   }
 
-  // Search functionality
-  let searchTerm = $state(''); // Simple state for search term
+  let searchTerm = $state('');
+  let sortColumn = $state('');
+  let sortDirection = $state('asc');
 
-  // Sorting state
-  let sortColumn = $state(''); // Column to sort by (e.g., 'Namespace / Name', or a column header)
-  let sortDirection = $state('asc'); // 'asc' or 'desc'
-
-  // Utility function to compare values for sorting, now handling numbers correctly
   function compareValues(a: any, b: any, column: string, direction: 'asc' | 'desc') {
     let valueA, valueB;
 
@@ -137,7 +129,6 @@
     }
   }
 
-  // Filtered and sorted reports
   let filteredReports = $derived(
     reports
       .filter((report) => {
@@ -171,7 +162,6 @@
       })
   );
 
-  // Compute table headers with sorting
   let headItems = [];
   headItems.push('Namespace / Name');
   for (let column of tableColumns) {
@@ -179,7 +169,6 @@
   }
   headItems.push('Actions');
 
-  // Function to toggle sorting
   function toggleSort(column: string) {
     if (sortColumn === column) {
       sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -189,7 +178,6 @@
     }
   }
 
-  // Tight table styling
   const tightTableClasses = {
     wrapper: 'max-w-full overflow-x-auto',
     table: 'w-full table-compact',
@@ -198,7 +186,6 @@
     button: 'py-1 px-2 text-xs'
   };
 
-  // Export functions
   function escapeCsvValue(value: any): string {
     if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
       return `"${value.replace(/"/g, '""')}"`;
@@ -253,21 +240,23 @@
   }
 
   function exportData(format: string) {
+    const date = new Date().toISOString().split('T')[0];
     let content: string, filename: string, mimeType: string;
+    
     switch (format) {
       case 'csv':
         content = generateCsv();
-        filename = 'reports.csv';
+        filename = `${date}_${reportType}_reports.csv`;
         mimeType = 'text/csv';
         break;
       case 'markdown':
         content = generateMarkdown();
-        filename = 'reports.md';
+        filename = `${date}_${reportType}_reports.md`;
         mimeType = 'text/markdown';
         break;
       case 'json':
         content = generateJson();
-        filename = 'reports.json';
+        filename = `${date}_${reportType}_reports.json`;
         mimeType = 'application/json';
         break;
       default:
@@ -289,9 +278,7 @@
   <P class="text-center">No {reportType} reports found.</P>
 {:else}
   <div class={tightTableClasses.wrapper}>
-    
     <div class="mb-4 flex justify">
-      
       <ButtonGroup>
         <Button onclick={() => exportData('csv')}>CSV</Button>
         <Button onclick={() => exportData('markdown')}>Markdown</Button>
@@ -370,21 +357,13 @@
                     Details
                   </Button>
                   <!-- <Button
-                    color="gray"
-                    size="sm"
-                    class={tightTableClasses.button}
-                    onclick={() => openJsonModal(report.status)}
-                  >
-                    Summary
-                  </Button> -->
-                  <Button
                     color="green"
                     size="sm"
                     class={tightTableClasses.button}
                     onclick={() => downloadReport(report)}
                   >
                     Download
-                  </Button>
+                  </Button> -->
                 </div>
               </TableBodyCell>
             </TableBodyRow>

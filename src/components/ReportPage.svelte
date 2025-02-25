@@ -6,11 +6,13 @@
   import Vulnerabilities from './Vulnerabilities.svelte';
   import SBOM from './SBOM.svelte';
   import { Card, Badge, Alert, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+  import DownloadReport from './DownloadReport.svelte';
 
   const { data } = $props();
 </script>
 
 <ReportHeader title={data.resource} name={data.name} />
+<DownloadReport data={data} />
 <div class="container mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
 	<!-- Metadata Card -->
 	<Card class="border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 dark:border-gray-700">

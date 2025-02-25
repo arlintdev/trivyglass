@@ -8,14 +8,17 @@ const { createClient } = redis;
 const kubeConfig: KubeConfig = (() => {
   const config = new KubeConfig();
   if (process.env.KUBERNETES_SERVICE_HOST && process.env.KUBERNETES_SERVICE_PORT) {
+    console.log('Loading kubeconfig from cluster configuration');
     config.loadFromCluster();
   } else {
+    console.log('Loading kubeconfig from default configuration');
     config.loadFromDefault();
   }
   return config;
 })();
 
 const clusterName: string = kubeConfig.getCurrentCluster()?.name || 'Unknown Cluster';
+console.log(`Current cluster: ${clusterName}`);
 
 // Initialize Redis client
 const redisClient = createClient({
@@ -28,7 +31,9 @@ redisClient.on('error', (err) => console.error('Redis Client Error', err));
 // Connect to Redis when the module loads
 (async () => {
   try {
+    console.log('Connecting to Redis...');
     await redisClient.connect();
+    console.log('Successfully connected to Redis');
   } catch (err: any) {
     console.error('Failed to connect to Redis:', err.message);
   }
@@ -80,8 +85,10 @@ function extractValue(obj: any, jsonPath: string): any {
 // Helper: Extract column definitions from version info
 function getColumnDefinitions(versionInfo: any): ColumnDefinition[] {
   if (!versionInfo) {
+    console.log('No version info provided for extracting columns');
     return [];
   }
+  console.log('Extracting column definitions from version info');
   return versionInfo.additionalPrinterColumns?.map((col: any) => ({
     name: col.name,
     description: col.description,
@@ -93,10 +100,12 @@ function getColumnDefinitions(versionInfo: any): ColumnDefinition[] {
 
 // Exported function: List all Aqua Security CRDs
 export async function listAllAquaSecurityCRDs(): Promise<CRDMetadata[]> {
+  console.log('Listing all Aqua Security CRDs');
   const cacheKey = 'aqua_security_crds';
   const cachedData = await redisClient.get(cacheKey);
 
   if (cachedData) {
+    console.log('Using Redis cache for Aqua CRDs');
     return JSON.parse(cachedData);
   }
 
@@ -108,11 +117,13 @@ export async function listAllAquaSecurityCRDs(): Promise<CRDMetadata[]> {
       plural: 'customresourcedefinitions',
     });
     const items = (response as any).items || [];
+    console.log(`Fetched ${items.length} CRDs from Kubernetes API`);
     const crds = items
       .filter((crd: any) => crd.spec.group === 'aquasecurity.github.io' && crd.spec.scope !== 'Namespaced')
       .map((crd: any) => {
         const versionInfo = crd.spec.versions.find((v: any) => v.name === 'v1alpha1');
         const columns = getColumnDefinitions(versionInfo);
+        console.log(`Processed CRD ${crd.metadata.name} with ${columns.length} columns`);
         return {
           group: 'aquasecurity.github.io',
           plural: crd.spec.names.plural,
@@ -122,8 +133,10 @@ export async function listAllAquaSecurityCRDs(): Promise<CRDMetadata[]> {
       });
 
     await redisClient.setEx(cacheKey, CACHE_DURATION, JSON.stringify(crds));
+    console.log('Cached Aqua CRDs in Redis');
     return crds;
   } catch (err: any) {
+    console.error(`Critical error fetching Aqua CRDs: ${err.message}`);
     return [];
   }
 }
@@ -138,18 +151,23 @@ export interface ReportsData {
 
 // Exported function: Load reports for a specific CRD
 export async function loadReports(crdPlural: string): Promise<ReportsData> {
+  console.log(`Loading reports for CRD: ${crdPlural}`);
   const cacheKey = `reports:${crdPlural}`;
   const cachedData = await redisClient.get(cacheKey);
 
   if (cachedData) {
+    console.log(`Using Redis cache for ${crdPlural}`);
     const parsedData = JSON.parse(cachedData) as ReportsData;
+    console.log('Retrieved from cache:', JSON.stringify(parsedData, null, 2));
     return parsedData;
   }
 
+  console.log(`Fetching and caching reports for ${crdPlural}`);
   const customObjectsApi = kubeConfig.makeApiClient(CustomObjectsApi);
   try {
     // Fetch CRD metadata to determine scope
     const crdName = `${crdPlural}.aquasecurity.github.io`;
+    console.log(`Fetching CRD spec for ${crdName}`);
     const crdResponse = await customObjectsApi.getClusterCustomObject({
       group: 'apiextensions.k8s.io',
       version: 'v1',
@@ -167,6 +185,7 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
     }
     let columns = getColumnDefinitions(versionInfo);
     if (columns.length === 0) {
+      console.log('No additional printer columns found, using default columns');
       columns = [
         { name: 'Name', jsonPath: '.metadata.name', type: 'string' },
         { name: 'Age', jsonPath: '.metadata.creationTimestamp', type: 'date' },
@@ -176,6 +195,7 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
     // Determine scope and fetch items accordingly
     const scope = crdSpec.scope || 'Cluster';
     let items: any[] = [];
+    console.log(`CRD ${crdPlural} is ${scope}-scoped`);
     if (scope === 'Namespaced') {
       try {
         const result = await customObjectsApi.listCustomObjectForAllNamespaces({
@@ -185,6 +205,7 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
         });
         items = (result as any).items || [];
       } catch (listErr: any) {
+        console.warn(`Warning: Could not list namespaced instances of ${crdPlural}: ${listErr.message}`);
         items = [];
       }
     } else {
@@ -196,9 +217,12 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
         });
         items = (result as any).items || [];
       } catch (listErr: any) {
+        console.warn(`Warning: Could not list cluster instances of ${crdPlural}: ${listErr.message}`);
         items = [];
       }
     }
+
+    console.log(`Fetched ${items.length} instances for ${crdPlural}`);
 
     // Transform items to include only metadata and column values
     const filteredReports = items.map((item) => {
@@ -219,10 +243,12 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
       resource: crdPlural,
     };
 
+
     await redisClient.setEx(cacheKey, CACHE_DURATION, JSON.stringify(data));
 
     return data;
   } catch (err: any) {
+    console.error(`Critical error fetching ${crdPlural}: ${err.message}`);
     const data: ReportsData = {
       manifests: [],
       clusterName: 'Unknown Cluster',
@@ -238,11 +264,14 @@ export async function loadReports(crdPlural: string): Promise<ReportsData> {
 // Exported function: Invalidate cache for a specific CRD
 export async function invalidateCache(crdPlural: string): Promise<void> {
   const cacheKey = `reports:${crdPlural}`;
+  console.log(`Invalidating cache for ${crdPlural}`);
   await redisClient.del(cacheKey);
 }
 
 // Cleanup Redis connection on process exit
 process.on('SIGINT', async () => {
+  console.log('Received SIGINT, closing Redis connection...');
   await redisClient.quit();
+  console.log('Redis connection closed, exiting process.');
   process.exit(0);
 });

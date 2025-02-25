@@ -25,7 +25,6 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const CRD_GROUP = 'aquasecurity.github.io';
 	const CRD_VERSION = 'v1alpha1';
-	
 
 	try {
 		const result = await customObjectsApi.getClusterCustomObject({

@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			name: name
 		});
 		const manifest = result;
-		console.log(name, namespace, resource)
+		console.log(name, namespace, resource);
 		return { manifest, clusterName, namespace, resource, name };
 	} catch (err: any) {
 		return { manifest: null, error: err.message, clusterName };

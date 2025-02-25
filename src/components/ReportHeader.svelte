@@ -33,6 +33,7 @@
 		}
 	}
 </script>
+
 <Breadcrumb>
 	<BreadcrumbItem href="/" home>Home</BreadcrumbItem>
 	<BreadcrumbItem href="/{title}">{title}</BreadcrumbItem>

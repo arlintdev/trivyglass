@@ -1,6 +1,6 @@
 image:
   # -- image repository
-  repository: registry1.dso.mil/cnap/trivy-glass
+  repository: ghcr.io/arlintdev/trivy-glass
   # -- image tag
   tag: "latest"
   # -- pull policy
@@ -13,11 +13,14 @@ image:
   ##   - name: myRegistryKeySecretName
   # -- pull secrets
   pullSecrets: []
-
+redis:
+  image:
+    repository: redis
+    tag: 6.2.17
 labels:
 
 settings:
-  cluster: "cnap"
+  cluster: "yourcluster"
   
 serviceAccount:
   create: true

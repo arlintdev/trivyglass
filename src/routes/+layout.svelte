@@ -185,19 +185,13 @@
 			</SidebarDropdownWrapper>
 		</Sidebar>
 		<div class="h-full flex-1 overflow-hidden px-4 md:ml-64">
-			<div
-				class="flex h-full w-full flex-col rounded-lg border-2 border-dashed border-gray-200 p-4 dark:border-gray-700"
-			>
-				<div
-					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 flex-1 overflow-x-auto overflow-y-auto"
-				>
+			
 					{#if loading}
 						{@html Placeholder()}
 					{:else}
 						{@render children()}
 					{/if}
-				</div>
-			</div>
+	
 		</div>
 	</div>
 </div>

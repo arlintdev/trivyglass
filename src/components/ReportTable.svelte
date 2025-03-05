@@ -80,26 +80,51 @@
 
 	/**
 	 * Downloads a single report as a formatted JSON file
+	 * Fetches the full report data from the server before downloading
 	 * The filename includes the date, report type, namespace (if available), and report name
 	 * @param report The report object to download
 	 */
-	function downloadReport(report: any) {
+	async function downloadReport(report: any) {
 		// Create a filename with date, report type, namespace (if available), and report name
 		const date = new Date().toISOString().split('T')[0];
 		const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
 		const filename = `${date}_${reportType}_${namespace}${report.metadata.name}.json`;
 		
-		// Convert report to formatted JSON string
-		const jsonStr = JSON.stringify(report, null, 2);
-		
-		// Create and trigger download
-		const blob = new Blob([jsonStr], { type: 'application/json' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = filename;
-		a.click();
-		URL.revokeObjectURL(url); // Clean up to avoid memory leaks
+		try {
+			// Construct the API endpoint URL for the full report
+			let apiUrl;
+			if (report.metadata.namespace) {
+				// Namespaced resource
+				apiUrl = `/api/reports/namespace/${report.metadata.namespace}/${reportType}/${report.metadata.name}`;
+			} else {
+				// Cluster-scoped resource
+				apiUrl = `/api/reports/cluster/${reportType}/${report.metadata.name}`;
+			}
+			
+			// Fetch the full report data from the server
+			const response = await fetch(apiUrl);
+			if (!response.ok) {
+				throw new Error(`Failed to fetch report: ${response.statusText}`);
+			}
+			
+			// Get the full report data
+			const fullReportData = await response.json();
+			
+			// Convert report to formatted JSON string
+			const jsonStr = JSON.stringify(fullReportData, null, 2);
+			
+			// Create and trigger download
+			const blob = new Blob([jsonStr], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename;
+			a.click();
+			URL.revokeObjectURL(url); // Clean up to avoid memory leaks
+		} catch (error) {
+			console.error('Error downloading report:', error);
+			alert(`Failed to download report: ${error.message}`);
+		}
 	}
 
 	let searchTerm = $state('');
@@ -392,8 +417,12 @@
 										color="green"
 										size="sm"
 										class={tightTableClasses.button}
-										onclick={() => downloadReport(report)}
-										title="Download this report as a JSON file"
+										onclick={() => {
+											downloadReport(report).catch(err => {
+												console.error('Error in download handler:', err);
+											});
+										}}
+										title="Download full report as a JSON file"
 									>
 										Download JSON
 									</Button>

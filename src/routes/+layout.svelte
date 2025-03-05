@@ -12,7 +12,8 @@
 		CogSolid,
 		LockSolid,
 		ServerSolid,
-		ShieldCheckSolid
+		ShieldCheckSolid,
+		HomeSolid as Home
 	} from 'flowbite-svelte-icons';
 	import { page } from '$app/stores';
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
@@ -76,6 +77,13 @@
 				color="gray"
 				class="absolute right-2 top-2 p-2 md:hidden"
 			/>
+			<SidebarItem label="Dashboard" href="/">
+				{#snippet iconSlot()}
+					<Home
+						class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
+					/>
+				{/snippet}
+			</SidebarItem>
 			<SidebarDropdownWrapper label="Cluster Reports" isOpen={isClusterOpen} btnClass="p-2">
 				{#snippet iconSlot()}
 					<ShieldCheckSolid

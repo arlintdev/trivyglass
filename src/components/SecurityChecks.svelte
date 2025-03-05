@@ -20,7 +20,7 @@
 		LOW: 4,
 		UNKNOWN: 5
 	};
-	console.log(checks);
+
 	// Sort checks by severity
 	const sortedChecks =
 		checks.slice().sort((a, b) => {

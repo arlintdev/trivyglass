@@ -20,7 +20,7 @@ spec:
           {{- toYaml .Values.labels | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ include "trivy-glass.serviceAccount.name" . }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets:
       {{- range . }}
@@ -29,11 +29,15 @@ spec:
       {{- end }}
       containers:
         - name: {{ include "trivy-glass.name" . }}
-          image: {{ .Values.image.repository | default "dashboard" }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          image: {{ .Values.image.repository | default "trivy-glass" }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
           env:
             - name: CLUSTER
               value: {{ .Values.settings.cluster | default "default-cluster" | quote }}
+            - name: REDIS_HOST
+              value: "localhost"  # Redis runs in the same pod
+            - name: REDIS_PORT
+              value: "6379"       # Default Redis port
           ports:
             - name: http
               protocol: TCP
@@ -44,9 +48,23 @@ spec:
               mountPath: /var/www/html/config.json
               subPath: config.json
             {{- end }}
+        - name: redis
+          image: {{ .Values.redis.image.repository | default "redis" }}:{{ .Values.redis.image.tag | default "6.0.9" }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              protocol: TCP
+              containerPort: 6379
+          # Optional: Add volume for persistence if needed
+          # volumeMounts:
+          #   - name: redis-data
+          #     mountPath: /data
       volumes:
         {{- if .Values.configMap.enabled }}
         - name: apps-config-volume
           configMap:
             name: {{ .Values.configMap.name }}
         {{- end }}
+        # Optional: Add persistent volume for Redis data
+        # - name: redis-data
+        #   emptyDir: {}  # For local testing; use persistentVolumeClaim for production

@@ -184,7 +184,39 @@
 				</SidebarItem>
 			</SidebarDropdownWrapper>
 		</Sidebar>
-		<div class="h-full flex-1 overflow-hidden px-4 md:ml-64">
+		<div class="h-full flex-1 overflow-auto px-4 md:ml-64 scrollbar-thin">
+			<style>
+				.scrollbar-thin {
+					scrollbar-width: thin;
+					scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+				}
+				.scrollbar-thin::-webkit-scrollbar {
+					width: 6px;
+					height: 6px;
+				}
+				.scrollbar-thin::-webkit-scrollbar-track {
+					background: transparent;
+				}
+				.scrollbar-thin::-webkit-scrollbar-thumb {
+					background-color: rgba(156, 163, 175, 0.5);
+					border-radius: 3px;
+				}
+				.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+					background-color: rgba(156, 163, 175, 0.7);
+				}
+				/* Dark mode support */
+				@media (prefers-color-scheme: dark) {
+					.scrollbar-thin {
+						scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+					}
+					.scrollbar-thin::-webkit-scrollbar-thumb {
+						background-color: rgba(75, 85, 99, 0.5);
+					}
+					.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+						background-color: rgba(75, 85, 99, 0.7);
+					}
+				}
+			</style>
 			
 					{#if loading}
 						{@html Placeholder()}

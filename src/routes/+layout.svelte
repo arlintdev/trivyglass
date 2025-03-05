@@ -12,7 +12,8 @@
 		CogSolid,
 		LockSolid,
 		ServerSolid,
-		ShieldCheckSolid
+		ShieldCheckSolid,
+		HomeSolid as Home
 	} from 'flowbite-svelte-icons';
 	import { page } from '$app/stores';
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
@@ -76,6 +77,13 @@
 				color="gray"
 				class="absolute right-2 top-2 p-2 md:hidden"
 			/>
+			<SidebarItem label="Dashboard" href="/">
+				{#snippet iconSlot()}
+					<Home
+						class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
+					/>
+				{/snippet}
+			</SidebarItem>
 			<SidebarDropdownWrapper label="Cluster Reports" isOpen={isClusterOpen} btnClass="p-2">
 				{#snippet iconSlot()}
 					<ShieldCheckSolid
@@ -176,20 +184,46 @@
 				</SidebarItem>
 			</SidebarDropdownWrapper>
 		</Sidebar>
-		<div class="h-full flex-1 overflow-hidden px-4 md:ml-64">
-			<div
-				class="flex h-full w-full flex-col rounded-lg border-2 border-dashed border-gray-200 p-4 dark:border-gray-700"
-			>
-				<div
-					class="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 flex-1 overflow-x-auto overflow-y-auto"
-				>
+		<div class="h-full flex-1 overflow-auto px-4 md:ml-64 scrollbar-thin">
+			<style>
+				.scrollbar-thin {
+					scrollbar-width: thin;
+					scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+				}
+				.scrollbar-thin::-webkit-scrollbar {
+					width: 6px;
+					height: 6px;
+				}
+				.scrollbar-thin::-webkit-scrollbar-track {
+					background: transparent;
+				}
+				.scrollbar-thin::-webkit-scrollbar-thumb {
+					background-color: rgba(156, 163, 175, 0.5);
+					border-radius: 3px;
+				}
+				.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+					background-color: rgba(156, 163, 175, 0.7);
+				}
+				/* Dark mode support */
+				@media (prefers-color-scheme: dark) {
+					.scrollbar-thin {
+						scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+					}
+					.scrollbar-thin::-webkit-scrollbar-thumb {
+						background-color: rgba(75, 85, 99, 0.5);
+					}
+					.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+						background-color: rgba(75, 85, 99, 0.7);
+					}
+				}
+			</style>
+			
 					{#if loading}
 						{@html Placeholder()}
 					{:else}
 						{@render children()}
 					{/if}
-				</div>
-			</div>
+	
 		</div>
 	</div>
 </div>

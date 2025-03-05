@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Card } from 'svelte-5-ui-lib';
+	import { Card, Input } from 'svelte-5-ui-lib';
 
-	// Props to receive an array of vulnerabilities
-	const { vulnerabilities } = $props();
+	// Props to receive vulnerabilities and bindable text
+	let { vulnerabilities, text = $bindable('') } = $props();
 
 	// Severity order for sorting
 	const severityOrder = {
@@ -24,18 +24,46 @@
 		MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
 		LOW: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
 	};
+
+	// Filter vulnerabilities using $derived
+	const filteredVulnerabilities = $derived(
+		sortedVulnerabilities.filter((vulnerability) => {
+			const term = text.toLowerCase();
+			return (
+				vulnerability.title?.toLowerCase().includes(term) ||
+				vulnerability.vulnerabilityID?.toLowerCase().includes(term) ||
+				vulnerability.severity?.toLowerCase().includes(term) ||
+				vulnerability.resource?.toLowerCase().includes(term) ||
+				vulnerability.installedVersion?.toLowerCase().includes(term) ||
+				vulnerability.fixedVersion?.toLowerCase().includes(term) ||
+				vulnerability.packagePURL?.toLowerCase().includes(term) ||
+				vulnerability.target?.toLowerCase().includes(term) ||
+				vulnerability.primaryLink?.toLowerCase().includes(term) ||
+				vulnerability.links?.some((link) => link.toLowerCase().includes(term))
+			);
+		})
+	);
 </script>
 
 <div class="min-h-screen p-6">
-	<h2 class="mb-6 text-2xl font-bold text-indigo-800 dark:text-indigo-200">
-		Vulnerabilities
-		<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-			({vulnerabilities.length} found)
-		</span>
-	</h2>
+	<div class="mb-6">
+		<Input
+			size="lg"
+			bind:value={text}
+			placeholder="Search vulnerabilities by ID, title, severity, resource, etc."
+			class="mb-4"
+		/>
+
+		<h2 class="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+			Vulnerabilities
+			<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
+				({filteredVulnerabilities.length} found)
+			</span>
+		</h2>
+	</div>
 
 	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each sortedVulnerabilities as vulnerability}
+		{#each filteredVulnerabilities as vulnerability}
 			<Card
 				class="transform overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-all 
                duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700"

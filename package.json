@@ -13,7 +13,8 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "npm run test:unit -- --run",
+		"test:api": "npm run test:unit -- --run src/routes/api/clusters/server.test.ts src/routes/api/clusters/switch/server.test.ts src/routes/api/clusters/name-param/server.test.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -43,7 +44,9 @@
 	},
 	"dependencies": {
 		"@kubernetes/client-node": "^1.0.0",
+		"@types/js-yaml": "^4.0.9",
 		"flowbite-svelte-icons": "^2.0.2",
+		"js-yaml": "^4.1.0",
 		"kampsy-ui": "^1.3.0",
 		"redis": "^4.7.0",
 		"svelte-5-ui-lib": "^0.12.2"

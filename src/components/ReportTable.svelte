@@ -78,23 +78,58 @@
 		return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 	}
 
-	function downloadReport(report: any) {
+	/**
+	 * Downloads a single report as a formatted JSON file
+	 * Fetches the full report data from the server before downloading
+	 * The filename includes the date, report type, namespace (if available), and report name
+	 * @param report The report object to download
+	 */
+	async function downloadReport(report: any) {
+		// Create a filename with date, report type, namespace (if available), and report name
 		const date = new Date().toISOString().split('T')[0];
 		const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
 		const filename = `${date}_${reportType}_${namespace}${report.metadata.name}.json`;
-		const jsonStr = JSON.stringify(report, null, 2);
-		const blob = new Blob([jsonStr], { type: 'application/json' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = filename;
-		a.click();
-		URL.revokeObjectURL(url);
+		
+		try {
+			// Construct the API endpoint URL for the full report
+			let apiUrl;
+			if (report.metadata.namespace) {
+				// Namespaced resource
+				apiUrl = `/api/reports/namespace/${report.metadata.namespace}/${reportType}/${report.metadata.name}`;
+			} else {
+				// Cluster-scoped resource
+				apiUrl = `/api/reports/cluster/${reportType}/${report.metadata.name}`;
+			}
+			
+			// Fetch the full report data from the server
+			const response = await fetch(apiUrl);
+			if (!response.ok) {
+				throw new Error(`Failed to fetch report: ${response.statusText}`);
+			}
+			
+			// Get the full report data
+			const fullReportData = await response.json();
+			
+			// Convert report to formatted JSON string
+			const jsonStr = JSON.stringify(fullReportData, null, 2);
+			
+			// Create and trigger download
+			const blob = new Blob([jsonStr], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename;
+			a.click();
+			URL.revokeObjectURL(url); // Clean up to avoid memory leaks
+		} catch (error) {
+			console.error('Error downloading report:', error);
+			alert(`Failed to download report: ${error.message}`);
+		}
 	}
 
 	let searchTerm = $state('');
 	let sortColumn = $state('');
-	let sortDirection = $state('asc');
+	let sortDirection = $state<'asc' | 'desc'>('asc');
 
 	function compareValues(a: any, b: any, column: string, direction: 'asc' | 'desc') {
 		let valueA, valueB;
@@ -129,6 +164,7 @@
 		}
 	}
 
+	// Filter and sort the reports
 	let filteredReports = $derived(
 		reports
 			.filter((report) => {
@@ -230,16 +266,34 @@
 		return JSON.stringify(data, null, 2);
 	}
 
+	/**
+	 * Helper function to trigger a file download in the browser
+	 * @param content The content of the file to download
+	 * @param filename The name of the file to download
+	 * @param mimeType The MIME type of the file (e.g., 'text/csv', 'application/json')
+	 */
 	function downloadFile(content: string, filename: string, mimeType: string) {
+		// Create a blob with the content and MIME type
 		const blob = new Blob([content], { type: mimeType });
+		
+		// Create a temporary URL for the blob
 		const url = URL.createObjectURL(blob);
+		
+		// Create and trigger a download link
 		const a = document.createElement('a');
 		a.href = url;
 		a.download = filename;
 		a.click();
+		
+		// Clean up to avoid memory leaks
 		URL.revokeObjectURL(url);
 	}
 
+	/**
+	 * Exports all filtered reports in the specified format (CSV, Markdown, or JSON)
+	 * The filename includes the date and report type
+	 * @param format The format to export ('csv', 'markdown', or 'json')
+	 */
 	function exportData(format: string) {
 		const date = new Date().toISOString().split('T')[0];
 		let content: string, filename: string, mimeType: string;
@@ -263,6 +317,8 @@
 			default:
 				return;
 		}
+		
+		// Trigger download of the generated file
 		downloadFile(content, filename, mimeType);
 	}
 
@@ -279,12 +335,15 @@
 	<P class="text-center">No {reportType} reports found.</P>
 {:else}
 	<div class={tightTableClasses.wrapper}>
-		<div class="justify mb-4 flex">
-			<ButtonGroup>
-				<Button onclick={() => exportData('csv')}>CSV</Button>
-				<Button onclick={() => exportData('markdown')}>Markdown</Button>
-				<Button onclick={() => exportData('json')}>JSON</Button>
-			</ButtonGroup>
+		<div class="mb-4 flex">
+			<div class="flex flex-col">
+				<ButtonGroup>
+					<Button onclick={() => exportData('csv')}>Export All as CSV</Button>
+					<Button onclick={() => exportData('markdown')}>Export All as Markdown</Button>
+					<Button onclick={() => exportData('json')}>Export All as JSON</Button>
+				</ButtonGroup>
+				<span class="mt-1 text-xs text-gray-500">Export all filtered reports in the selected format</span>
+			</div>
 		</div>
 		<TableSearch placeholder="Search reports" hoverable={true} bind:inputValue={searchTerm}>
 			<TableHead>
@@ -354,14 +413,19 @@
 									>
 										Details
 									</Button>
-									<!-- <Button
-                    color="green"
-                    size="sm"
-                    class={tightTableClasses.button}
-                    onclick={() => downloadReport(report)}
-                  >
-                    Download
-                  </Button> -->
+									<Button
+										color="green"
+										size="sm"
+										class={tightTableClasses.button}
+										onclick={() => {
+											downloadReport(report).catch(err => {
+												console.error('Error in download handler:', err);
+											});
+										}}
+										title="Download full report as a JSON file"
+									>
+										Download JSON
+									</Button>
 								</div>
 							</TableBodyCell>
 						</TableBodyRow>

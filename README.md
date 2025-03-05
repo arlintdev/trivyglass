@@ -94,7 +94,31 @@ Trivy Glass requires the following RBAC permissions:
 
 ## Screenshots
 
-*[Screenshots to be added]*
+### Dashboard Overview
+<!-- ![Dashboard Overview](/docs/screenshots/dashboard-overview.png) -->
+*The main dashboard provides an at-a-glance view of your cluster's security posture, showing summary statistics for vulnerabilities, security checks, and compliance status.*
+
+### Vulnerability Reports
+<!-- ![Vulnerability Reports](/docs/screenshots/vulnerability-reports.png) -->
+*The vulnerability reports page displays detected vulnerabilities with severity levels, affected resources, and remediation information.*
+
+### Security Checks
+<!-- ![Security Checks](/docs/screenshots/security-checks.png) -->
+*The security checks page shows the results of various security checks performed by trivy-operator, with pass/fail status and remediation steps.*
+
+### SBOM View
+<!-- ![SBOM View](/docs/screenshots/sbom-view.png) -->
+*The Software Bill of Materials (SBOM) view displays all components used in your applications, including their versions and suppliers.*
+
+### Compliance Dashboard
+<!-- ![Compliance Dashboard](/docs/screenshots/compliance-dashboard.png) -->
+*The compliance dashboard shows your cluster's compliance status with various standards and regulations.*
+
+### Report Details
+<!-- ![Report Details](/docs/screenshots/report-details.png) -->
+*Detailed view of a specific report, showing all available information and actionable insights.*
+
+> **Note:** Screenshots need to be added. Please take screenshots of the application in action and add them to the `/docs/screenshots/` directory with appropriate names matching each section above. Then uncomment the image references (remove the HTML comments `<!-- -->`) to display the screenshots. See the [instructions in the docs/screenshots directory](docs/screenshots/README.md) for detailed guidance.
 
 ## Contributing
 
@@ -102,7 +126,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-[License information to be added]
+MIT
 
 ## Acknowledgements
 

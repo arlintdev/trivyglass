@@ -71,9 +71,11 @@ npm run build
 # Build the Docker image
 docker build -t trivy-glass .
 
-# Run the container
-docker run -p 3000:3000 trivy-glass
+# Run the container with Kubernetes access
+docker run -v ~/.kube/config:/home/node/.kube/config -p 3000:3000 trivy-glass
 ```
+
+> **Note:** The container runs as a non-root user for security. The `-v ~/.kube/config:/home/node/.kube/config` option mounts your local kubeconfig file into the container, allowing it to access your Kubernetes cluster.
 
 ## Architecture
 

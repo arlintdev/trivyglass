@@ -47,8 +47,9 @@ helm install trivy-operator aqua/trivy-operator \
 ### Using Helm
 
 ```bash
-# Add the Helm repository (if available)
-# helm repo add trivy-glass https://your-helm-repo-url
+# Clone the repository
+git clone https://github.com/arlintdev/trivyglass.git
+cd trivyglass
 
 # Install the chart
 helm install trivy-glass ./chart \
@@ -66,8 +67,8 @@ See the [values.yaml](chart/values.yaml) file for configuration options.
 
 ```bash
 # Clone the repository
-git clone https://github.com/aarlint/trivy-glass.git
-cd trivy-glass
+git clone https://github.com/arlintdev/trivyglass.git
+cd trivyglass
 
 # Install dependencies
 npm install

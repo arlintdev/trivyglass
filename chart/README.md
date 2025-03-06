@@ -19,6 +19,11 @@ helm install trivy-operator aqua/trivy-operator \
 ## Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/arlintdev/trivyglass.git
+cd trivyglass
+
+# Install the chart
 helm install trivy-glass ./chart
 ```
 

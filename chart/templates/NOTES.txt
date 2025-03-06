@@ -1,9 +1,34 @@
-----------------------------------------
-|   #####   #     #     #     ######   |
-|  #     #  ##    #    # #    #     #  |
-|  #        # #   #   #   #   #     #  |
-|  #        #  #  #  #     #  ######   |
-|  #        #   # #  #######  #        |
-|  #     #  #    ##  #     #  #        |
-|   #####   #     #  #     #  #        |
-----------------------------------------
+-----------------------------------------------------------------
+ _____      _                 _____  _               
+|_   _|    (_)               / ____|| |              
+  | |  _ __ ___   ___   _   | |  __ | |  __ _  ___ ___ 
+  | | | '__| \ \ / / | | |  | | |_ || | / _` |/ __/ __|
+  | | | |  | |\ V /| |_| |  | |__| || || (_| |\__ \__ \
+  |_| |_|  |_| \_/  \__, |   \_____||_| \__,_||___/___/
+                     __/ |                            
+                    |___/                             
+-----------------------------------------------------------------
+
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+Access the application:
+{{- if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ include "trivy-glass.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "trivy-glass.name" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "trivy-glass.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get --namespace {{ include "trivy-glass.namespace" . }} svc -w {{ include "trivy-glass.name" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "trivy-glass.namespace" . }} {{ include "trivy-glass.name" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  kubectl port-forward --namespace {{ include "trivy-glass.namespace" . }} svc/{{ include "trivy-glass.name" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  echo "Visit http://127.0.0.1:{{ .Values.service.port }} to use your application"
+{{- end }}

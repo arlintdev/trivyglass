@@ -24,9 +24,23 @@ Streamline your vulnerability management by visualizing critical security insigh
 
 ## Prerequisites
 
-- Kubernetes cluster with trivy-operator installed
+- Kubernetes cluster
 - Redis instance for caching (optional but recommended)
 - Node.js v22+ (for development)
+
+### Installing Trivy Operator
+
+Trivy Glass requires Trivy Operator to be installed in your cluster. You can install it using Helm:
+
+```bash
+helm repo add aqua https://aquasecurity.github.io/helm-charts/
+helm repo update
+
+helm install trivy-operator aqua/trivy-operator \
+     --namespace trivy-system \
+     --create-namespace \
+     --version 0.26.1
+```
 
 ## Installation
 

@@ -1,6 +1,6 @@
 image:
   # -- image repository
-  repository: ghcr.io/arlintdev/trivy-glass
+  repository: ghcr.io/arlintdev/trivyglass
   # -- image tag
   tag: "latest"
   # -- pull policy
@@ -13,22 +13,96 @@ image:
   ##   - name: myRegistryKeySecretName
   # -- pull secrets
   pullSecrets: []
-redis:
-  image:
-    repository: redis
-    tag: 6.2.17
-labels:
 
+# -- Redis configuration
+redis:
+  # -- Redis image configuration
+  image:
+    # -- Redis image repository
+    repository: redis
+    # -- Redis image tag
+    tag: 6.2.17
+  # -- Enable Redis persistence
+  persistence:
+    # -- Enable Redis persistence
+    enabled: false
+    # -- Storage size for Redis data
+    size: 1Gi
+    # -- Storage class for Redis PVC
+    storageClass: ""
+  # -- Redis resource requirements
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# -- Additional labels to add to all resources
+labels: {}
+
+# -- Application settings
 settings:
+  # -- Cluster name
   cluster: "yourcluster"
+  # -- Additional environment variables for the main container
+  env: []
+  # Example:
+  # - name: DEBUG
+  #   value: "true"
   
+# -- Service account configuration (required for the app to work)
 serviceAccount:
+  # -- Create service account (required for the app to work)
   create: true
+  # -- Service account name
   name: trivy-glass
+  # -- Service account annotations
   annotations: {}
 
+# -- ConfigMap configuration
 configMap:
+  # -- Enable ConfigMap
   enabled: false
+  # -- ConfigMap name
   name: apps-config
+  # -- ConfigMap data
   data: |
-  
+    {}
+
+# -- Deployment configuration
+deployment:
+  # -- Number of replicas
+  replicas: 1
+  # -- Pod annotations
+  annotations: {}
+  # -- Resource requirements for the main container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # -- Node selector for pod assignment
+  nodeSelector: {}
+  # -- Tolerations for pod assignment
+  tolerations: []
+  # -- Affinity for pod assignment
+  affinity: {}
+  # -- Security context for the pod
+  podSecurityContext: {}
+  # -- Security context for the main container
+  securityContext: {}
+
+# -- Service configuration
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 3000
+  # -- Node port (when service type is NodePort)
+  nodePort: null
+  # -- Service annotations
+  annotations: {}

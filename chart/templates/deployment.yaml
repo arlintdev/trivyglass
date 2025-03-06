@@ -3,8 +3,12 @@ kind: Deployment
 metadata:
   name: {{ include "trivy-glass.name" . }}
   namespace: {{ include "trivy-glass.namespace" . }}
+  {{- if .Values.deployment.annotations }}
+  annotations:
+    {{- toYaml .Values.deployment.annotations | nindent 4 }}
+  {{- end }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.replicas }}
   selector:
     matchLabels:
       app: {{ include "trivy-glass.name" . }}
@@ -19,6 +23,10 @@ spec:
         {{- if .Values.labels }}
           {{- toYaml .Values.labels | nindent 8 }}
         {{- end }}
+      {{- if .Values.deployment.annotations }}
+      annotations:
+        {{- toYaml .Values.deployment.annotations | nindent 8 }}
+      {{- end }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- with .Values.image.pullSecrets }}
@@ -27,10 +35,34 @@ spec:
         - name: {{ .name }}
       {{- end }}
       {{- end }}
+      {{- if .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.deployment.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml .Values.deployment.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml .Values.deployment.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.deployment.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.deployment.podSecurityContext | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "trivy-glass.name" . }}
           image: {{ .Values.image.repository | default "trivy-glass" }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          {{- if .Values.deployment.securityContext }}
+          securityContext:
+            {{- toYaml .Values.deployment.securityContext | nindent 12 }}
+          {{- end }}
+          {{- if .Values.deployment.resources }}
+          resources:
+            {{- toYaml .Values.deployment.resources | nindent 12 }}
+          {{- end }}
           env:
             - name: CLUSTER
               value: {{ .Values.settings.cluster | default "default-cluster" | quote }}
@@ -38,6 +70,9 @@ spec:
               value: "localhost"  # Redis runs in the same pod
             - name: REDIS_PORT
               value: "6379"       # Default Redis port
+            {{- if .Values.settings.env }}
+            {{- toYaml .Values.settings.env | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               protocol: TCP
@@ -51,20 +86,27 @@ spec:
         - name: redis
           image: {{ .Values.redis.image.repository | default "redis" }}:{{ .Values.redis.image.tag | default "6.0.9" }}
           imagePullPolicy: IfNotPresent
+          {{- if .Values.redis.resources }}
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          {{- end }}
           ports:
             - name: redis
               protocol: TCP
               containerPort: 6379
-          # Optional: Add volume for persistence if needed
-          # volumeMounts:
-          #   - name: redis-data
-          #     mountPath: /data
+          {{- if .Values.redis.persistence.enabled }}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          {{- end }}
       volumes:
         {{- if .Values.configMap.enabled }}
         - name: apps-config-volume
           configMap:
             name: {{ .Values.configMap.name }}
         {{- end }}
-        # Optional: Add persistent volume for Redis data
-        # - name: redis-data
-        #   emptyDir: {}  # For local testing; use persistentVolumeClaim for production
+        {{- if .Values.redis.persistence.enabled }}
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ include "trivy-glass.name" . }}-redis-data
+        {{- end }}

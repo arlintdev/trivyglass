@@ -1,11 +1,32 @@
 <script lang="ts">
 	import { Card, Input } from 'svelte-5-ui-lib';
 
-	// Props to receive vulnerabilities and bindable text
-	let { vulnerabilities, text = $bindable('') } = $props();
+	// Define interface for vulnerability objects
+	interface Vulnerability {
+		title: string;
+		vulnerabilityID: string;
+		severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+		resource: string;
+		installedVersion: string;
+		fixedVersion?: string;
+		packagePURL: string;
+		target?: string;
+		primaryLink: string;
+		links?: string[];
+		score: number;
+		publishedDate: string;
+		lastModifiedDate: string;
+	}
+
+	interface Props {
+		vulnerabilities: Vulnerability[];
+		text?: string;
+	}
+
+	let { vulnerabilities, text = $bindable('') }: Props = $props();
 
 	// Severity order for sorting
-	const severityOrder = {
+	const severityOrder: Record<string, number> = {
 		CRITICAL: 4,
 		HIGH: 3,
 		MEDIUM: 2,
@@ -14,11 +35,12 @@
 
 	// Sort vulnerabilities by severity
 	const sortedVulnerabilities = vulnerabilities.sort(
-		(a, b) => severityOrder[b.severity.toUpperCase()] - severityOrder[a.severity.toUpperCase()]
+		(a: Vulnerability, b: Vulnerability) =>
+			severityOrder[b.severity.toUpperCase()] - severityOrder[a.severity.toUpperCase()]
 	);
 
 	// Severity color mapping
-	const severityColors = {
+	const severityColors: Record<string, string> = {
 		CRITICAL: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 		HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
 		MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
@@ -27,7 +49,7 @@
 
 	// Filter vulnerabilities using $derived
 	const filteredVulnerabilities = $derived(
-		sortedVulnerabilities.filter((vulnerability) => {
+		sortedVulnerabilities.filter((vulnerability: Vulnerability) => {
 			const term = text.toLowerCase();
 			return (
 				vulnerability.title?.toLowerCase().includes(term) ||
@@ -39,7 +61,7 @@
 				vulnerability.packagePURL?.toLowerCase().includes(term) ||
 				vulnerability.target?.toLowerCase().includes(term) ||
 				vulnerability.primaryLink?.toLowerCase().includes(term) ||
-				vulnerability.links?.some((link) => link.toLowerCase().includes(term))
+				vulnerability.links?.some((link: string) => link.toLowerCase().includes(term))
 			);
 		})
 	);

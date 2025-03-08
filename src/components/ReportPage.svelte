@@ -5,7 +5,7 @@
 	import ComplianceComponent from './ComplianceComponent.svelte';
 	import Vulnerabilities from './Vulnerabilities.svelte';
 	import SBOM from './SBOM.svelte';
-	import { Card, Badge, Alert, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+	import { Card, Badge } from 'svelte-5-ui-lib';
 	import DownloadReport from './DownloadReport.svelte';
 
 	const { data } = $props();

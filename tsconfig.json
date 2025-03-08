@@ -11,7 +11,8 @@
 		"strict": true,
 		"moduleResolution": "bundler"
 	},
-	"include": ["vite.config.ts"]
+	"include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
+	"exclude": ["src/**/*.test.ts"]
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
 	//

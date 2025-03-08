@@ -12,11 +12,56 @@
 		uiHelpers
 	} from 'svelte-5-ui-lib';
 
-	// Props to receive report data
-	const { data } = $props();
+	// Define TypeScript interfaces for the data structure
+	interface Check {
+		id: string;
+		name: string;
+		severity: string;
+		description?: string;
+		commands?: {
+			id: string;
+			description: string;
+		}[];
+	}
+
+	interface Control {
+		id: string;
+		name: string;
+		description: string;
+		severity: string;
+		checks?: Check[];
+		status?: string; // Changed from union type to string to match return type from map
+		totalFail?: number | null;
+	}
+
+	interface StatusControl {
+		id: string;
+		totalFail: number;
+	}
+
+	interface ManifestData {
+		manifest: {
+			spec: {
+				compliance: {
+					controls: Control[];
+				};
+			};
+			status: {
+				summaryReport: {
+					controlCheck: StatusControl[];
+				};
+			};
+		};
+	}
+
+	interface Props {
+		data: ManifestData[];
+	}
+
+	let { data }: Props = $props();
 
 	// Color mappings for badges
-	const severityColors = {
+	const severityColors: Record<string, string> = {
 		LOW: 'bg-green-500 text-white dark:bg-green-600 dark:text-white',
 		MEDIUM: 'bg-yellow-400 text-gray-800 dark:bg-yellow-600 dark:text-gray-200',
 		HIGH: 'bg-orange-500 text-white dark:bg-orange-600 dark:text-white',
@@ -24,53 +69,67 @@
 		UNKNOWN: 'bg-gray-400 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
 	};
 
-	const statusColors = {
+	const statusColors: Record<string, string> = {
 		Failed: 'bg-red-500 text-white dark:bg-red-600 dark:text-white',
 		Passed: 'bg-green-500 text-white dark:bg-green-600 dark:text-white',
 		Manual: 'bg-gray-400 text-white dark:bg-gray-500 dark:text-white'
 	};
 
 	// Ordering for sorting
-	const severityOrder = { CRITICAL: 1, HIGH: 2, MEDIUM: 3, LOW: 4, UNKNOWN: 5 };
-	const statusOrder = { Failed: 1, Passed: 2, Manual: 3 };
+	const severityOrder: Record<string, number> = {
+		CRITICAL: 1,
+		HIGH: 2,
+		MEDIUM: 3,
+		LOW: 4,
+		UNKNOWN: 5
+	};
+	const statusOrder: Record<string, number> = { Failed: 1, Passed: 2, Manual: 3 };
 
 	// Process and sort controls data
-	let controls = data.manifest.spec.compliance.controls
-		.map((control) => {
-			const statusControl = data.manifest.status.summaryReport.controlCheck.find(
-				(c) => c.id === control.id
+	let controls = data[0].manifest.spec.compliance.controls
+		.map((control: Control) => {
+			const statusControl = data[0].manifest.status.summaryReport.controlCheck.find(
+				(c: StatusControl) => c.id === control.id
 			);
+			// Handle the case where statusControl might be undefined
+			const totalFail = statusControl?.totalFail;
+
 			return {
 				...control,
 				status:
-					statusControl?.totalFail > 0
+					totalFail !== undefined && totalFail > 0
 						? 'Failed'
-						: statusControl?.totalFail === 0
+						: totalFail !== undefined && totalFail === 0
 							? 'Passed'
 							: 'Manual',
-				totalFail: statusControl?.totalFail ?? null
+				totalFail: totalFail ?? null
 			};
 		})
 		.sort((a, b) => {
-			const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+			const statusDiff =
+				statusOrder[a.status as keyof typeof statusOrder] -
+				statusOrder[b.status as keyof typeof statusOrder];
 			if (statusDiff !== 0) return statusDiff;
-			return (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5);
+			return (
+				(severityOrder[a.severity as keyof typeof severityOrder] || 5) -
+				(severityOrder[b.severity as keyof typeof severityOrder] || 5)
+			);
 		});
 
 	// State for selected control and modal
-	let selectedControl = null;
+	let selectedControl = $state<Control | null>(null);
 	const modal = uiHelpers();
 	let modalOpen = $state(false);
 	$effect(() => {
 		modalOpen = modal.isOpen;
 	});
 
-	function openModal(control) {
+	function openModal(control: Control): void {
 		selectedControl = control;
 		modal.toggle();
 	}
 
-	function closeModalWrapper() {
+	function closeModalWrapper(): void {
 		modal.close();
 		selectedControl = null;
 	}
@@ -98,7 +157,7 @@
 						</Badge>
 					</TableBodyCell>
 					<TableBodyCell class="!p-2">
-						<Badge class={`${statusColors[control.status]} text-xs`}>
+						<Badge class={`${statusColors[control.status as keyof typeof statusColors]} text-xs`}>
 							{control.status}
 						</Badge>
 					</TableBodyCell>

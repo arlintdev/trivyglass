@@ -73,20 +73,20 @@ sequenceDiagram
     participant UI as UI Components
     participant API as Server API
     participant Redis
-    
+
     User->>UI: Click cluster manager button
     UI->>API: Request available clusters
     API->>Redis: Get stored clusters
     Redis-->>API: Return clusters data
     API-->>UI: Display clusters list
-    
+
     User->>UI: Upload kubeconfig
     UI->>API: Send kubeconfig data
     API->>API: Encrypt kubeconfig
     API->>Redis: Store encrypted kubeconfig
     Redis-->>API: Confirm storage
     API-->>UI: Update clusters list
-    
+
     User->>UI: Select cluster
     UI->>UI: Show confirmation modal
     User->>UI: Confirm selection
@@ -143,11 +143,13 @@ sequenceDiagram
 ## Testing Plan
 
 1. **Unit Tests**:
+
    - Test encryption/decryption functions
    - Test Redis storage and retrieval
    - Test cluster switching logic
 
 2. **Integration Tests**:
+
    - Test API endpoints
    - Test UI components
 
@@ -161,10 +163,12 @@ sequenceDiagram
 ## Deployment Considerations
 
 1. **Environment Variables**:
+
    - Add `ENCRYPTION_KEY` to environment variables
    - Update Redis connection configuration if needed
 
 2. **Redis Configuration**:
+
    - Ensure Redis is properly secured
    - Consider enabling persistence for Redis to prevent data loss
 

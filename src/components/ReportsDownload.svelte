@@ -1,8 +1,13 @@
 <script lang="ts">
-	export let title: string;
-	export let clusterName: string;
-	export let summaryCounts: Record<string, number> = {};
-	export let showSummary = true;
+	interface Props {
+		title: string;
+		clusterName: string | null;
+		summaryCounts: Record<string, number>;
+		showSummary: boolean;
+	}
+
+	let { title, clusterName, showSummary, summaryCounts }: Props = $props();
+
 	import { Heading, P } from 'svelte-5-ui-lib';
 	function getTextColor(key: string) {
 		switch (key) {

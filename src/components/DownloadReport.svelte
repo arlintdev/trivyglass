@@ -1,5 +1,18 @@
 <script lang="ts">
-	export let data: any;
+	interface Manifest {
+		kind: string;
+		metadata: {
+			namespace?: string;
+			name: string;
+		};
+	}
+
+	interface Props {
+		data: { manifest: Manifest };
+	}
+
+	let { data }: Props = $props();
+
 	import { Button } from 'svelte-5-ui-lib';
 
 	import { DownloadSolid } from 'flowbite-svelte-icons';

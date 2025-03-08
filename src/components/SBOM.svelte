@@ -1,18 +1,40 @@
 <script lang="ts">
 	import { Card, Input } from 'svelte-5-ui-lib';
 
-	// Props to receive components and bindable text
-	let { components, text = $bindable('') } = $props();
+	// Define types for the component structure
+	interface Property {
+		name: string;
+		value: string;
+	}
 
-	// Type order for sorting
-	const typeOrder = {
-		application: 3,
-		library: 2,
-		'operating-system': 1
-	};
+	interface Supplier {
+		name: string;
+	}
+
+	interface Component {
+		name: string;
+		'bom-ref': string;
+		type: 'application' | 'library' | 'operating-system';
+		version?: string;
+		purl?: string;
+		supplier?: Supplier;
+		properties?: Property[];
+	}
+
+	interface ComponentsData {
+		bomFormat: string;
+		components: Component[];
+	}
+
+	interface Props {
+		components: ComponentsData;
+		text?: string;
+	}
+
+	let { components, text = $bindable('') }: Props = $props();
 
 	// Type color mapping
-	const typeColors = {
+	const typeColors: Record<string, string> = {
 		application: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
 		library: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
 		'operating-system': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
@@ -20,7 +42,7 @@
 
 	// Filter components using $derived
 	const filteredComponents = $derived(
-		components.components.filter((component) => {
+		components.components.filter((component: Component) => {
 			const term = text.toLowerCase();
 			return (
 				component.name?.toLowerCase().includes(term) ||
@@ -30,7 +52,7 @@
 				component.purl?.toLowerCase().includes(term) ||
 				component.supplier?.name?.toLowerCase().includes(term) ||
 				component.properties?.some(
-					(prop) =>
+					(prop: Property) =>
 						prop.name.toLowerCase().includes(term) || prop.value.toLowerCase().includes(term)
 				)
 			);
@@ -46,7 +68,6 @@
 			placeholder="Search components by name, ID, type, version, etc."
 			class="mb-4"
 		/>
-
 		<h2 class="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
 			Components
 			<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
@@ -58,7 +79,6 @@
 			</span>
 		</h2>
 	</div>
-
 	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredComponents as component}
 			<Card
@@ -67,12 +87,11 @@
 			>
 				<div class="flex h-full flex-col">
 					<!-- Header with type color -->
-					<div class="{typeColors[component.type]} p-4">
+					<div class="{typeColors[component.type] || ''} p-4">
 						<h3 class="truncate text-lg font-semibold" title={component.name}>
 							{component.name}
 						</h3>
 					</div>
-
 					<!-- Content -->
 					<div class="flex-1 space-y-3 p-4 text-gray-700 dark:text-gray-300">
 						<div class="space-y-2 text-sm">
@@ -84,7 +103,7 @@
 								<strong>Type:</strong>
 								<span
 									class="inline-block rounded-full px-2 py-1 text-xs font-medium
-                            {typeColors[component.type]}"
+                            {typeColors[component.type] || ''}"
 								>
 									{component.type}
 								</span>
@@ -99,7 +118,6 @@
 								<p class="whitespace-normal break-words"><strong>PURL:</strong> {component.purl}</p>
 							{/if}
 						</div>
-
 						<!-- Properties -->
 						{#if component.properties?.length}
 							<div class="space-y-1 text-sm">
@@ -111,7 +129,6 @@
 								{/each}
 							</div>
 						{/if}
-
 						<!-- Supplier (if available) -->
 						{#if component.supplier?.name}
 							<div class="space-y-1 text-sm">

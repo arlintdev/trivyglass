@@ -1,9 +1,15 @@
 <script lang="ts">
-	export let title: string;
-	export let name: string | null;
-	export let summaryCounts: Record<string, number> = {};
-	export let showSummary = true;
-	import { Heading, P, Popover, Button, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+	import { Heading, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+
+	interface Props {
+		title: string;
+		name: string | null;
+		summaryCounts?: Record<string, number>;
+		showSummary?: boolean;
+	}
+
+	let { title, name, showSummary = true, summaryCounts = {} }: Props = $props();
+
 	function getTextColor(key: string) {
 		switch (key.toLowerCase()) {
 			case 'critical':

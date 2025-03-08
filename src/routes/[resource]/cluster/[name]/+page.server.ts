@@ -8,20 +8,30 @@ export const prerender = false;
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { resource, name } = params;
-	
+
 	console.log(`Loading cluster resource: ${resource}/${name}`);
-	
+
 	try {
 		// Use the kubeUtil function to get the resource
 		const result = await getClusterResource(resource, name);
-		
+
 		// Return the result
 		return result;
-	} catch (err: any) {
-		console.error(`Error in page server load: ${err.message}`);
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			console.error(`Error in page server load: ${err.message}`);
+			return {
+				manifest: null,
+				error: err.message,
+				clusterName: getCurrentClusterName(),
+				resource,
+				name
+			};
+		}
+		console.error(`Error in page server load: ${String(err)}`);
 		return {
 			manifest: null,
-			error: err.message,
+			error: 'An unknown error occurred',
 			clusterName: getCurrentClusterName(),
 			resource,
 			name

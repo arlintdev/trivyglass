@@ -10,14 +10,14 @@ To add the screenshots to the documentation:
 
 2. Take screenshots of the following views in the application:
 
-   | View | Description | Filename to Use |
-   |------|-------------|-----------------|
-   | Dashboard Overview | The main dashboard showing summary statistics | `dashboard-overview.png` |
-   | Vulnerability Reports | The page showing vulnerability reports | `vulnerability-reports.png` |
-   | Security Checks | The page showing security check results | `security-checks.png` |
-   | SBOM View | The Software Bill of Materials view | `sbom-view.png` |
-   | Compliance Dashboard | The compliance status dashboard | `compliance-dashboard.png` |
-   | Report Details | A detailed view of a specific report | `report-details.png` |
+   | View                  | Description                                   | Filename to Use             |
+   | --------------------- | --------------------------------------------- | --------------------------- |
+   | Dashboard Overview    | The main dashboard showing summary statistics | `dashboard-overview.png`    |
+   | Vulnerability Reports | The page showing vulnerability reports        | `vulnerability-reports.png` |
+   | Security Checks       | The page showing security check results       | `security-checks.png`       |
+   | SBOM View             | The Software Bill of Materials view           | `sbom-view.png`             |
+   | Compliance Dashboard  | The compliance status dashboard               | `compliance-dashboard.png`  |
+   | Report Details        | A detailed view of a specific report          | `report-details.png`        |
 
 3. Save the screenshots with the exact filenames specified above.
 

@@ -1,7 +1,21 @@
 <script lang="ts">
-	import { Card, Badge, Alert, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+	import { Card, Badge, Alert } from 'svelte-5-ui-lib';
 
-	const { checks } = $props();
+	// Define an interface for the security check objects
+	interface SecurityCheck {
+		severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
+		title?: string;
+		checkID?: string;
+		description?: string;
+		messages?: string[];
+		remediation?: string;
+	}
+
+	interface Props {
+		checks: SecurityCheck[];
+	}
+
+	let { checks }: Props = $props();
 
 	// Severity color mapping (updated for new colors and dark mode compatibility)
 	const severityColors = {
@@ -23,7 +37,7 @@
 
 	// Sort checks by severity
 	const sortedChecks =
-		checks.slice().sort((a, b) => {
+		checks.slice().sort((a: SecurityCheck, b: SecurityCheck) => {
 			return (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5);
 		}) ?? [];
 </script>

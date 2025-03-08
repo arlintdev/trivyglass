@@ -3,10 +3,10 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch (customize as needed)
+      - main # Trigger on push to main branch (customize as needed)
   pull_request:
     branches:
-      - main  # Optional: Build on PRs too
+      - main # Optional: Build on PRs too
 
 permissions:
   contents: read
@@ -39,9 +39,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .  # Build context (typically root where Dockerfile is)
-          file: ./Dockerfile  # Path to Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}  # Push only on push, not PR
+          context: . # Build context (typically root where Dockerfile is)
+          file: ./Dockerfile # Path to Dockerfile
+          push: ${{ github.event_name != 'pull_request' }} # Push only on push, not PR
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}

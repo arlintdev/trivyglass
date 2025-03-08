@@ -11,7 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
+		"lint": "prettier --check vite.config.ts src && eslint vite.config.ts src && svelte-check --tsconfig ./tsconfig.json",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
 		"test:api": "npm run test:unit -- --run src/routes/api/clusters/server.test.ts src/routes/api/clusters/switch/server.test.ts src/routes/api/clusters/name-param/server.test.ts"

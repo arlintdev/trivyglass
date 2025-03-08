@@ -3,11 +3,13 @@
 ## Problem Statement
 
 When running the Trivy Glass application in Docker, it fails to connect to the Kubernetes API with the error:
+
 ```
 [ERROR] [KubeUtil] Critical error fetching rbacassessmentreports: Protocol "http:" not supported. Expected "https:"
 ```
 
 This occurs because:
+
 1. The application can't access the local kubeconfig file from within the Docker container
 2. The Kubernetes client library expects to connect via HTTPS
 3. The application works with `npm run dev` but fails in Docker
@@ -16,6 +18,7 @@ This occurs because:
 ## Solution Overview
 
 We'll implement a secure solution by:
+
 1. Modifying the Dockerfile to run as a non-root user
 2. Ensuring proper kubeconfig access for the non-root user
 3. Providing instructions for running the container with the mounted kubeconfig
@@ -61,6 +64,7 @@ CMD ["node", "build"]
 ```
 
 Key changes:
+
 - Create a `.kube` directory for the node user
 - Set proper ownership of application files
 - Switch to the non-root `node` user before running the application
@@ -80,7 +84,7 @@ This mounts the local kubeconfig file to the non-root user's home directory wher
 
 We'll update the Docker section in the README.md to include the new instructions:
 
-```markdown
+````markdown
 ### Docker
 
 ```bash
@@ -90,9 +94,11 @@ docker build -t trivy-glass .
 # Run the container with Kubernetes access
 docker run -v ~/.kube/config:/home/node/.kube/config -p 3000:3000 trivy-glass
 ```
+````
 
 > **Note:** The container runs as a non-root user for security. The `-v ~/.kube/config:/home/node/.kube/config` option mounts your local kubeconfig file into the container, allowing it to access your Kubernetes cluster.
-```
+
+````
 
 ### 4. Testing Strategy
 
@@ -110,7 +116,7 @@ If modifying the Dockerfile is not preferred, we could also set the KUBECONFIG e
 
 ```bash
 docker run -v ~/.kube/config:/app/kubeconfig -e KUBECONFIG=/app/kubeconfig -p 3000:3000 trivy-glass
-```
+````
 
 ### Option 2: Modify kubeUtil.ts
 
@@ -119,17 +125,17 @@ Another approach would be to modify the kubeUtil.ts file to look for the kubecon
 ```typescript
 // In getKubeConfig function
 if (activeClusterName === 'local') {
-  // Check for custom kubeconfig path
-  if (process.env.KUBECONFIG) {
-    Logger.info(`Loading kubeconfig from ${process.env.KUBECONFIG}`);
-    config.loadFromFile(process.env.KUBECONFIG);
-  } else if (process.env.KUBERNETES_SERVICE_HOST && process.env.KUBERNETES_SERVICE_PORT) {
-    Logger.info('Loading kubeconfig from in-cluster environment');
-    config.loadFromCluster();
-  } else {
-    Logger.info('Loading kubeconfig from default location');
-    config.loadFromDefault();
-  }
+	// Check for custom kubeconfig path
+	if (process.env.KUBECONFIG) {
+		Logger.info(`Loading kubeconfig from ${process.env.KUBECONFIG}`);
+		config.loadFromFile(process.env.KUBECONFIG);
+	} else if (process.env.KUBERNETES_SERVICE_HOST && process.env.KUBERNETES_SERVICE_PORT) {
+		Logger.info('Loading kubeconfig from in-cluster environment');
+		config.loadFromCluster();
+	} else {
+		Logger.info('Loading kubeconfig from default location');
+		config.loadFromDefault();
+	}
 }
 ```
 

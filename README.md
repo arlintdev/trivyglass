@@ -112,28 +112,40 @@ Trivy Glass requires the following RBAC permissions:
 ## Screenshots
 
 ### Dashboard Overview
+
 <!-- ![Dashboard Overview](/docs/screenshots/dashboard-overview.png) -->
-*The main dashboard provides an at-a-glance view of your cluster's security posture, showing summary statistics for vulnerabilities, security checks, and compliance status.*
+
+_The main dashboard provides an at-a-glance view of your cluster's security posture, showing summary statistics for vulnerabilities, security checks, and compliance status._
 
 ### Vulnerability Reports
+
 <!-- ![Vulnerability Reports](/docs/screenshots/vulnerability-reports.png) -->
-*The vulnerability reports page displays detected vulnerabilities with severity levels, affected resources, and remediation information.*
+
+_The vulnerability reports page displays detected vulnerabilities with severity levels, affected resources, and remediation information._
 
 ### Security Checks
+
 <!-- ![Security Checks](/docs/screenshots/security-checks.png) -->
-*The security checks page shows the results of various security checks performed by trivy-operator, with pass/fail status and remediation steps.*
+
+_The security checks page shows the results of various security checks performed by trivy-operator, with pass/fail status and remediation steps._
 
 ### SBOM View
+
 <!-- ![SBOM View](/docs/screenshots/sbom-view.png) -->
-*The Software Bill of Materials (SBOM) view displays all components used in your applications, including their versions and suppliers.*
+
+_The Software Bill of Materials (SBOM) view displays all components used in your applications, including their versions and suppliers._
 
 ### Compliance Dashboard
+
 <!-- ![Compliance Dashboard](/docs/screenshots/compliance-dashboard.png) -->
-*The compliance dashboard shows your cluster's compliance status with various standards and regulations.*
+
+_The compliance dashboard shows your cluster's compliance status with various standards and regulations._
 
 ### Report Details
+
 <!-- ![Report Details](/docs/screenshots/report-details.png) -->
-*Detailed view of a specific report, showing all available information and actionable insights.*
+
+_Detailed view of a specific report, showing all available information and actionable insights._
 
 > **Note:** Screenshots need to be added. Please take screenshots of the application in action and add them to the `/docs/screenshots/` directory with appropriate names matching each section above. Then uncomment the image references (remove the HTML comments `<!-- -->`) to display the screenshots. See the [instructions in the docs/screenshots directory](docs/screenshots/README.md) for detailed guidance.
 

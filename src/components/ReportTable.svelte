@@ -13,15 +13,43 @@
 		ButtonGroup
 	} from 'svelte-5-ui-lib';
 
-	let {
-		reports = [],
-		reportType,
-		showSummary = true,
-		showNamespace = true,
-		columns = []
-	} = $props();
+	// Define types for Badge color
+	type BadgeColorType = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'gray';
 
-	function getColor(header: string): string | undefined {
+	interface Metadata {
+		namespace?: string;
+		name: string;
+		uid?: string;
+	}
+
+	interface Report {
+		metadata: Metadata;
+		[key: string]: unknown;
+	}
+
+	interface Props {
+		reports?: Report[];
+		reportType: string;
+		showNamespace?: boolean;
+		columns?: Column[];
+	}
+
+	interface Column {
+		name: string;
+		jsonPath: string;
+	}
+
+	interface TableColumn {
+		header: string;
+		value: string;
+		color?: BadgeColorType;
+	}
+
+	let { reports = [], reportType, showNamespace = true, columns = [] }: Props = $props();
+
+	let tableColumns = $state<TableColumn[]>([]);
+
+	function getColor(header: string): BadgeColorType | undefined {
 		const lowerHeader = header.toLowerCase();
 		if (lowerHeader.includes('fail')) return 'red';
 		if (lowerHeader.includes('pass')) return 'green';
@@ -34,16 +62,15 @@
 		return undefined;
 	}
 
-	let tableColumns = $state([]);
 	if (columns.length > 0) {
-		tableColumns = columns.map((col: any) => ({
+		tableColumns = columns.map((col: Column) => ({
 			header: col.name,
 			value: col.jsonPath,
 			color: getColor(col.name)
 		}));
 	} else {
 		const allKeys = new Set<string>();
-		reports.forEach((report: any) => {
+		reports.forEach((report: Report) => {
 			Object.keys(report).forEach((key: string) => {
 				if (key !== 'metadata') {
 					allKeys.add(key);
@@ -64,18 +91,20 @@
 		modalStatus = modalExample.isOpen;
 	});
 
-	let selectedReport: any = null;
-	function openJsonModal(report: any) {
-		selectedReport = report;
-		modalExample.toggle();
-	}
+	let selectedReport = $state<Report | null>(null);
 
-	function get(obj: any, path: string): any {
+	function get(obj: Record<string, unknown>, path: string): unknown {
 		if (!obj || !path) return undefined;
 		if (path.startsWith('.')) {
 			path = path.slice(1);
 		}
-		return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+
+		return path.split('.').reduce<unknown>((acc, part) => {
+			if (acc && typeof acc === 'object' && acc !== null) {
+				return (acc as Record<string, unknown>)[part];
+			}
+			return undefined;
+		}, obj);
 	}
 
 	/**
@@ -84,12 +113,12 @@
 	 * The filename includes the date, report type, namespace (if available), and report name
 	 * @param report The report object to download
 	 */
-	async function downloadReport(report: any) {
+	async function downloadReport(report: Report) {
 		// Create a filename with date, report type, namespace (if available), and report name
 		const date = new Date().toISOString().split('T')[0];
 		const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
 		const filename = `${date}_${reportType}_${namespace}${report.metadata.name}.json`;
-		
+
 		try {
 			// Construct the API endpoint URL for the full report
 			let apiUrl;
@@ -100,19 +129,19 @@
 				// Cluster-scoped resource
 				apiUrl = `/api/reports/cluster/${reportType}/${report.metadata.name}`;
 			}
-			
+
 			// Fetch the full report data from the server
 			const response = await fetch(apiUrl);
 			if (!response.ok) {
 				throw new Error(`Failed to fetch report: ${response.statusText}`);
 			}
-			
+
 			// Get the full report data
 			const fullReportData = await response.json();
-			
+
 			// Convert report to formatted JSON string
 			const jsonStr = JSON.stringify(fullReportData, null, 2);
-			
+
 			// Create and trigger download
 			const blob = new Blob([jsonStr], { type: 'application/json' });
 			const url = URL.createObjectURL(blob);
@@ -121,9 +150,14 @@
 			a.download = filename;
 			a.click();
 			URL.revokeObjectURL(url); // Clean up to avoid memory leaks
-		} catch (error) {
-			console.error('Error downloading report:', error);
-			alert(`Failed to download report: ${error.message}`);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				console.error('Error downloading report:', error);
+				alert(`Failed to download report: ${error.message}`);
+			} else {
+				console.error('Unknown error occurred:', error);
+				alert('Failed to download report: An unknown error occurred.');
+			}
 		}
 	}
 
@@ -131,8 +165,8 @@
 	let sortColumn = $state('');
 	let sortDirection = $state<'asc' | 'desc'>('asc');
 
-	function compareValues(a: any, b: any, column: string, direction: 'asc' | 'desc') {
-		let valueA, valueB;
+	function compareValues(a: Report, b: Report, column: string, direction: 'asc' | 'desc') {
+		let valueA: unknown, valueB: unknown;
 
 		if (column === 'Namespace / Name') {
 			valueA = `${a.metadata?.namespace || ''}:${a.metadata?.name || ''}`;
@@ -158,9 +192,9 @@
 			const numB = Number(valueB);
 			return direction === 'asc' ? numA - numB : numB - numA;
 		} else {
-			valueA = String(valueA).toLowerCase();
-			valueB = String(valueB).toLowerCase();
-			return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+			const strA = String(valueA).toLowerCase();
+			const strB = String(valueB).toLowerCase();
+			return direction === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
 		}
 	}
 
@@ -170,7 +204,7 @@
 			.filter((report) => {
 				if (!searchTerm) return true;
 				const term = searchTerm.toLowerCase();
-				let values: any[] = [];
+				let values: unknown[] = [];
 
 				if (showNamespace && report.metadata?.namespace) {
 					values.push(report.metadata.namespace);
@@ -196,12 +230,13 @@
 			})
 	);
 
-	let headItems = [];
-	headItems.push('Namespace / Name');
-	for (let column of tableColumns) {
-		headItems.push(column.header);
+	// Using a function instead of a derived store to avoid the error
+	function getHeadItems(): string[] {
+		const headers = ['Namespace / Name'];
+		headers.push(...tableColumns.map((column) => column.header));
+		headers.push('Actions');
+		return headers;
 	}
-	headItems.push('Actions');
 
 	function toggleSort(column: string) {
 		if (sortColumn === column) {
@@ -220,7 +255,7 @@
 		button: 'py-1 px-2 text-xs'
 	};
 
-	function escapeCsvValue(value: any): string {
+	function escapeCsvValue(value: unknown): string {
 		if (
 			typeof value === 'string' &&
 			(value.includes(',') || value.includes('"') || value.includes('\n'))
@@ -275,16 +310,16 @@
 	function downloadFile(content: string, filename: string, mimeType: string) {
 		// Create a blob with the content and MIME type
 		const blob = new Blob([content], { type: mimeType });
-		
+
 		// Create a temporary URL for the blob
 		const url = URL.createObjectURL(blob);
-		
+
 		// Create and trigger a download link
 		const a = document.createElement('a');
 		a.href = url;
 		a.download = filename;
 		a.click();
-		
+
 		// Clean up to avoid memory leaks
 		URL.revokeObjectURL(url);
 	}
@@ -317,12 +352,12 @@
 			default:
 				return;
 		}
-		
+
 		// Trigger download of the generated file
 		downloadFile(content, filename, mimeType);
 	}
 
-	function generateLink(report: any) {
+	function generateLink(report: Report) {
 		if (report.metadata.namespace) {
 			return `/${reportType}/namespace/${report.metadata.namespace}/${report.metadata.name}`;
 		} else {
@@ -342,14 +377,16 @@
 					<Button onclick={() => exportData('markdown')}>Export All as Markdown</Button>
 					<Button onclick={() => exportData('json')}>Export All as JSON</Button>
 				</ButtonGroup>
-				<span class="mt-1 text-xs text-gray-500">Export all filtered reports in the selected format</span>
+				<span class="mt-1 text-xs text-gray-500"
+					>Export all filtered reports in the selected format</span
+				>
 			</div>
 		</div>
 		<TableSearch placeholder="Search reports" hoverable={true} bind:inputValue={searchTerm}>
 			<TableHead>
-				{#each headItems as header}
+				{#each getHeadItems() as header}
 					<th
-						on:click={() => toggleSort(header)}
+						onclick={() => toggleSort(header)}
 						class="cursor-pointer bg-gray-100 px-2 py-1 text-sm transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
 					>
 						<div class="flex items-center gap-1">
@@ -364,7 +401,7 @@
 			<TableBody class={tightTableClasses.table}>
 				{#if filteredReports.length === 0}
 					<TableBodyRow>
-						<TableBodyCell colspan={headItems.length} class={tightTableClasses.cell}>
+						<TableBodyCell colspan={getHeadItems().length} class={tightTableClasses.cell}>
 							<P class="text-center">No matching {reportType} reports found.</P>
 						</TableBodyCell>
 					</TableBodyRow>
@@ -385,20 +422,20 @@
 									{#if column.value.includes('.')}
 										{#if column.color}
 											<Badge color={column.color} class={tightTableClasses.badge}>
-												{get(report, column.value) ?? 'N/A'}
+												{String(get(report, column.value) ?? 'N/A')}
 											</Badge>
 										{:else}
-											<span title={get(report, column.value)}>
-												{get(report, column.value) ?? 'N/A'}
+											<span title={String(get(report, column.value) ?? 'N/A')}>
+												{String(get(report, column.value) ?? 'N/A')}
 											</span>
 										{/if}
 									{:else if column.color}
 										<Badge color={column.color} class={tightTableClasses.badge}>
-											{report[column.value] ?? 'N/A'}
+											{String(report[column.value] ?? 'N/A')}
 										</Badge>
 									{:else}
-										<span title={report[column.value]}>
-											{report[column.value] ?? 'N/A'}
+										<span title={String(report[column.value] ?? 'N/A')}>
+											{String(report[column.value] ?? 'N/A')}
 										</span>
 									{/if}
 								</TableBodyCell>
@@ -418,7 +455,7 @@
 										size="sm"
 										class={tightTableClasses.button}
 										onclick={() => {
-											downloadReport(report).catch(err => {
+											downloadReport(report).catch((err) => {
 												console.error('Error in download handler:', err);
 											});
 										}}

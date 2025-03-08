@@ -17,16 +17,19 @@ First, we need to ensure our Vitest configuration is properly set up:
 We'll implement tests for the following key components:
 
 ### Core Components
+
 - **NavBar.svelte**: Test navigation functionality and UI elements
 - **ClusterManager.svelte**: Test cluster management operations (list, switch, delete)
 - **ReportTable.svelte**: Test data display and filtering capabilities
 
 ### Report-Related Components
+
 - **Vulnerabilities.svelte**: Test vulnerability data display
 - **SecurityChecks.svelte**: Test security check visualization
 - **SBOM.svelte**: Test software bill of materials display
 
 ### Utility Components
+
 - **ReportHeader.svelte**: Test header rendering with different data
 - **DownloadReport.svelte**: Test download functionality
 
@@ -57,17 +60,17 @@ graph TD
     A[Setup Testing Infrastructure] --> B[Create Base Test Utilities]
     B --> C[Implement Component Tests]
     C --> D[Run and Verify Tests]
-    
+
     subgraph "Setup"
     A1[Update vite.config.ts] --> A
     A2[Enhance vitest-setup-client.ts] --> A
     end
-    
+
     subgraph "Test Utilities"
     B1[Create API Mocks] --> B
     B2[Create Component Test Helpers] --> B
     end
-    
+
     subgraph "Component Tests"
     C1[Core Components] --> C
     C2[Report Components] --> C

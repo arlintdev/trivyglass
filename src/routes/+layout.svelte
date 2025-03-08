@@ -24,7 +24,6 @@
 	let isDemoOpen = $state(true); // Sidebar starts open
 	let loading = $state(false);
 
-	const spanClass = 'flex-1 ms-3 whitespace-nowrap';
 	const demoSidebarUi = uiHelpers();
 	const closeDemoSidebar = demoSidebarUi.close;
 
@@ -32,29 +31,17 @@
 	let isClusterOpen = $state(true);
 	let isNamespaceOpen = $state(true);
 
-	beforeNavigate((navigation) => {
+	beforeNavigate(() => {
 		loading = true;
 	});
 
-	afterNavigate((navigation) => {
+	afterNavigate(() => {
 		loading = false;
 		activeUrl = $page.url.pathname;
 		isDemoOpen = demoSidebarUi.isOpen;
 	});
 
 	let { children } = $props();
-
-	function Placeholder() {
-		return `
-            <div class="flex h-full w-full flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-                <svg class="h-12 w-12 animate-spin mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8 8 8 0 01-8-8z"></path>
-                </svg>
-                <p>Loading...</p>
-            </div>
-        `;
-	}
 </script>
 
 <div class="flex h-screen flex-col overflow-hidden">
@@ -184,7 +171,7 @@
 				</SidebarItem>
 			</SidebarDropdownWrapper>
 		</Sidebar>
-		<div class="h-full flex-1 overflow-auto px-4 md:ml-64 scrollbar-thin">
+		<div class="scrollbar-thin h-full flex-1 overflow-auto px-4 md:ml-64">
 			<style>
 				.scrollbar-thin {
 					scrollbar-width: thin;
@@ -217,13 +204,30 @@
 					}
 				}
 			</style>
-			
-					{#if loading}
-						{@html Placeholder()}
-					{:else}
-						{@render children()}
-					{/if}
-	
+
+			{#if loading}
+				<div
+					class="flex h-full w-full flex-col items-center justify-center text-gray-500 dark:text-gray-400"
+				>
+					<svg
+						class="mb-4 h-12 w-12 animate-spin"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+						></circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8 8 8 0 01-8-8z"
+						></path>
+					</svg>
+					<p>Loading...</p>
+				</div>
+			{:else}
+				{@render children()}
+			{/if}
 		</div>
 	</div>
 </div>

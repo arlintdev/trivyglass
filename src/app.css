@@ -11,3 +11,46 @@ html body {
 html.dark body {
 	background-color: #1b1e21;
 }
+
+/* Fix for dots in sidebar */
+.sidebar-wrapper ul,
+.sidebar-wrapper li,
+nav ul,
+nav li {
+	list-style-type: none !important;
+}
+
+/* Remove the dots but preserve the existing indentation */
+.sidebar-wrapper li::before,
+.sidebar-wrapper li::after,
+nav li::before,
+nav li::after {
+	display: none !important;
+	content: none !important;
+}
+
+/* Ensure sub-items are indented */
+:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > a),
+:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > div > a) {
+	padding-left: 2.5rem !important;
+}
+
+/* Ensure dropdown headers are not indented */
+:global(.sidebar-wrapper > a),
+:global(.sidebar-wrapper > [data-sidebar-dropdown-wrapper] > button) {
+	padding-left: 1rem !important;
+}
+
+/* Make dropdown headers a slightly darker grey */
+:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > button),
+:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > button) {
+	background-color: rgba(55, 65, 81, 0.15) !important;
+}
+
+/* Darker grey for dark mode */
+@media (prefers-color-scheme: dark) {
+	:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > button),
+	:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > button) {
+		background-color: rgba(75, 85, 99, 0.4) !important;
+	}
+}

@@ -12,6 +12,9 @@
 		uiHelpers,
 		ButtonGroup
 	} from 'svelte-5-ui-lib';
+	import { toastStore } from '$lib/stores/toastStore';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	// Define types for Badge color
 	type BadgeColorType = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'gray';
@@ -92,6 +95,43 @@
 	});
 
 	let selectedReport = $state<Report | null>(null);
+	
+	// State for tracking refresh status
+	let isRefreshing = $state(false);
+	
+	/**
+	 * Refreshes the report data by invalidating the cache and reloading the page
+	 * This forces a fresh fetch from Kubernetes
+	 */
+	async function refreshReports() {
+		try {
+			isRefreshing = true;
+			
+			// Call the API to invalidate the cache
+			const response = await fetch(`/api/reports/invalidate/${reportType}`, {
+				method: 'POST'
+			});
+			
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to refresh reports');
+			}
+			
+			// Show success toast
+			toastStore.addToast(`Successfully refreshed ${reportType} data`, 'success');
+			
+			// Reload the current page to fetch fresh data
+			goto($page.url.pathname, { invalidateAll: true });
+		} catch (error) {
+			console.error('Error refreshing reports:', error);
+			toastStore.addToast(
+				`Failed to refresh reports: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				'error'
+			);
+		} finally {
+			isRefreshing = false;
+		}
+	}
 
 	function get(obj: Record<string, unknown>, path: string): unknown {
 		if (!obj || !path) return undefined;
@@ -370,7 +410,7 @@
 	<P class="text-center">No {reportType} reports found.</P>
 {:else}
 	<div class={tightTableClasses.wrapper}>
-		<div class="mb-4 flex">
+		<div class="mb-4 flex justify-between">
 			<div class="flex flex-col">
 				<ButtonGroup>
 					<Button onclick={() => exportData('csv')}>Export All as CSV</Button>
@@ -380,6 +420,24 @@
 				<span class="mt-1 text-xs text-gray-500"
 					>Export all filtered reports in the selected format</span
 				>
+			</div>
+			
+			<!-- Add the refresh button -->
+			<div>
+				<Button
+					color="blue"
+					onclick={refreshReports}
+					disabled={isRefreshing}
+				>
+					{#if isRefreshing}
+						<span class="inline-block animate-spin mr-2">↻</span>Refreshing...
+					{:else}
+						<span class="mr-2">↻</span>Hard Refresh
+					{/if}
+				</Button>
+				<span class="block mt-1 text-xs text-gray-500">
+					Clears cache and fetches fresh data from Kubernetes
+				</span>
 			</div>
 		</div>
 		<TableSearch placeholder="Search reports" hoverable={true} bind:inputValue={searchTerm}>

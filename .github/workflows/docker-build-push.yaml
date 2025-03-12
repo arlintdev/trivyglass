@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - main # Optional: Build on PRs too
-  release:
-    types: [published] # Trigger on release publish
 
 permissions:
   contents: read
@@ -36,14 +34,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
-      # 4. Extract version from tag if this is a release
-      - name: Extract tag name
-        id: extract_tag
-        if: github.event_name == 'release'
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      # 5. Build and push the Docker image
+      # 4. Build and push the Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -51,7 +43,6 @@ jobs:
           file: ./Dockerfile # Path to Dockerfile
           push: ${{ github.event_name != 'pull_request' }} # Push only on push, not PR
           tags: |
-            ${{ github.event_name == 'release' && format('ghcr.io/{0}:{1}', github.repository, steps.extract_tag.outputs.TAG_NAME) || format('ghcr.io/{0}:latest', github.repository) }}
-            ${{ github.event_name != 'release' && format('ghcr.io/{0}:{1}', github.repository, github.sha) || '' }}
-            ${{ github.event_name == 'release' && format('ghcr.io/{0}:latest', github.repository) || '' }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || github.sha_short }}
           platforms: linux/amd64,linux/arm64/v8

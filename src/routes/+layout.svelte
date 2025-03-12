@@ -21,6 +21,7 @@
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import '../app.css';
 	import NavBar from '../components/NavBar.svelte';
+	import ToastContainer from '../components/ToastContainer.svelte';
 
 	let activeUrl = $state('');
 	let isDemoOpen = $state(true); // Sidebar starts open
@@ -46,9 +47,9 @@
 
 	let { children } = $props();
 </script>
-
 <div class="flex h-screen flex-col overflow-hidden">
 	<NavBar></NavBar>
+	<ToastContainer />
 	<div class="relative flex flex-1 overflow-hidden">
 		<!-- Add style to hide the dots above menu items -->
 		<style>

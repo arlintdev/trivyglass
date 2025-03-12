@@ -1,7 +1,8 @@
 import { json } from '@sveltejs/kit';
 import { deleteCluster } from '$lib/kubeUtil';
+import { handleConnectionError } from '$lib/errorHandler';
 
-export async function DELETE({ params }) {
+export async function DELETE({ params }: { params: { name: string } }) {
 	try {
 		const { name } = params;
 
@@ -14,6 +15,8 @@ export async function DELETE({ params }) {
 		return json({ success: true });
 	} catch (error) {
 		console.error('Error deleting cluster:', error);
+		// Handle connection errors with toast notifications
+		handleConnectionError(error);
 		return json(
 			{
 				message: error instanceof Error ? error.message : 'Unknown error'

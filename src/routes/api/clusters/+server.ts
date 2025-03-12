@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { listClusters, saveCluster, getCurrentClusterName } from '$lib/kubeUtil';
+import { handleConnectionError } from '$lib/errorHandler';
 
 export async function GET() {
 	try {
@@ -12,6 +13,8 @@ export async function GET() {
 		});
 	} catch (error) {
 		console.error('Error fetching clusters:', error);
+		// Handle connection errors with toast notifications
+		handleConnectionError(error);
 		return json(
 			{
 				error: error instanceof Error ? error.message : 'Unknown error'
@@ -21,7 +24,7 @@ export async function GET() {
 	}
 }
 
-export async function POST({ request }) {
+export async function POST({ request }: { request: Request }) {
 	try {
 		const { kubeconfig } = await request.json();
 
@@ -37,6 +40,8 @@ export async function POST({ request }) {
 		});
 	} catch (error) {
 		console.error('Error saving cluster:', error);
+		// Handle connection errors with toast notifications
+		handleConnectionError(error);
 		return json(
 			{
 				message: error instanceof Error ? error.message : 'Unknown error'

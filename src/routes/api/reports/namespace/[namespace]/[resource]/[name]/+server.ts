@@ -1,7 +1,8 @@
 import { json } from '@sveltejs/kit';
 import { getNamespacedResource } from '$lib/kubeUtil';
+import { handleConnectionError } from '$lib/errorHandler';
 
-export async function GET({ params }) {
+export async function GET({ params }: { params: { namespace: string; resource: string; name: string } }) {
 	try {
 		const { namespace, resource, name } = params;
 
@@ -14,6 +15,8 @@ export async function GET({ params }) {
 		return json(result);
 	} catch (error) {
 		console.error('Error fetching namespaced resource:', error);
+		// Handle connection errors with toast notifications
+		handleConnectionError(error);
 		return json(
 			{
 				error: error instanceof Error ? error.message : 'Unknown error'

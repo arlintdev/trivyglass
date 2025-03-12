@@ -9,6 +9,7 @@
 		ClipboardListSolid,
 		ServerSolid
 	} from 'flowbite-svelte-icons';
+	import ErrorDemo from '../components/ErrorDemo.svelte';
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -403,6 +404,16 @@
 							>
 								View Namespace Infrastructure
 							</Button>
+						</div>
+					
+						<!-- Error Demo Section -->
+						<div class="mt-12 mb-8">
+							<h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
+								Error Notification Demo
+							</h2>
+							<div class="grid grid-cols-1">
+								<ErrorDemo />
+							</div>
 						</div>
 					</div>
 				</div>

@@ -39,23 +39,21 @@
 		totalFail: number;
 	}
 
-	interface ManifestData {
-		manifest: {
-			spec: {
-				compliance: {
-					controls: Control[];
+	interface Props {
+		data: {
+			manifest: {
+				spec?: {
+					compliance?: {
+						controls: Control[];
+					};
 				};
-			};
-			status: {
-				summaryReport: {
-					controlCheck: StatusControl[];
+				status?: {
+					summaryReport?: {
+						controlCheck: StatusControl[];
+					};
 				};
 			};
 		};
-	}
-
-	interface Props {
-		data: ManifestData[];
 	}
 
 	let { data }: Props = $props();
@@ -86,35 +84,39 @@
 	const statusOrder: Record<string, number> = { Failed: 1, Passed: 2, Manual: 3 };
 
 	// Process and sort controls data
-	let controls = data[0].manifest.spec.compliance.controls
-		.map((control: Control) => {
-			const statusControl = data[0].manifest.status.summaryReport.controlCheck.find(
-				(c: StatusControl) => c.id === control.id
-			);
-			// Handle the case where statusControl might be undefined
-			const totalFail = statusControl?.totalFail;
+	let controls: Control[] = [];
+	
+	if (data?.manifest?.spec?.compliance?.controls && data?.manifest?.status?.summaryReport?.controlCheck) {
+		controls = data.manifest.spec.compliance.controls
+			.map((control: Control) => {
+				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find(
+					(c: StatusControl) => c.id === control.id
+				);
+				// Handle the case where statusControl might be undefined
+				const totalFail = statusControl?.totalFail;
 
-			return {
-				...control,
-				status:
-					totalFail !== undefined && totalFail > 0
-						? 'Failed'
-						: totalFail !== undefined && totalFail === 0
-							? 'Passed'
-							: 'Manual',
-				totalFail: totalFail ?? null
-			};
-		})
-		.sort((a, b) => {
-			const statusDiff =
-				statusOrder[a.status as keyof typeof statusOrder] -
-				statusOrder[b.status as keyof typeof statusOrder];
-			if (statusDiff !== 0) return statusDiff;
-			return (
-				(severityOrder[a.severity as keyof typeof severityOrder] || 5) -
-				(severityOrder[b.severity as keyof typeof severityOrder] || 5)
-			);
-		});
+				return {
+					...control,
+					status:
+						totalFail !== undefined && totalFail > 0
+							? 'Failed'
+							: totalFail !== undefined && totalFail === 0
+								? 'Passed'
+								: 'Manual',
+					totalFail: totalFail ?? null
+				};
+			})
+			.sort((a, b) => {
+				const statusDiff =
+					statusOrder[a.status as keyof typeof statusOrder] -
+					statusOrder[b.status as keyof typeof statusOrder];
+				if (statusDiff !== 0) return statusDiff;
+				return (
+					(severityOrder[a.severity as keyof typeof severityOrder] || 5) -
+					(severityOrder[b.severity as keyof typeof severityOrder] || 5)
+				);
+			});
+	}
 
 	// State for selected control and modal
 	let selectedControl = $state<Control | null>(null);
@@ -136,39 +138,47 @@
 </script>
 
 <div class="container mx-auto space-y-4 p-4">
-	<!-- Compact Controls Table -->
-	<Table hoverable={true}>
-		<TableHead>
-			<TableHeadCell class="!p-2 text-sm">ID</TableHeadCell>
-			<TableHeadCell class="!p-2 text-sm">Name</TableHeadCell>
-			<TableHeadCell class="!p-2 text-sm">Severity</TableHeadCell>
-			<TableHeadCell class="!p-2 text-sm">Status</TableHeadCell>
-			<TableHeadCell class="!p-2 text-sm">Total Failures</TableHeadCell>
-			<TableHeadCell class="!p-2 text-sm">Actions</TableHeadCell>
-		</TableHead>
-		<TableBody class="divide-y">
-			{#each controls as control}
-				<TableBodyRow>
-					<TableBodyCell class="!p-2 text-sm">{control.id}</TableBodyCell>
-					<TableBodyCell class="!p-2 text-sm">{control.name}</TableBodyCell>
-					<TableBodyCell class="!p-2">
-						<Badge class={`${severityColors[control.severity] || severityColors.UNKNOWN} text-xs`}>
-							{control.severity || 'UNKNOWN'}
-						</Badge>
-					</TableBodyCell>
-					<TableBodyCell class="!p-2">
-						<Badge class={`${statusColors[control.status as keyof typeof statusColors]} text-xs`}>
-							{control.status}
-						</Badge>
-					</TableBodyCell>
-					<TableBodyCell class="!p-2 text-sm">{control.totalFail ?? 'N/A'}</TableBodyCell>
-					<TableBodyCell class="!p-2">
-						<Button size="sm" onclick={() => openModal(control)}>Details</Button>
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
-		</TableBody>
-	</Table>
+	{#if controls.length > 0}
+		<!-- Compact Controls Table -->
+		<Table hoverable={true}>
+			<TableHead>
+				<TableHeadCell class="!p-2 text-sm">ID</TableHeadCell>
+				<TableHeadCell class="!p-2 text-sm">Name</TableHeadCell>
+				<TableHeadCell class="!p-2 text-sm">Severity</TableHeadCell>
+				<TableHeadCell class="!p-2 text-sm">Status</TableHeadCell>
+				<TableHeadCell class="!p-2 text-sm">Total Failures</TableHeadCell>
+				<TableHeadCell class="!p-2 text-sm">Actions</TableHeadCell>
+			</TableHead>
+			<TableBody class="divide-y">
+				{#each controls as control}
+					<TableBodyRow>
+						<TableBodyCell class="!p-2 text-sm">{control.id}</TableBodyCell>
+						<TableBodyCell class="!p-2 text-sm">{control.name}</TableBodyCell>
+						<TableBodyCell class="!p-2">
+							<Badge class={`${severityColors[control.severity] || severityColors.UNKNOWN} text-xs`}>
+								{control.severity || 'UNKNOWN'}
+							</Badge>
+						</TableBodyCell>
+						<TableBodyCell class="!p-2">
+							<Badge class={`${statusColors[control.status as keyof typeof statusColors]} text-xs`}>
+								{control.status}
+							</Badge>
+						</TableBodyCell>
+						<TableBodyCell class="!p-2 text-sm">{control.totalFail ?? 'N/A'}</TableBodyCell>
+						<TableBodyCell class="!p-2">
+							<Button size="sm" onclick={() => openModal(control)}>Details</Button>
+						</TableBodyCell>
+					</TableBodyRow>
+				{/each}
+			</TableBody>
+		</Table>
+	{:else}
+		<div class="rounded-lg border border-gray-200 p-4 shadow-md dark:border-gray-700">
+			<p class="text-center text-gray-700 dark:text-gray-300">
+				No compliance controls found for this report.
+			</p>
+		</div>
+	{/if}
 
 	<!-- Modal for Control Details -->
 	<Modal

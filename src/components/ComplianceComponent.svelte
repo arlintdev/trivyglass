@@ -84,9 +84,12 @@
 	const statusOrder: Record<string, number> = { Failed: 1, Passed: 2, Manual: 3 };
 
 	// Process and sort controls data
-	let controls: Control[] = [];
-	
-	if (data?.manifest?.spec?.compliance?.controls && data?.manifest?.status?.summaryReport?.controlCheck) {
+	let controls: Control[] = $state([]);
+
+	if (
+		data?.manifest?.spec?.compliance?.controls &&
+		data?.manifest?.status?.summaryReport?.controlCheck
+	) {
 		controls = data.manifest.spec.compliance.controls
 			.map((control: Control) => {
 				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find(
@@ -155,7 +158,9 @@
 						<TableBodyCell class="!p-2 text-sm">{control.id}</TableBodyCell>
 						<TableBodyCell class="!p-2 text-sm">{control.name}</TableBodyCell>
 						<TableBodyCell class="!p-2">
-							<Badge class={`${severityColors[control.severity] || severityColors.UNKNOWN} text-xs`}>
+							<Badge
+								class={`${severityColors[control.severity] || severityColors.UNKNOWN} text-xs`}
+							>
 								{control.severity || 'UNKNOWN'}
 							</Badge>
 						</TableBodyCell>

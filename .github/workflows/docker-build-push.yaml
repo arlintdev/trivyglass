@@ -42,8 +42,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 5. Build and push the Docker image
-      - name: Build and push Docker image
+      # 5.1 Build and push the Docker image
+      - name: Build and push amd64 image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository }}:latest-amd64
+            ghcr.io/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || steps.short_sha.outputs.SHA_SHORT }}-amd64
+          platforms: linux/amd64
+
+      # 5.2 Build and push the Docker image
+      - name: Build and push arm64 image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/${{ github.repository }}:latest-arm64
+            ghcr.io/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || steps.short_sha.outputs.SHA_SHORT }}-arm64
+          platforms: linux/arm64/v8
+
+      # 5.3 Build and push the Docker image
+      - name: Build and push multi-arch image
         uses: docker/build-push-action@v5
         with:
           context: . # Build context (typically root where Dockerfile is)

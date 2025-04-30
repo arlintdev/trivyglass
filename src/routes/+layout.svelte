@@ -26,7 +26,7 @@
 	let activeUrl = $state('');
 	let isDemoOpen = $state(true); // Sidebar starts open
 	let loading = $state(false);
-	const spanClass = "flex-1 ms-3 whitespace-nowrap";
+	const spanClass = 'flex-1 ms-3 whitespace-nowrap';
 
 	const demoSidebarUi = uiHelpers();
 	const closeDemoSidebar = demoSidebarUi.close;
@@ -47,6 +47,7 @@
 
 	let { children } = $props();
 </script>
+
 <div class="flex h-screen flex-col overflow-hidden">
 	<NavBar></NavBar>
 	<ToastContainer />
@@ -63,7 +64,7 @@
 				content: none !important;
 				display: none !important;
 			}
-			
+
 			/* Remove any list-style that might be causing the dots */
 			:global(.sidebar-wrapper ul) {
 				list-style: none !important;
@@ -76,7 +77,7 @@
 			isOpen={isDemoOpen}
 			closeSidebar={closeDemoSidebar}
 			params={{ x: -50, duration: 50 }}
-			class="z-50 h-full sidebar-wrapper"
+			class="sidebar-wrapper z-50 h-full"
 			position="absolute"
 			activeClass="p-2"
 			nonActiveClass="p-2"
@@ -145,7 +146,7 @@
 				</SidebarDropdownWrapper>
 			</SidebarGroup>
 
-			<SidebarGroup >
+			<SidebarGroup>
 				<SidebarDropdownWrapper label="Namespace Reports" isOpen={isNamespaceOpen} btnClass="p-2">
 					{#snippet iconSlot()}
 						<FileSolid

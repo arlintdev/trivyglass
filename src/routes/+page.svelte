@@ -405,9 +405,9 @@
 								View Namespace Infrastructure
 							</Button>
 						</div>
-					
+
 						<!-- Error Demo Section -->
-						<div class="mt-12 mb-8">
+						<div class="mb-8 mt-12">
 							<h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
 								Error Notification Demo
 							</h2>

@@ -95,10 +95,10 @@
 	});
 
 	let selectedReport = $state<Report | null>(null);
-	
+
 	// State for tracking refresh status
 	let isRefreshing = $state(false);
-	
+
 	/**
 	 * Refreshes the report data by invalidating the cache and reloading the page
 	 * This forces a fresh fetch from Kubernetes
@@ -106,20 +106,20 @@
 	async function refreshReports() {
 		try {
 			isRefreshing = true;
-			
+
 			// Call the API to invalidate the cache
 			const response = await fetch(`/api/reports/invalidate/${reportType}`, {
 				method: 'POST'
 			});
-			
+
 			if (!response.ok) {
 				const errorData = await response.json();
 				throw new Error(errorData.error || 'Failed to refresh reports');
 			}
-			
+
 			// Show success toast
 			toastStore.addToast(`Successfully refreshed ${reportType} data`, 'success');
-			
+
 			// Reload the current page to fetch fresh data
 			goto($page.url.pathname, { invalidateAll: true });
 		} catch (error) {
@@ -421,21 +421,17 @@
 					>Export all filtered reports in the selected format</span
 				>
 			</div>
-			
+
 			<!-- Add the refresh button -->
 			<div>
-				<Button
-					color="blue"
-					onclick={refreshReports}
-					disabled={isRefreshing}
-				>
+				<Button color="blue" onclick={refreshReports} disabled={isRefreshing}>
 					{#if isRefreshing}
-						<span class="inline-block animate-spin mr-2">↻</span>Refreshing...
+						<span class="mr-2 inline-block animate-spin">↻</span>Refreshing...
 					{:else}
 						<span class="mr-2">↻</span>Hard Refresh
 					{/if}
 				</Button>
-				<span class="block mt-1 text-xs text-gray-500">
+				<span class="mt-1 block text-xs text-gray-500">
 					Clears cache and fetches fresh data from Kubernetes
 				</span>
 			</div>

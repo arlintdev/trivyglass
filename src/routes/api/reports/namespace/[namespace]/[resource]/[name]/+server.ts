@@ -2,7 +2,11 @@ import { json } from '@sveltejs/kit';
 import { getNamespacedResource } from '$lib/kubeUtil';
 import { handleConnectionError } from '$lib/errorHandler';
 
-export async function GET({ params }: { params: { namespace: string; resource: string; name: string } }) {
+export async function GET({
+	params
+}: {
+	params: { namespace: string; resource: string; name: string };
+}) {
 	try {
 		const { namespace, resource, name } = params;
 

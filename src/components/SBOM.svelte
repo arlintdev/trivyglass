@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, Input } from 'svelte-5-ui-lib';
+	import { Card, Input } from 'flowbite-svelte';
 
 	// Define types for the component structure
 	interface Property {
@@ -95,7 +95,7 @@
 					<!-- Content -->
 					<div class="flex-1 space-y-3 p-4 text-gray-700 dark:text-gray-300">
 						<div class="space-y-2 text-sm">
-							<p class="whitespace-normal break-words">
+							<p class="break-words whitespace-normal">
 								<strong>ID:</strong>
 								{component['bom-ref']}
 							</p>
@@ -109,13 +109,13 @@
 								</span>
 							</p>
 							{#if component.version}
-								<p class="whitespace-normal break-words">
+								<p class="break-words whitespace-normal">
 									<strong>Version:</strong>
 									{component.version}
 								</p>
 							{/if}
 							{#if component.purl}
-								<p class="whitespace-normal break-words"><strong>PURL:</strong> {component.purl}</p>
+								<p class="break-words whitespace-normal"><strong>PURL:</strong> {component.purl}</p>
 							{/if}
 						</div>
 						<!-- Properties -->
@@ -123,7 +123,7 @@
 							<div class="space-y-1 text-sm">
 								<p><strong>Properties:</strong></p>
 								{#each component.properties as prop}
-									<p class="whitespace-normal break-words text-xs">
+									<p class="text-xs break-words whitespace-normal">
 										{prop.name}: <span class="text-gray-500 dark:text-gray-400">{prop.value}</span>
 									</p>
 								{/each}
@@ -132,7 +132,7 @@
 						<!-- Supplier (if available) -->
 						{#if component.supplier?.name}
 							<div class="space-y-1 text-sm">
-								<p class="whitespace-normal break-words">
+								<p class="break-words whitespace-normal">
 									<strong>Supplier:</strong>
 									{component.supplier.name}
 								</p>

@@ -13,7 +13,7 @@
 
 	let { data }: Props = $props();
 
-	import { Button } from 'svelte-5-ui-lib';
+	import { Button } from 'flowbite-svelte';
 
 	import { DownloadSolid } from 'flowbite-svelte-icons';
 	function downloadReport() {

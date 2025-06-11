@@ -8,9 +8,8 @@
 		TableBodyCell,
 		Badge,
 		Modal,
-		Button,
-		uiHelpers
-	} from 'svelte-5-ui-lib';
+		Button
+	} from 'flowbite-svelte';
 
 	// Define TypeScript interfaces for the data structure
 	interface Check {
@@ -123,20 +122,16 @@
 
 	// State for selected control and modal
 	let selectedControl = $state<Control | null>(null);
-	const modal = uiHelpers();
-	let modalOpen = $state(false);
-	$effect(() => {
-		modalOpen = modal.isOpen;
-	});
+	let showModal = $state(false);
 
 	function openModal(control: Control): void {
 		selectedControl = control;
-		modal.toggle();
+		showModal = true;
 	}
 
 	function closeModalWrapper(): void {
-		modal.close();
 		selectedControl = null;
+		showModal = false;
 	}
 </script>
 
@@ -187,9 +182,9 @@
 
 	<!-- Modal for Control Details -->
 	<Modal
+		bind:open={showModal}
 		title={selectedControl?.name || 'Control Details'}
-		modalStatus={modalOpen}
-		closeModal={closeModalWrapper}
+		onclose={closeModalWrapper}
 	>
 		{#if selectedControl}
 			<div class="text-sm text-gray-700 dark:text-gray-300">

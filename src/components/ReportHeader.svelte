@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Heading, Breadcrumb, BreadcrumbItem } from 'svelte-5-ui-lib';
+	import { Heading, Breadcrumb, BreadcrumbItem } from 'flowbite-svelte';
 
 	interface Props {
 		title: string;

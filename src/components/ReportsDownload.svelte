@@ -8,7 +8,7 @@
 
 	let { title, clusterName, showSummary, summaryCounts }: Props = $props();
 
-	import { Heading, P } from 'svelte-5-ui-lib';
+	import { Heading, P } from 'flowbite-svelte';
 	function getTextColor(key: string) {
 		switch (key) {
 			case 'criticalCount':

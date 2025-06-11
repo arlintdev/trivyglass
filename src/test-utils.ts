@@ -66,9 +66,9 @@ export function renderComponent<Props extends Record<string, unknown>>(
 	return render(component, { props });
 }
 
-// Mock for svelte-5-ui-lib components
-vi.mock('svelte-5-ui-lib', async () => {
-	const actual = await vi.importActual('svelte-5-ui-lib');
+// Mock for flowbite-svelte components
+vi.mock('flowbite-svelte', async () => {
+	const actual = await vi.importActual('flowbite-svelte');
 	return {
 		...actual,
 		Modal: vi.fn().mockImplementation(({ children }) => ({

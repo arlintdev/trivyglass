@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card } from 'svelte-5-ui-lib';
+	import { Card } from 'flowbite-svelte';
 
 	const { secrets } = $props();
 </script>
@@ -18,11 +18,11 @@
 					<div class="rounded-t-lg bg-indigo-50 p-4 dark:bg-indigo-900">
 						<h2 class="text-xl font-bold text-indigo-800 dark:text-indigo-200">{secret.title}</h2>
 					</div>
-					<p class="whitespace-normal break-words"><strong>Category:</strong> {secret.category}</p>
-					<p class="whitespace-normal break-words"><strong>Match:</strong> {secret.match}</p>
-					<p class="whitespace-normal break-words"><strong>Rule ID:</strong> {secret.ruleID}</p>
-					<p class="whitespace-normal break-words"><strong>Severity:</strong> {secret.severity}</p>
-					<p class="whitespace-normal break-words"><strong>Target:</strong> {secret.target}</p>
+					<p class="break-words whitespace-normal"><strong>Category:</strong> {secret.category}</p>
+					<p class="break-words whitespace-normal"><strong>Match:</strong> {secret.match}</p>
+					<p class="break-words whitespace-normal"><strong>Rule ID:</strong> {secret.ruleID}</p>
+					<p class="break-words whitespace-normal"><strong>Severity:</strong> {secret.severity}</p>
+					<p class="break-words whitespace-normal"><strong>Target:</strong> {secret.target}</p>
 				{/each}
 			</div>
 		</Card>

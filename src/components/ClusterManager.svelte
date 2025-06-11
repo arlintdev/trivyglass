@@ -1,34 +1,10 @@
 <script lang="ts">
-	import { Button, Modal, Alert, Spinner } from 'svelte-5-ui-lib';
+	import { Button, Modal, Alert, Spinner } from 'flowbite-svelte';
 	import { ServerSolid, ArchiveSolid } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
 
-	const { toggleOpen = (): void => {} } = $props();
-
-	// Use a state variable for the modal visibility
-	let isOpen = $state(false);
-
-	// Function to close the modal
-	function handleCloseModal(): void {
-		isOpen = false;
-		toggleOpen(); // Call the prop function to keep states in sync
-	}
-
-	// Delete confirmation
+	let { isOpen = false } = $props();
 	let clusterToDelete = $state<string | null>(null);
-
-	// Listen for the button click in NavBar
-	onMount(() => {
-		// When the NavBar button is clicked, toggle our local state
-		document.addEventListener('click', (event) => {
-			const target = event.target as HTMLElement;
-			// Check if the click is on the cluster manager button in the navbar
-			if (target.closest('.cluster-manager-button')) {
-				isOpen = !isOpen;
-			}
-		});
-	});
-
 	let clusters = $state<{ name: string; isLocal?: boolean; createdAt?: string }[]>([]);
 	let currentCluster = $state<string>('local');
 	let isLoading = $state(false);
@@ -242,16 +218,7 @@
 </script>
 
 <!-- Cluster Manager Modal -->
-<Modal
-	title="Manage Clusters"
-	modalStatus={isOpen}
-	closeModal={handleCloseModal}
-	position="center"
-	size="xl"
-	class="cluster-manager-modal"
-	outsideClose={false}
-	params={{ duration: 300 }}
->
+<Modal title="Manage Clusters" bind:open={isOpen} size="lg" params={{ duration: 300 }}>
 	{#if error}
 		<Alert color="red" class="mt-4">
 			{error}
@@ -265,7 +232,7 @@
 	{/if}
 
 	{#if clusterToDelete}
-		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+		<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
 			<div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
 				<h3 class="mb-4 text-lg font-medium">Confirm Delete</h3>
 				<p class="mb-6">

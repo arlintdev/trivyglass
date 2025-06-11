@@ -188,7 +188,7 @@
 <ReportHeader title={data.resource} name={null} summaryCounts={{}} {showSummary} />
 
 <!-- Custom summary display with stacked layout -->
-<div class="mb-8 mt-4">
+<div class="mt-4 mb-8">
 	<div class="flex flex-wrap gap-6">
 		{#each Object.keys(totalCounts) as key}
 			<div class="flex flex-col items-center">

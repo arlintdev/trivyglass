@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Heading, P, Button, Card } from 'svelte-5-ui-lib';
+	import { Heading, P, Button, Card } from 'flowbite-svelte';
 	import {
 		GithubSolid,
 		ShieldCheckSolid,
@@ -31,7 +31,7 @@
 		<Button
 			href="https://github.com/arlintdev/trivyglass"
 			target="_blank"
-			class="bg-primary-500 text-white hover:bg-primary-600"
+			class="bg-primary-500 hover:bg-primary-600 text-white"
 		>
 			GitHub Repository
 			<GithubSolid class="ms-2 h-5 w-5" />
@@ -407,7 +407,7 @@
 						</div>
 
 						<!-- Error Demo Section -->
-						<div class="mb-8 mt-12">
+						<div class="mt-12 mb-8">
 							<h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
 								Error Notification Demo
 							</h2>

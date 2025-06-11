@@ -6,7 +6,7 @@
 		SidebarDropdownWrapper,
 		SidebarGroup,
 		uiHelpers
-	} from 'svelte-5-ui-lib';
+	} from 'flowbite-svelte';
 	import {
 		ArchiveSolid,
 		BugSolid,
@@ -85,59 +85,60 @@
 			<CloseButton
 				onclick={closeDemoSidebar}
 				color="gray"
-				class="absolute right-2 top-2 p-2 md:hidden"
+				class="absolute top-2 right-2 p-2 md:hidden"
 			/>
 			<SidebarGroup>
 				<SidebarItem label="Dashboard" href="/" {spanClass}>
-					{#snippet iconSlot()}
+					{#snippet icon()}
 						<Home
 							class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 						/>
 					{/snippet}
 				</SidebarItem>
+
 				<SidebarDropdownWrapper label="Cluster Reports" isOpen={isClusterOpen} btnClass="p-2">
-					{#snippet iconSlot()}
+					{#snippet icon()}
 						<FileSolid
 							class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 						/>
 					{/snippet}
 					<SidebarItem label="Compliance" href="/clustercompliancereports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<ShieldCheckSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="Config Audit" href="/clusterconfigauditreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<CogSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="Infrastructure" href="/clusterinfraassessmentreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<ServerSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="RBAC Assessment" href="/clusterrbacassessmentreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<LockSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="SBOM" href="/clustersbomreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<ArchiveSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="Vulnerability" href="/clustervulnerabilityreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<BugSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
@@ -148,48 +149,48 @@
 
 			<SidebarGroup>
 				<SidebarDropdownWrapper label="Namespace Reports" isOpen={isNamespaceOpen} btnClass="p-2">
-					{#snippet iconSlot()}
+					{#snippet icon()}
 						<FileSolid
 							class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 						/>
 					{/snippet}
 					<SidebarItem label="Config Audit" href="/configauditreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<CogSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="Exposed Secrets" href="/exposedsecretreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<LockSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="Infrastructure" href="/infraassessmentreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<ServerSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="RBAC Assessment" href="/rbacassessmentreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<LockSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="SBOM" href="/sbomreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<ArchiveSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>
 						{/snippet}
 					</SidebarItem>
 					<SidebarItem label="Vulnerability" href="/vulnerabilityreports" {spanClass}>
-						{#snippet iconSlot()}
+						{#snippet icon()}
 							<BugSolid
 								class="h-5 w-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
 							/>

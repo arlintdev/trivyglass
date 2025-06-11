@@ -9,9 +9,8 @@
 		Button,
 		P,
 		Modal,
-		uiHelpers,
 		ButtonGroup
-	} from 'svelte-5-ui-lib';
+	} from 'flowbite-svelte';
 	import { toastStore } from '$lib/stores/toastStore';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -87,14 +86,8 @@
 		}));
 	}
 
-	const modalExample = uiHelpers();
-	let modalStatus = $state(false);
-	const closeModal = modalExample.close;
-	$effect(() => {
-		modalStatus = modalExample.isOpen;
-	});
-
 	let selectedReport = $state<Report | null>(null);
+	let showModal = $state(false);
 
 	// State for tracking refresh status
 	let isRefreshing = $state(false);
@@ -199,6 +192,23 @@
 				alert('Failed to download report: An unknown error occurred.');
 			}
 		}
+	}
+
+	/**
+	 * Opens the modal to view the full JSON of a report
+	 * @param report The report to view in the modal
+	 */
+	function viewReportJson(report: Report) {
+		selectedReport = report;
+		showModal = true;
+	}
+
+	/**
+	 * Closes the JSON view modal
+	 */
+	function closeModal() {
+		selectedReport = null;
+		showModal = false;
 	}
 
 	let searchTerm = $state('');
@@ -517,6 +527,15 @@
 									>
 										Download JSON
 									</Button>
+									<Button
+										color="purple"
+										size="sm"
+										class={tightTableClasses.button}
+										onclick={() => viewReportJson(report)}
+										title="View full report JSON in modal"
+									>
+										View JSON
+									</Button>
 								</div>
 							</TableBodyCell>
 						</TableBodyRow>
@@ -526,18 +545,13 @@
 		</TableSearch>
 	</div>
 {/if}
-<Modal
-	title="Report JSON"
-	{modalStatus}
-	{closeModal}
-	size="xl"
-	outsideClose={false}
-	params={{ duration: 500 }}
->
+
+<!-- Modal for viewing JSON -->
+<Modal bind:open={showModal} title="Report JSON" size="xl" onclose={closeModal}>
 	{#if selectedReport}
 		<pre
-			class="max-h-[70vh] overflow-auto whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-      {JSON.stringify(selectedReport, null, 2)}
-    </pre>
+			class="max-h-[70vh] overflow-auto rounded bg-gray-50 p-4 text-sm whitespace-pre-wrap text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+{JSON.stringify(selectedReport, null, 2)}
+		</pre>
 	{/if}
 </Modal>

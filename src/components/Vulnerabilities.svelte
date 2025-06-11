@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, Input } from 'svelte-5-ui-lib';
+	import { Card, Input } from 'flowbite-svelte';
 
 	// Define interface for vulnerability objects
 	interface Vulnerability {

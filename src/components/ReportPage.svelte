@@ -5,7 +5,7 @@
 	import ComplianceComponent from './ComplianceComponent.svelte';
 	import Vulnerabilities from './Vulnerabilities.svelte';
 	import SBOM from './SBOM.svelte';
-	import { Card, Badge } from 'svelte-5-ui-lib';
+	import { Card, Badge } from 'flowbite-svelte';
 	import DownloadReport from './DownloadReport.svelte';
 
 	const { data } = $props();
@@ -22,15 +22,15 @@
 			<h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">Report Metadata</h2>
 		</div>
 		<div class="space-y-2 p-4 text-gray-700 dark:text-gray-300">
-			<p class="whitespace-normal break-words">
+			<p class="break-words whitespace-normal">
 				<strong>Name:</strong>
 				{data.manifest.metadata.name ?? 'N/A'}
 			</p>
-			<p class="whitespace-normal break-words">
+			<p class="break-words whitespace-normal">
 				<strong>Namespace:</strong>
 				{data.manifest.metadata.namespace ?? 'N/A'}
 			</p>
-			<p class="whitespace-normal break-words">
+			<p class="break-words whitespace-normal">
 				<strong>Created:</strong>
 				{data.manifest.metadata.creationTimestamp
 					? new Date(data.manifest.metadata.creationTimestamp).toLocaleString()
@@ -48,15 +48,15 @@
 				<h2 class="text-xl font-bold text-teal-800 dark:text-teal-200">Scanner Details</h2>
 			</div>
 			<div class="space-y-2 p-4 text-gray-700 dark:text-gray-300">
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Name:</strong>
 					{data.manifest?.report?.scanner?.name ?? 'N/A'}
 				</p>
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Vendor:</strong>
 					{data.manifest?.report?.scanner?.vendor ?? 'N/A'}
 				</p>
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Version:</strong>
 					{data.manifest?.report?.scanner?.version ?? 'N/A'}
 				</p>
@@ -118,15 +118,15 @@
 				<h2 class="text-xl font-bold text-indigo-800 dark:text-indigo-200">Artifact</h2>
 			</div>
 			<div class="flex flex-col gap-2 p-4 text-gray-700 dark:text-gray-300">
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Digest:</strong>
 					{data.manifest.report.artifact.digest ?? 'N/A'}
 				</p>
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Repository:</strong>
 					{data.manifest.report.artifact.repository ?? 'N/A'}
 				</p>
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Tag:</strong>
 					{data.manifest.report.artifact.tag ?? 'N/A'}
 				</p>
@@ -149,7 +149,7 @@
 					<strong>Family:</strong>
 					{data.manifest.report.os.family ?? 'N/A'}
 				</p>
-				<p class="whitespace-normal break-words">
+				<p class="break-words whitespace-normal">
 					<strong>Name :</strong>
 					{data.manifest.report.os.name ?? 'N/A'}
 				</p>

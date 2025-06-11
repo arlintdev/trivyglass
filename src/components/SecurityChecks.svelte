@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, Badge, Alert } from 'svelte-5-ui-lib';
+	import { Card, Badge, Alert } from 'flowbite-svelte';
 
 	// Define an interface for the security check objects
 	interface SecurityCheck {
@@ -58,21 +58,21 @@
 					>
 				</div>
 				<div class="space-y-3 p-4 text-gray-700 dark:text-gray-300">
-					<p class="whitespace-normal break-words"><strong>ID:</strong> {check.checkID ?? 'N/A'}</p>
-					<p class="whitespace-normal break-words">
+					<p class="break-words whitespace-normal"><strong>ID:</strong> {check.checkID ?? 'N/A'}</p>
+					<p class="break-words whitespace-normal">
 						<strong>Description:</strong>
 						{check.description ?? 'No description available'}
 					</p>
 					<Alert color="red" class="mb-3">
 						<strong>Issue:</strong>
-						<span class="whitespace-normal break-words"
+						<span class="break-words whitespace-normal"
 							>{check.messages?.[0] ?? 'No specific issue reported'}</span
 						>
 					</Alert>
 					<div
 						class="rounded-r-lg border-l-4 border-gray-300 bg-gray-100 p-3 dark:border-gray-500 dark:bg-gray-700"
 					>
-						<p class="whitespace-normal break-words text-gray-700 dark:text-gray-300">
+						<p class="break-words whitespace-normal text-gray-700 dark:text-gray-300">
 							<strong>Remediation:</strong>
 							{check.remediation ?? 'No remediation provided'}
 						</p>

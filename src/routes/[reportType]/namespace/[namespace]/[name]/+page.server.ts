@@ -1,20 +1,24 @@
-// File: trivy-glass/src/routes/[resource]/namespace/[namespace]/[name]/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { dev } from '$app/environment';
 import { getNamespacedResource, getCurrentClusterName } from '$lib/kubeUtil';
+import { REPORT_TYPES } from '$lib/reportTypes';
+import { error } from '@sveltejs/kit';
 
 export const csr = dev;
 export const prerender = false;
 
 export const load: PageServerLoad = async ({ params }) => {
-	const { namespace, resource, name } = params;
+	const { reportType, namespace, name } = params;
+	const config = REPORT_TYPES[reportType];
 
-	console.log(`Loading namespaced resource: ${resource}/${name} in namespace ${namespace}`);
+	if (!config?.namespace) {
+		throw error(404, `No namespace-scoped reports for: ${reportType}`);
+	}
+
+	const resource = config.namespace;
 
 	try {
-		// Use the kubeUtil function to get the resource
 		const result = await getNamespacedResource(resource, namespace, name);
-		// Return the result
 		return result;
 	} catch (err: unknown) {
 		if (err instanceof Error) {

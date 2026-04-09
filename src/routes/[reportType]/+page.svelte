@@ -3,15 +3,18 @@
 	import ReportTable from '../../components/ReportTable.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	// data now includes the dynamic columns from the CRD
 	interface Manifest {
-		[key: string]: string | number | object | null; // Adjust based on your actual data structure
+		[key: string]: string | number | object | null;
 	}
 
 	interface Data {
 		manifests: Manifest[];
 		clusterName: string;
 		resource: string;
+		label: string;
+		hasCluster: boolean;
+		hasNamespace: boolean;
+		error?: string;
 	}
 
 	interface Props {
@@ -24,10 +27,6 @@
 		uid?: string;
 	}
 
-	interface Manifest {
-		[key: string]: string | number | object | null;
-	}
-
 	interface Report {
 		metadata: Metadata;
 		[key: string]: unknown;
@@ -35,9 +34,19 @@
 
 	let { data }: Props = $props();
 
+	// Scope filter: 'all', 'cluster', 'namespace'
+	let scopeFilter = $state<'all' | 'cluster' | 'namespace'>('all');
+	const hasBothScopes = $derived(data.hasCluster && data.hasNamespace);
+
+	// Filter manifests by selected scope
+	const scopedManifests = $derived(
+		scopeFilter === 'all'
+			? data.manifests
+			: data.manifests.filter((m) => (m as Record<string, unknown>)._scope === scopeFilter)
+	);
+
 	// Helper functions to extract metadata from manifests
 	function getResourceName(manifest: Manifest): string {
-		// Try to find name in various possible locations
 		if (
 			manifest.metadata &&
 			typeof manifest.metadata === 'object' &&
@@ -46,17 +55,12 @@
 		) {
 			return manifest.metadata.name;
 		}
-
-		// Fallback options
 		if (typeof manifest.name === 'string') return manifest.name;
 		if (typeof manifest.Name === 'string') return manifest.Name;
-
-		// Last resort - generate placeholder if no name found
 		return `Resource-${Math.random().toString(36).substring(2, 7)}`;
 	}
 
 	function getResourceNamespace(manifest: Manifest): string | undefined {
-		// Try to find namespace in metadata
 		if (
 			manifest.metadata &&
 			typeof manifest.metadata === 'object' &&
@@ -65,16 +69,12 @@
 		) {
 			return manifest.metadata.namespace;
 		}
-
-		// Fallback options
 		if (typeof manifest.namespace === 'string') return manifest.namespace;
 		if (typeof manifest.Namespace === 'string') return manifest.Namespace;
-
 		return undefined;
 	}
 
 	function getResourceUID(manifest: Manifest): string | undefined {
-		// Try to find UID in metadata
 		if (
 			manifest.metadata &&
 			typeof manifest.metadata === 'object' &&
@@ -83,25 +83,21 @@
 		) {
 			return manifest.metadata.uid;
 		}
-
-		// Fallback options
 		if (typeof manifest.uid === 'string') return manifest.uid;
 		if (typeof manifest.UID === 'string') return manifest.UID;
-
 		return undefined;
 	}
 
-	// Function to create a unique key for a manifest (excluding metadata and age)
 	function createUniqueKey(manifest: Manifest): string {
 		return Object.entries(manifest)
-			.filter(([key]) => key !== 'metadata' && key !== 'Age')
+			.filter(([key]) => key !== 'metadata' && key !== 'Age' && key !== '_scope' && key !== '_crdPlural')
 			.map(([key, value]) => `${key}:${JSON.stringify(value)}`)
 			.sort()
 			.join('|');
 	}
 
 	const reportsWithMetadata: Report[] = $derived(
-		data.manifests.map((manifest) => {
+		scopedManifests.map((manifest) => {
 			const report: Report = {
 				...manifest,
 				metadata: {
@@ -116,14 +112,12 @@
 
 	let showSummary = false;
 
-	// Derived computations from data.manifests
 	const computedCounts = $derived.by(() => {
 		const uniqueGroups = new SvelteMap<string, Manifest[]>();
 		const totalCounts: Record<string, number> = {};
 		const uniqueCounts: Record<string, number> = {};
 
-		// Group manifests by their unique key
-		for (const manifest of data.manifests) {
+		for (const manifest of scopedManifests) {
 			const uniqueKey = createUniqueKey(manifest);
 			if (!uniqueGroups.has(uniqueKey)) {
 				uniqueGroups.set(uniqueKey, []);
@@ -131,27 +125,23 @@
 			uniqueGroups.get(uniqueKey)!.push(manifest);
 		}
 
-		// Calculate total counts from all manifests
-		for (const manifest of data.manifests) {
+		for (const manifest of scopedManifests) {
 			for (const key in manifest) {
+				if (key === '_scope' || key === '_crdPlural') continue;
 				if (typeof manifest[key] === 'number') {
-					if (!totalCounts[key]) {
-						totalCounts[key] = 0;
-					}
-					totalCounts[key] += manifest[key];
+					if (!totalCounts[key]) totalCounts[key] = 0;
+					totalCounts[key] += manifest[key] as number;
 				}
 			}
 		}
 
-		// Calculate unique counts using one representative from each group
 		const uniqueManifests = Array.from(uniqueGroups.values()).map((group) => group[0]);
 		for (const manifest of uniqueManifests) {
 			for (const key in manifest) {
+				if (key === '_scope' || key === '_crdPlural') continue;
 				if (typeof manifest[key] === 'number') {
-					if (!uniqueCounts[key]) {
-						uniqueCounts[key] = 0;
-					}
-					uniqueCounts[key] += manifest[key];
+					if (!uniqueCounts[key]) uniqueCounts[key] = 0;
+					uniqueCounts[key] += manifest[key] as number;
 				}
 			}
 		}
@@ -162,59 +152,66 @@
 	let uniqueCounts = $derived(computedCounts.uniqueCounts);
 	let totalCounts = $derived(computedCounts.totalCounts);
 
-	// Function to get text color based on key (copied from ReportHeader)
-	function getTextColor(key: string) {
-		switch (key.toLowerCase()) {
-			case 'critical':
-				return 'text-red-600';
-			case 'fail':
-				return 'text-red-600';
-			case 'error':
-				return 'text-red-600';
-			case 'warning':
-				return 'text-yellow-600';
-			case 'info':
-				return 'text-blue-600';
-			case 'pass':
-				return 'text-green-600';
-			case 'success':
-				return 'text-green-600';
-			case 'high':
-				return 'text-orange-600';
-			case 'medium':
-				return 'text-yellow-600';
-			case 'low':
-				return 'text-green-600';
-			case 'none':
-				return 'text-gray-600';
-			default:
-				return 'text-blue-600';
-		}
+	function getSeverityTag(key: string): string | undefined {
+		const k = key.toLowerCase();
+		if (k === 'critical' || k === 'fail' || k === 'error') return 'nd-tag-critical';
+		if (k === 'high') return 'nd-tag-high';
+		if (k === 'medium' || k === 'warning') return 'nd-tag-medium';
+		if (k === 'low') return 'nd-tag-low';
+		if (k === 'pass' || k === 'success') return 'nd-tag-pass';
+		return 'nd-tag-info';
 	}
 </script>
 
-<ReportHeader title={data.resource} name={null} summaryCounts={{}} {showSummary} />
+<ReportHeader title={data.label} name={null} summaryCounts={{}} {showSummary} />
 
-<!-- Custom summary display with stacked layout -->
-<div class="mt-4 mb-8">
-	<div class="flex flex-wrap gap-6">
-		{#each Object.keys(totalCounts) as key}
-			<div class="flex flex-col items-center">
-				<div class={getTextColor(key) + ' font-medium'}>
-					{key.replace('Count', '')}: {totalCounts[key]}
-				</div>
-				<div class={getTextColor(key) + ' text-sm opacity-80'}>
-					Unique: {uniqueCounts[key] || 0}
-				</div>
-			</div>
-		{/each}
-	</div>
-	<div class="mt-2 text-xs text-gray-600">
-		<em
-			>* Unique counts exclude records with duplicate values (excluding namespace, name, and age)</em
+<!-- Scope filter -->
+{#if hasBothScopes}
+	<div style="display: flex; gap: var(--space-xs); margin-bottom: var(--space-md);">
+		<button
+			class="nd-btn nd-btn-sm"
+			class:nd-btn-primary={scopeFilter === 'all'}
+			class:nd-btn-ghost={scopeFilter !== 'all'}
+			onclick={() => (scopeFilter = 'all')}
 		>
+			All
+		</button>
+		<button
+			class="nd-btn nd-btn-sm"
+			class:nd-btn-primary={scopeFilter === 'cluster'}
+			class:nd-btn-ghost={scopeFilter !== 'cluster'}
+			onclick={() => (scopeFilter = 'cluster')}
+		>
+			Cluster-wide
+		</button>
+		<button
+			class="nd-btn nd-btn-sm"
+			class:nd-btn-primary={scopeFilter === 'namespace'}
+			class:nd-btn-ghost={scopeFilter !== 'namespace'}
+			onclick={() => (scopeFilter = 'namespace')}
+		>
+			Workload
+		</button>
 	</div>
-</div>
+{/if}
 
-<!-- Pass the dynamic columns directly -->
+<!-- Summary counts -->
+<div style="display: flex; flex-wrap: wrap; gap: var(--space-lg); margin-bottom: var(--space-lg);">
+	{#each Object.keys(totalCounts) as key}
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<span class="nd-tag {getSeverityTag(key)}" style="font-size: var(--body); padding: var(--space-xs) var(--space-sm);">
+				{key.replace('Count', '')}: {totalCounts[key]}
+			</span>
+			<span class="nd-caption" style="margin-top: var(--space-2xs); color: var(--nd-text-secondary);">
+				Unique: {uniqueCounts[key] || 0}
+			</span>
+		</div>
+	{/each}
+</div>
+{#if Object.keys(totalCounts).length > 0}
+	<p class="nd-caption" style="color: var(--nd-text-disabled); margin-bottom: var(--space-md);">
+		* Unique counts exclude records with duplicate values (excluding namespace, name, and age)
+	</p>
+{/if}
+
 <ReportTable reports={reportsWithMetadata} reportType={data.resource} />

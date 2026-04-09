@@ -438,6 +438,55 @@ html, body {
 	height: 100%;
 	overflow-y: auto;
 	padding: var(--space-md) 0;
+	transition: width var(--duration-transition) var(--ease-out);
+	overflow-x: hidden;
+}
+
+.nd-sidebar.collapsed {
+	width: 56px;
+}
+
+.nd-sidebar.collapsed .nd-sidebar-item-label,
+.nd-sidebar.collapsed .nd-sidebar-section-label {
+	opacity: 0;
+	width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.nd-sidebar.collapsed .nd-sidebar-item {
+	justify-content: center;
+	padding: var(--space-sm);
+}
+
+.nd-sidebar.collapsed .nd-sidebar-item.active {
+	padding-left: calc(var(--space-sm) - 2px);
+}
+
+.nd-sidebar-item-label {
+	transition: opacity var(--duration-micro) var(--ease-out);
+}
+
+.nd-sidebar-section-label {
+	transition: opacity var(--duration-micro) var(--ease-out);
+}
+
+/* Sidebar collapse toggle */
+.nd-sidebar-collapse-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: var(--space-sm) var(--space-md);
+	background: none;
+	border: none;
+	color: var(--nd-text-disabled);
+	cursor: pointer;
+	transition: color var(--duration-micro) var(--ease-out);
+}
+
+.nd-sidebar-collapse-btn:hover {
+	color: var(--nd-text-primary);
 }
 
 .nd-sidebar-group {
@@ -713,4 +762,104 @@ pre.nd-code {
 	overflow-x: auto;
 	white-space: pre-wrap;
 	word-break: break-word;
+}
+
+/* ─── Mobile overlay sidebar ─── */
+.nd-sidebar-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 40;
+}
+
+.nd-sidebar-overlay.visible {
+	display: block;
+}
+
+/* Hamburger button in navbar — hidden on desktop */
+.nd-hamburger {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	color: var(--nd-text-primary);
+	cursor: pointer;
+	padding: var(--space-xs);
+}
+
+/* ─── Report Card (mobile table replacement) ─── */
+.nd-report-card {
+	display: none;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+	.nd-sidebar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 50;
+		height: 100vh;
+		width: 256px !important;
+		transform: translateX(-100%);
+		transition: transform var(--duration-transition) var(--ease-out);
+	}
+
+	.nd-sidebar.mobile-open {
+		transform: translateX(0);
+	}
+
+	.nd-sidebar-overlay.visible {
+		display: block;
+	}
+
+	.nd-hamburger {
+		display: flex;
+	}
+
+	/* Hide collapse button on mobile — sidebar is overlay instead */
+	.nd-sidebar-collapse-btn {
+		display: none;
+	}
+
+	/* Table → card swap */
+	.nd-table-desktop {
+		display: none !important;
+	}
+
+	.nd-report-card {
+		display: block;
+	}
+
+	/* Stack dashboard grids */
+	.nd-grid-4 {
+		grid-template-columns: repeat(2, 1fr) !important;
+	}
+
+	.nd-grid-3 {
+		grid-template-columns: 1fr !important;
+	}
+
+	/* Make navbar brand text smaller */
+	.nd-navbar-brand-text {
+		font-size: var(--subheading);
+	}
+
+	/* Reduce main content padding */
+	.nd-main-content {
+		padding: var(--space-sm) !important;
+	}
+}
+
+@media (max-width: 480px) {
+	.nd-grid-4 {
+		grid-template-columns: 1fr 1fr !important;
+	}
+
+	/* Smaller hero numbers on very small screens */
+	.nd-hero-number {
+		font-size: var(--display-md) !important;
+	}
 }

@@ -78,10 +78,22 @@
 	async function refreshReports() {
 		try {
 			isRefreshing = true;
-			const response = await fetch(`/api/reports/invalidate/${reportType}`, { method: 'POST' });
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error || 'Failed to refresh reports');
+			// Collect unique CRD plurals from reports, or fall back to reportType
+			const crdPlurals = new SvelteSet<string>();
+			reports.forEach((r) => {
+				const crd = (r as Record<string, unknown>)._crdPlural;
+				if (typeof crd === 'string') crdPlurals.add(crd);
+			});
+			if (crdPlurals.size === 0) crdPlurals.add(reportType);
+
+			const results = await Promise.all(
+				Array.from(crdPlurals).map((crd) =>
+					fetch(`/api/reports/invalidate/${crd}`, { method: 'POST' })
+				)
+			);
+			const failed = results.filter((r) => !r.ok);
+			if (failed.length > 0) {
+				throw new Error('Failed to refresh some report types');
 			}
 			toastStore.addToast(`Successfully refreshed ${reportType} data`, 'success');
 			goto($page.url.pathname, { invalidateAll: true });
@@ -110,14 +122,17 @@
 	async function downloadReport(report: Report) {
 		const date = new Date().toISOString().split('T')[0];
 		const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
-		const filename = `${date}_${reportType}_${namespace}${report.metadata.name}.json`;
+		const crdPlural = (typeof (report as Record<string, unknown>)._crdPlural === 'string'
+			? (report as Record<string, unknown>)._crdPlural
+			: reportType) as string;
+		const filename = `${date}_${crdPlural}_${namespace}${report.metadata.name}.json`;
 
 		try {
 			let apiUrl;
 			if (report.metadata.namespace) {
-				apiUrl = `/api/reports/namespace/${report.metadata.namespace}/${reportType}/${report.metadata.name}`;
+				apiUrl = `/api/reports/namespace/${report.metadata.namespace}/${crdPlural}/${report.metadata.name}`;
 			} else {
-				apiUrl = `/api/reports/cluster/${reportType}/${report.metadata.name}`;
+				apiUrl = `/api/reports/cluster/${crdPlural}/${report.metadata.name}`;
 			}
 			const response = await fetch(apiUrl);
 			if (!response.ok) throw new Error(`Failed to fetch report: ${response.statusText}`);
@@ -304,7 +319,7 @@
 {#if reports.length === 0}
 	<p style="text-align: center; color: var(--nd-text-secondary);">No {reportType} reports found.</p>
 {:else}
-	<div style="max-width: 100%; overflow-x: auto;">
+	<div style="max-width: 100%;">
 		<!-- Toolbar -->
 		<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); gap: var(--space-md); flex-wrap: wrap;">
 			<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
@@ -328,71 +343,113 @@
 			/>
 		</div>
 
-		<!-- Table -->
-		<table class="nd-table">
-			<thead>
-				<tr>
-					{#each getHeadItems() as header}
-						<th onclick={() => toggleSort(header)}>
-							{header}
-							{#if sortColumn === header}
-								{sortDirection === 'asc' ? ' \u25B2' : ' \u25BC'}
-							{/if}
-						</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#if filteredReports.length === 0}
+		<!-- Desktop: Table -->
+		<div class="nd-table-desktop" style="overflow-x: auto;">
+			<table class="nd-table">
+				<thead>
 					<tr>
-						<td colspan={getHeadItems().length} style="text-align: center; color: var(--nd-text-secondary);">
-							No matching {reportType} reports found.
-						</td>
+						{#each getHeadItems() as header}
+							<th onclick={() => toggleSort(header)}>
+								{header}
+								{#if sortColumn === header}
+									{sortDirection === 'asc' ? ' \u25B2' : ' \u25BC'}
+								{/if}
+							</th>
+						{/each}
 					</tr>
-				{:else}
-					{#each filteredReports as report (report.metadata.uid)}
+				</thead>
+				<tbody>
+					{#if filteredReports.length === 0}
 						<tr>
-							<td>
-								<span class="nd-caption">{report?.metadata?.namespace || 'N/A'}</span>
-								<br />
-								<span style="font-size: var(--body-sm);" title={report.metadata.name}>
-									{report.metadata.name}
-								</span>
-							</td>
-							{#each tableColumns as column}
-								{@const val = column.value.includes('.') ? get(report, column.value) : report[column.value]}
-								<td>
-									{#if column.tag}
-										<span class="nd-tag nd-tag-{column.tag}">{String(val ?? 'N/A')}</span>
-									{:else}
-										<span title={String(val ?? 'N/A')}>{String(val ?? 'N/A')}</span>
-									{/if}
-								</td>
-							{/each}
-							<td>
-								<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
-									<a href={generateLink(report)} class="nd-btn nd-btn-secondary nd-btn-xs">Details</a>
-									<button
-										class="nd-btn nd-btn-ghost nd-btn-xs"
-										onclick={() => { downloadReport(report).catch((err) => console.error('Error:', err)); }}
-										title="Download full report as JSON"
-									>
-										Download
-									</button>
-									<button
-										class="nd-btn nd-btn-ghost nd-btn-xs"
-										onclick={() => viewReportJson(report)}
-										title="View full report JSON"
-									>
-										View JSON
-									</button>
-								</div>
+							<td colspan={getHeadItems().length} style="text-align: center; color: var(--nd-text-secondary);">
+								No matching {reportType} reports found.
 							</td>
 						</tr>
+					{:else}
+						{#each filteredReports as report (report.metadata.uid)}
+							<tr>
+								<td>
+									<span class="nd-caption">{report?.metadata?.namespace || 'N/A'}</span>
+									<br />
+									<span style="font-size: var(--body-sm);" title={report.metadata.name}>
+										{report.metadata.name}
+									</span>
+								</td>
+								{#each tableColumns as column}
+									{@const val = column.value.includes('.') ? get(report, column.value) : report[column.value]}
+									<td>
+										{#if column.tag}
+											<span class="nd-tag nd-tag-{column.tag}">{String(val ?? 'N/A')}</span>
+										{:else}
+											<span title={String(val ?? 'N/A')}>{String(val ?? 'N/A')}</span>
+										{/if}
+									</td>
+								{/each}
+								<td>
+									<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+										<a href={generateLink(report)} class="nd-btn nd-btn-secondary nd-btn-xs">Details</a>
+										<button
+											class="nd-btn nd-btn-ghost nd-btn-xs"
+											onclick={() => { downloadReport(report).catch((err) => console.error('Error:', err)); }}
+											title="Download full report as JSON"
+										>
+											Download
+										</button>
+										<button
+											class="nd-btn nd-btn-ghost nd-btn-xs"
+											onclick={() => viewReportJson(report)}
+											title="View full report JSON"
+										>
+											View JSON
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					{/if}
+				</tbody>
+			</table>
+		</div>
+
+		<!-- Mobile: Card layout -->
+		<div class="nd-report-card">
+			{#if filteredReports.length === 0}
+				<p style="text-align: center; color: var(--nd-text-secondary);">
+					No matching {reportType} reports found.
+				</p>
+			{:else}
+				<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+					{#each filteredReports as report (report.metadata.uid)}
+						<a href={generateLink(report)} class="nd-card" style="text-decoration: none; display: block;">
+							<!-- Name / Namespace -->
+							<div style="margin-bottom: var(--space-sm);">
+								{#if report.metadata.namespace}
+									<span class="nd-caption" style="color: var(--nd-text-disabled);">{report.metadata.namespace}</span>
+								{/if}
+								<div style="font-size: var(--body-sm); color: var(--nd-text-primary); word-break: break-all;">
+									{report.metadata.name}
+								</div>
+							</div>
+							<!-- Severity / column tags inline -->
+							<div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">
+								{#each tableColumns as column}
+									{@const val = column.value.includes('.') ? get(report, column.value) : report[column.value]}
+									{#if column.tag}
+										<span class="nd-tag nd-tag-{column.tag}" style="font-size: var(--caption);">
+											{column.header}: {String(val ?? '0')}
+										</span>
+									{:else if val !== null && val !== undefined && String(val) !== 'N/A'}
+										<span style="font-size: var(--caption); color: var(--nd-text-secondary);">
+											{column.header}: {String(val)}
+										</span>
+									{/if}
+								{/each}
+							</div>
+						</a>
 					{/each}
-				{/if}
-			</tbody>
-		</table>
+				</div>
+			{/if}
+		</div>
 	</div>
 {/if}
 

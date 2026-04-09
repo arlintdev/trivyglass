@@ -2,6 +2,8 @@
 	import ClusterManager from './ClusterManager.svelte';
 	import { onMount } from 'svelte';
 
+	let { onHamburgerClick = () => {} }: { onHamburgerClick?: () => void } = $props();
+
 	let clusterManagerOpen = $state(false);
 	function toggleClusterManager() {
 		clusterManagerOpen = !clusterManagerOpen;
@@ -301,10 +303,21 @@
 </script>
 
 <div class="nd-navbar" style="height: 64px;">
-	<a href="/" class="nd-navbar-brand">
-		<img width="30" src="/trivyglass.png" alt="Trivy Glass" />
-		<span class="nd-navbar-brand-text">Trivy Glass</span>
-	</a>
+	<div style="display: flex; align-items: center; gap: var(--space-sm);">
+		<!-- Hamburger (mobile only) -->
+		<button class="nd-hamburger" onclick={onHamburgerClick} title="Toggle menu">
+			<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+				<line x1="3" y1="6" x2="21" y2="6"/>
+				<line x1="3" y1="12" x2="21" y2="12"/>
+				<line x1="3" y1="18" x2="21" y2="18"/>
+			</svg>
+		</button>
+
+		<a href="/" class="nd-navbar-brand">
+			<img width="30" src="/trivyglass.png" alt="Trivy Glass" />
+			<span class="nd-navbar-brand-text">Trivy Glass</span>
+		</a>
+	</div>
 
 	<div style="display: flex; align-items: center; gap: var(--space-sm);">
 		{#if connectionError}

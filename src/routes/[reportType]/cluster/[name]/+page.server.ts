@@ -1,21 +1,24 @@
-// File: trivy-glass/src/routes/[resource]/cluster/[name]/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { dev } from '$app/environment';
 import { getClusterResource, getCurrentClusterName } from '$lib/kubeUtil';
+import { REPORT_TYPES } from '$lib/reportTypes';
+import { error } from '@sveltejs/kit';
 
 export const csr = dev;
 export const prerender = false;
 
 export const load: PageServerLoad = async ({ params }) => {
-	const { resource, name } = params;
+	const { reportType, name } = params;
+	const config = REPORT_TYPES[reportType];
 
-	console.log(`Loading cluster resource: ${resource}/${name}`);
+	if (!config?.cluster) {
+		throw error(404, `No cluster-scoped reports for: ${reportType}`);
+	}
+
+	const resource = config.cluster;
 
 	try {
-		// Use the kubeUtil function to get the resource
 		const result = await getClusterResource(resource, name);
-
-		// Return the result
 		return result;
 	} catch (err: unknown) {
 		if (err instanceof Error) {

@@ -125,9 +125,9 @@ describe('ReportTable Component', () => {
 			}
 		});
 
-		// Get the search input
+		// Get the search input (placeholder changed to "Search reports...")
 		const searchInput = document.querySelector(
-			'input[placeholder="Search reports"]'
+			'input[placeholder="Search reports..."]'
 		) as HTMLInputElement;
 		expect(searchInput).not.toBeNull();
 
@@ -153,12 +153,12 @@ describe('ReportTable Component', () => {
 		const criticalHeader = screen.getByText('Critical');
 		await fireEvent.click(criticalHeader);
 
-		// Check if sorting indicator is displayed
-		expect(criticalHeader.textContent).toContain('▲');
+		// Check if sorting indicator is displayed (Unicode triangle)
+		expect(criticalHeader.textContent).toContain('\u25B2');
 
 		// Click again to reverse sort order
 		await fireEvent.click(criticalHeader);
-		expect(criticalHeader.textContent).toContain('▼');
+		expect(criticalHeader.textContent).toContain('\u25BC');
 	});
 
 	it('exports data in CSV format', async () => {
@@ -170,8 +170,8 @@ describe('ReportTable Component', () => {
 			}
 		});
 
-		// Click on the CSV export button
-		const csvButton = screen.getByText('Export All as CSV');
+		// Button text changed to "Export CSV"
+		const csvButton = screen.getByText('Export CSV');
 		await fireEvent.click(csvButton);
 
 		// Check if download was triggered
@@ -190,8 +190,8 @@ describe('ReportTable Component', () => {
 			}
 		});
 
-		// Click on the Markdown export button
-		const mdButton = screen.getByText('Export All as Markdown');
+		// Button text changed to "Export MD"
+		const mdButton = screen.getByText('Export MD');
 		await fireEvent.click(mdButton);
 
 		// Check if download was triggered
@@ -208,8 +208,8 @@ describe('ReportTable Component', () => {
 			}
 		});
 
-		// Click on the JSON export button
-		const jsonButton = screen.getByText('Export All as JSON');
+		// Button text changed to "Export JSON"
+		const jsonButton = screen.getByText('Export JSON');
 		await fireEvent.click(jsonButton);
 
 		// Check if download was triggered
@@ -226,16 +226,16 @@ describe('ReportTable Component', () => {
 			}
 		});
 
-		// Find all Details buttons
-		const detailsButtons = screen.getAllByText('Details');
+		// Find all Details links (now <a> tags instead of buttons)
+		const detailsLinks = screen.getAllByText('Details');
 
 		// Check if the links are correctly generated
-		expect(detailsButtons[0].getAttribute('href')).toBe(
+		expect(detailsLinks[0].getAttribute('href')).toBe(
 			'/vulnerability/namespace/default/test-report-1'
 		);
-		expect(detailsButtons[1].getAttribute('href')).toBe(
+		expect(detailsLinks[1].getAttribute('href')).toBe(
 			'/vulnerability/namespace/kube-system/test-report-2'
 		);
-		expect(detailsButtons[2].getAttribute('href')).toBe('/vulnerability/cluster/test-report-3');
+		expect(detailsLinks[2].getAttribute('href')).toBe('/vulnerability/cluster/test-report-3');
 	});
 });

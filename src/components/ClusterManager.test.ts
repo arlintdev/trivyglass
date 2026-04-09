@@ -51,7 +51,7 @@ describe('ClusterManager Component', () => {
 		render(ClusterManager, { props: { isOpen: true } });
 
 		await waitFor(() => {
-			expect(screen.getByText('Active')).toBeInTheDocument();
+			expect(screen.getByText('ACTIVE')).toBeInTheDocument();
 		});
 	});
 
@@ -93,7 +93,7 @@ describe('ClusterManager Component', () => {
 			expect(screen.getByText('test-cluster-1')).toBeInTheDocument();
 		});
 
-		// Find and click a delete button (ArchiveSolid icon button with color="red")
+		// Find and click a delete button
 		const deleteButtons = screen.getAllByTitle('Delete cluster');
 		expect(deleteButtons.length).toBeGreaterThan(0);
 
@@ -156,10 +156,9 @@ describe('ClusterManager Component', () => {
 	it('validates input before upload', async () => {
 		render(ClusterManager, { props: { isOpen: true } });
 
-		// Try to upload without selecting a file
-		const uploadButton = screen
-			.getAllByText('Upload Kubeconfig')
-			.find((el) => el.tagName === 'BUTTON' || el.closest('button'))!;
+		// Try to upload without selecting a file - find the submit button by its class
+		const uploadButton = document.querySelector('button.nd-btn-primary') as HTMLButtonElement;
+		expect(uploadButton).not.toBeNull();
 		await fireEvent.click(uploadButton);
 
 		await waitFor(() => {
@@ -227,7 +226,7 @@ describe('ClusterManager Component', () => {
 			target: { value: 'apiVersion: v1\nkind: Config\ncontexts:\n- name: test-context' }
 		});
 
-		// Submit the form
+		// Submit the form - find the button (not the heading)
 		const uploadButton = screen
 			.getAllByText('Upload Kubeconfig')
 			.find((el) => el.tagName === 'BUTTON' || el.closest('button'))!;

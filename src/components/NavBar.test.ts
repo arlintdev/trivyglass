@@ -40,6 +40,7 @@ describe('NavBar Component', () => {
 			if (key === 'currentCluster') return 'local';
 			if (key === 'lastClusterSwitchTime') return '0';
 			if (key === 'clusterSwitched') return null;
+			if (key === 'color-theme') return 'dark';
 			return null;
 		});
 	});
@@ -57,7 +58,7 @@ describe('NavBar Component', () => {
 		render(NavBar);
 
 		await waitFor(() => {
-			expect(screen.getByText('Cluster:')).toBeInTheDocument();
+			// The label is CLUSTER: in uppercase (nd-label class)
 			expect(screen.getByText('local')).toBeInTheDocument();
 		});
 	});
@@ -69,7 +70,7 @@ describe('NavBar Component', () => {
 
 		await waitFor(
 			() => {
-				const errorElement = document.querySelector('.text-red-500');
+				const errorElement = document.querySelector('.nd-status-error');
 				expect(errorElement).not.toBeNull();
 			},
 			{ timeout: 3000 }
@@ -107,13 +108,8 @@ describe('NavBar Component', () => {
 	it('toggles cluster manager when button is clicked', async () => {
 		render(NavBar);
 
-		// Find the settings/cluster manager button by its icon or role
-		const buttons = document.querySelectorAll('button');
-		const settingsButton = Array.from(buttons).find(
-			(btn) => btn.querySelector('svg') && btn.textContent?.trim() === ''
-		);
-
-		// The button should exist
-		expect(settingsButton || buttons.length > 0).toBeTruthy();
+		// Find the settings/cluster manager button by its title
+		const settingsButton = screen.getByTitle('Manage Clusters');
+		expect(settingsButton).toBeInTheDocument();
 	});
 });

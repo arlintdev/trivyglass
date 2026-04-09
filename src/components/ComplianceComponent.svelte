@@ -1,26 +1,10 @@
 <script lang="ts">
-	import {
-		Table,
-		TableHead,
-		TableHeadCell,
-		TableBody,
-		TableBodyRow,
-		TableBodyCell,
-		Badge,
-		Modal,
-		Button
-	} from 'flowbite-svelte';
-
-	// Define TypeScript interfaces for the data structure
 	interface Check {
 		id: string;
 		name: string;
 		severity: string;
 		description?: string;
-		commands?: {
-			id: string;
-			description: string;
-		}[];
+		commands?: { id: string; description: string }[];
 	}
 
 	interface Control {
@@ -29,7 +13,7 @@
 		description: string;
 		severity: string;
 		checks?: Check[];
-		status?: string; // Changed from union type to string to match return type from map
+		status?: string;
 		totalFail?: number | null;
 	}
 
@@ -41,86 +25,54 @@
 	interface Props {
 		data: {
 			manifest: {
-				spec?: {
-					compliance?: {
-						controls: Control[];
-					};
-				};
-				status?: {
-					summaryReport?: {
-						controlCheck: StatusControl[];
-					};
-				};
+				spec?: { compliance?: { controls: Control[] } };
+				status?: { summaryReport?: { controlCheck: StatusControl[] } };
 			};
 		};
 	}
 
 	let { data }: Props = $props();
 
-	// Color mappings for badges
-	const severityColors: Record<string, string> = {
-		LOW: 'bg-green-500 text-white dark:bg-green-600 dark:text-white',
-		MEDIUM: 'bg-yellow-400 text-gray-800 dark:bg-yellow-600 dark:text-gray-200',
-		HIGH: 'bg-orange-500 text-white dark:bg-orange-600 dark:text-white',
-		CRITICAL: 'bg-red-600 text-white dark:bg-red-700 dark:text-white',
-		UNKNOWN: 'bg-gray-400 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
-	};
-
-	const statusColors: Record<string, string> = {
-		Failed: 'bg-red-500 text-white dark:bg-red-600 dark:text-white',
-		Passed: 'bg-green-500 text-white dark:bg-green-600 dark:text-white',
-		Manual: 'bg-gray-400 text-white dark:bg-gray-500 dark:text-white'
-	};
-
-	// Ordering for sorting
-	const severityOrder: Record<string, number> = {
-		CRITICAL: 1,
-		HIGH: 2,
-		MEDIUM: 3,
-		LOW: 4,
-		UNKNOWN: 5
-	};
+	const severityOrder: Record<string, number> = { CRITICAL: 1, HIGH: 2, MEDIUM: 3, LOW: 4, UNKNOWN: 5 };
 	const statusOrder: Record<string, number> = { Failed: 1, Passed: 2, Manual: 3 };
 
-	// Process and sort controls data
-	let controls: Control[] = $derived.by(() => {
-		if (
-			!data?.manifest?.spec?.compliance?.controls ||
-			!data?.manifest?.status?.summaryReport?.controlCheck
-		) {
-			return [];
+	function severityTag(s: string): string {
+		switch (s) {
+			case 'CRITICAL': return 'critical';
+			case 'HIGH': return 'high';
+			case 'MEDIUM': return 'medium';
+			case 'LOW': return 'low';
+			default: return 'unknown';
 		}
+	}
+
+	function statusTag(s: string): string {
+		switch (s) {
+			case 'Failed': return 'fail';
+			case 'Passed': return 'pass';
+			default: return 'unknown';
+		}
+	}
+
+	let controls: Control[] = $derived.by(() => {
+		if (!data?.manifest?.spec?.compliance?.controls || !data?.manifest?.status?.summaryReport?.controlCheck) return [];
 		return data.manifest.spec.compliance.controls
 			.map((control: Control) => {
-				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find(
-					(c: StatusControl) => c.id === control.id
-				);
+				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find((c: StatusControl) => c.id === control.id);
 				const totalFail = statusControl?.totalFail;
-
 				return {
 					...control,
-					status:
-						totalFail !== undefined && totalFail > 0
-							? 'Failed'
-							: totalFail !== undefined && totalFail === 0
-								? 'Passed'
-								: 'Manual',
+					status: totalFail !== undefined && totalFail > 0 ? 'Failed' : totalFail !== undefined && totalFail === 0 ? 'Passed' : 'Manual',
 					totalFail: totalFail ?? null
 				};
 			})
 			.sort((a, b) => {
-				const statusDiff =
-					statusOrder[a.status as keyof typeof statusOrder] -
-					statusOrder[b.status as keyof typeof statusOrder];
+				const statusDiff = statusOrder[a.status as string] - statusOrder[b.status as string];
 				if (statusDiff !== 0) return statusDiff;
-				return (
-					(severityOrder[a.severity as keyof typeof severityOrder] || 5) -
-					(severityOrder[b.severity as keyof typeof severityOrder] || 5)
-				);
+				return (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5);
 			});
 	});
 
-	// State for selected control and modal
 	let selectedControl = $state<Control | null>(null);
 	let showModal = $state(false);
 
@@ -129,92 +81,76 @@
 		showModal = true;
 	}
 
-	function closeModalWrapper(): void {
+	function closeModal(): void {
 		selectedControl = null;
 		showModal = false;
 	}
 </script>
 
-<div class="container mx-auto space-y-4 p-4">
+<div style="padding: var(--space-md);">
 	{#if controls.length > 0}
-		<!-- Compact Controls Table -->
-		<Table hoverable={true}>
-			<TableHead>
-				<TableHeadCell class="!p-2 text-sm">ID</TableHeadCell>
-				<TableHeadCell class="!p-2 text-sm">Name</TableHeadCell>
-				<TableHeadCell class="!p-2 text-sm">Severity</TableHeadCell>
-				<TableHeadCell class="!p-2 text-sm">Status</TableHeadCell>
-				<TableHeadCell class="!p-2 text-sm">Total Failures</TableHeadCell>
-				<TableHeadCell class="!p-2 text-sm">Actions</TableHeadCell>
-			</TableHead>
-			<TableBody class="divide-y">
+		<table class="nd-table">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Name</th>
+					<th>Severity</th>
+					<th>Status</th>
+					<th>Failures</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
 				{#each controls as control}
-					<TableBodyRow>
-						<TableBodyCell class="!p-2 text-sm">{control.id}</TableBodyCell>
-						<TableBodyCell class="!p-2 text-sm">{control.name}</TableBodyCell>
-						<TableBodyCell class="!p-2">
-							<Badge
-								class={`${severityColors[control.severity] || severityColors.UNKNOWN} text-xs`}
-							>
-								{control.severity || 'UNKNOWN'}
-							</Badge>
-						</TableBodyCell>
-						<TableBodyCell class="!p-2">
-							<Badge class={`${statusColors[control.status as keyof typeof statusColors]} text-xs`}>
-								{control.status}
-							</Badge>
-						</TableBodyCell>
-						<TableBodyCell class="!p-2 text-sm">{control.totalFail ?? 'N/A'}</TableBodyCell>
-						<TableBodyCell class="!p-2">
-							<Button size="sm" onclick={() => openModal(control)}>Details</Button>
-						</TableBodyCell>
-					</TableBodyRow>
+					<tr>
+						<td class="nd-mono-cell">{control.id}</td>
+						<td>{control.name}</td>
+						<td><span class="nd-tag nd-tag-{severityTag(control.severity)}">{control.severity || 'UNKNOWN'}</span></td>
+						<td><span class="nd-tag nd-tag-{statusTag(control.status || '')}">{control.status}</span></td>
+						<td class="nd-mono-cell">{control.totalFail ?? 'N/A'}</td>
+						<td><button class="nd-btn nd-btn-secondary nd-btn-xs" onclick={() => openModal(control)}>Details</button></td>
+					</tr>
 				{/each}
-			</TableBody>
-		</Table>
+			</tbody>
+		</table>
 	{:else}
-		<div class="rounded-lg border border-gray-200 p-4 shadow-md dark:border-gray-700">
-			<p class="text-center text-gray-700 dark:text-gray-300">
-				No compliance controls found for this report.
-			</p>
+		<div class="nd-card" style="text-align: center;">
+			<p style="color: var(--nd-text-secondary);">No compliance controls found for this report.</p>
 		</div>
 	{/if}
 
-	<!-- Modal for Control Details -->
-	<Modal
-		bind:open={showModal}
-		title={selectedControl?.name || 'Control Details'}
-		onclose={closeModalWrapper}
-	>
-		{#if selectedControl}
-			<div class="text-sm text-gray-700 dark:text-gray-300">
-				<p>{selectedControl.description}</p>
+	{#if showModal && selectedControl}
+		<div class="nd-modal-backdrop" onclick={closeModal} onkeydown={(e) => e.key === 'Escape' && closeModal()} role="dialog" tabindex="-1">
+			<div class="nd-modal" onclick={(e) => e.stopPropagation()} role="document">
+				<div class="nd-modal-header">
+					<span class="nd-modal-title">{selectedControl.name}</span>
+					<button class="nd-modal-close" onclick={closeModal}>[ X ]</button>
+				</div>
+				<p class="nd-body-sm" style="color: var(--nd-text-secondary); margin-bottom: var(--space-md);">{selectedControl.description}</p>
 				{#if selectedControl.checks}
-					<div class="mt-2">
-						<p class="font-semibold">Checks:</p>
-						<ul class="ml-4 list-disc">
-							{#each selectedControl.checks as check}
-								<li>
-									<p><strong>{check.id}:</strong> {check.name} ({check.severity})</p>
-									{#if check.description}
-										<p class="text-xs">{check.description}</p>
-									{/if}
-									{#if check.commands}
-										<div class="ml-2">
-											<p class="text-xs font-semibold">Commands:</p>
-											<ul class="ml-4 list-disc text-xs">
-												{#each check.commands as cmd}
-													<li><strong>{cmd.id}:</strong> {cmd.description}</li>
-												{/each}
-											</ul>
-										</div>
-									{/if}
-								</li>
-							{/each}
-						</ul>
+					<div>
+						<p class="nd-label" style="margin-bottom: var(--space-sm);">Checks</p>
+						{#each selectedControl.checks as check}
+							<div style="margin-bottom: var(--space-md); padding-left: var(--space-md); border-left: 1px solid var(--nd-border);">
+								<p class="nd-body-sm"><strong>{check.id}:</strong> {check.name}
+									<span class="nd-tag nd-tag-{severityTag(check.severity)}" style="margin-left: var(--space-xs);">{check.severity}</span>
+								</p>
+								{#if check.description}
+									<p class="nd-caption" style="margin-top: var(--space-xs);">{check.description}</p>
+								{/if}
+								{#if check.commands}
+									<div style="margin-top: var(--space-xs);">
+										<p class="nd-caption" style="font-weight: bold;">Commands:</p>
+										{#each check.commands as cmd}
+											<p class="nd-caption" style="margin-left: var(--space-md);"><strong>{cmd.id}:</strong> {cmd.description}</p>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/each}
 					</div>
 				{/if}
 			</div>
-		{/if}
-	</Modal>
+		</div>
+	{/if}
 </div>

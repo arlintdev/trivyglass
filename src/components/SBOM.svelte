@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { Card, Input } from 'flowbite-svelte';
-
-	// Define types for the component structure
 	interface Property {
 		name: string;
 		value: string;
@@ -33,114 +30,76 @@
 
 	let { components, text = $bindable('') }: Props = $props();
 
-	// Type color mapping
-	const typeColors: Record<string, string> = {
-		application: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-		library: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-		'operating-system': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-	};
+	function typeTag(t: string): string {
+		switch (t) {
+			case 'application': return 'active';
+			case 'library': return 'info';
+			default: return 'unknown';
+		}
+	}
 
-	// Filter components using $derived
 	const filteredComponents = $derived(
-		components.components.filter((component: Component) => {
+		components.components.filter((c) => {
 			const term = text.toLowerCase();
 			return (
-				component.name?.toLowerCase().includes(term) ||
-				component['bom-ref']?.toLowerCase().includes(term) ||
-				component.type?.toLowerCase().includes(term) ||
-				component.version?.toLowerCase().includes(term) ||
-				component.purl?.toLowerCase().includes(term) ||
-				component.supplier?.name?.toLowerCase().includes(term) ||
-				component.properties?.some(
-					(prop: Property) =>
-						prop.name.toLowerCase().includes(term) || prop.value.toLowerCase().includes(term)
-				)
+				c.name?.toLowerCase().includes(term) ||
+				c['bom-ref']?.toLowerCase().includes(term) ||
+				c.type?.toLowerCase().includes(term) ||
+				c.version?.toLowerCase().includes(term) ||
+				c.purl?.toLowerCase().includes(term) ||
+				c.supplier?.name?.toLowerCase().includes(term) ||
+				c.properties?.some((p) => p.name.toLowerCase().includes(term) || p.value.toLowerCase().includes(term))
 			);
 		})
 	);
 </script>
 
-<div class="min-h-screen p-6">
-	<div class="mb-6">
-		<Input
-			size="lg"
+<div style="padding: var(--space-lg) 0;">
+	<div style="margin-bottom: var(--space-lg);">
+		<input
+			class="nd-input-bordered"
+			type="text"
 			bind:value={text}
-			placeholder="Search components by name, ID, type, version, etc."
-			class="mb-4"
+			placeholder="Search components..."
+			style="width: 100%; max-width: 500px; margin-bottom: var(--space-md);"
 		/>
-		<h2 class="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+		<h2 class="nd-heading">
 			Components
-			<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-				({filteredComponents.length} found)
-			</span>
-			BomFormat:
-			<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-				{components.bomFormat}
-			</span>
+			<span class="nd-caption" style="margin-left: var(--space-sm);">({filteredComponents.length} found)</span>
+			<span class="nd-caption" style="margin-left: var(--space-md);">FORMAT: {components.bomFormat}</span>
 		</h2>
 	</div>
-	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+
+	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md);">
 		{#each filteredComponents as component}
-			<Card
-				class="transform overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-all 
-               duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-700"
-			>
-				<div class="flex h-full flex-col">
-					<!-- Header with type color -->
-					<div class="{typeColors[component.type] || ''} p-4">
-						<h3 class="truncate text-lg font-semibold" title={component.name}>
-							{component.name}
-						</h3>
-					</div>
-					<!-- Content -->
-					<div class="flex-1 space-y-3 p-4 text-gray-700 dark:text-gray-300">
-						<div class="space-y-2 text-sm">
-							<p class="break-words whitespace-normal">
-								<strong>ID:</strong>
-								{component['bom-ref']}
-							</p>
-							<p>
-								<strong>Type:</strong>
-								<span
-									class="inline-block rounded-full px-2 py-1 text-xs font-medium
-                            {typeColors[component.type] || ''}"
-								>
-									{component.type}
-								</span>
-							</p>
-							{#if component.version}
-								<p class="break-words whitespace-normal">
-									<strong>Version:</strong>
-									{component.version}
-								</p>
-							{/if}
-							{#if component.purl}
-								<p class="break-words whitespace-normal"><strong>PURL:</strong> {component.purl}</p>
-							{/if}
-						</div>
-						<!-- Properties -->
-						{#if component.properties?.length}
-							<div class="space-y-1 text-sm">
-								<p><strong>Properties:</strong></p>
-								{#each component.properties as prop}
-									<p class="text-xs break-words whitespace-normal">
-										{prop.name}: <span class="text-gray-500 dark:text-gray-400">{prop.value}</span>
-									</p>
-								{/each}
-							</div>
-						{/if}
-						<!-- Supplier (if available) -->
-						{#if component.supplier?.name}
-							<div class="space-y-1 text-sm">
-								<p class="break-words whitespace-normal">
-									<strong>Supplier:</strong>
-									{component.supplier.name}
-								</p>
-							</div>
-						{/if}
-					</div>
+			<div class="nd-card" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+				<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm);">
+					<span class="nd-body-sm" style="color: var(--nd-text-display); font-weight: 500;" title={component.name}>
+						{component.name}
+					</span>
+					<span class="nd-tag nd-tag-{typeTag(component.type)}">{component.type}</span>
 				</div>
-			</Card>
+				<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+					<p class="nd-caption" style="word-break: break-all;">ID: <span style="color: var(--nd-text-primary);">{component['bom-ref']}</span></p>
+					{#if component.version}
+						<p class="nd-caption">VERSION: <span style="color: var(--nd-text-primary);">{component.version}</span></p>
+					{/if}
+					{#if component.purl}
+						<p class="nd-caption" style="word-break: break-all;">PURL: <span style="color: var(--nd-text-primary);">{component.purl}</span></p>
+					{/if}
+				</div>
+				{#if component.properties?.length}
+					<div style="border-top: 1px solid var(--nd-border); padding-top: var(--space-sm);">
+						<p class="nd-label" style="margin-bottom: var(--space-xs);">Properties</p>
+						{#each component.properties as prop}
+							<p class="nd-caption" style="word-break: break-all;">{prop.name}: <span style="color: var(--nd-text-disabled);">{prop.value}</span></p>
+						{/each}
+					</div>
+				{/if}
+				{#if component.supplier?.name}
+					<p class="nd-caption">SUPPLIER: <span style="color: var(--nd-text-primary);">{component.supplier.name}</span></p>
+				{/if}
+			</div>
 		{/each}
 	</div>
 </div>

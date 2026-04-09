@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { vi, beforeEach } from 'vitest';
 
-// Polyfill HTMLDialogElement for jsdom (used by Flowbite Modal)
+// Polyfill HTMLDialogElement for jsdom
 if (typeof HTMLDialogElement !== 'undefined') {
 	HTMLDialogElement.prototype.showModal =
 		HTMLDialogElement.prototype.showModal ||
@@ -44,7 +44,7 @@ document.createElement = ((tag: string, options?: ElementCreationOptions) => {
 	return patchDialog(origCreateElement(tag, options));
 }) as typeof document.createElement;
 
-// Polyfill Element.animate for jsdom (used by Flowbite transitions)
+// Polyfill Element.animate for jsdom
 if (!Element.prototype.animate) {
 	Element.prototype.animate = function () {
 		return {

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { Heading, Breadcrumb, BreadcrumbItem } from 'flowbite-svelte';
-
 	interface Props {
 		title: string;
 		name: string | null;
@@ -10,51 +8,35 @@
 
 	let { title, name, showSummary = true, summaryCounts = {} }: Props = $props();
 
-	function getTextColor(key: string) {
+	function getStatusColor(key: string): string {
 		switch (key.toLowerCase()) {
-			case 'critical':
-				return 'text-red-600';
-			case 'fail':
-				return 'text-red-600';
-			case 'error':
-				return 'text-red-600';
-			case 'warning':
-				return 'text-yellow-600';
-			case 'info':
-				return 'text-blue-600';
-			case 'pass':
-				return 'text-green-600';
-			case 'success':
-				return 'text-green-600';
-			case 'high':
-				return 'text-orange-600';
-			case 'medium':
-				return 'text-yellow-600';
-			case 'low':
-				return 'text-green-600';
-			case 'none':
-				return 'text-gray-600';
-			default:
-				return 'text-blue-600';
+			case 'critical': case 'fail': case 'error': return 'var(--accent)';
+			case 'high': return 'var(--warning)';
+			case 'warning': case 'medium': return 'var(--warning)';
+			case 'pass': case 'success': case 'low': return 'var(--success)';
+			default: return 'var(--nd-text-secondary)';
 		}
 	}
 </script>
 
-<Breadcrumb>
-	<BreadcrumbItem href="/" home>Home</BreadcrumbItem>
-	<BreadcrumbItem href="/{title}">{title}</BreadcrumbItem>
+<nav class="nd-breadcrumb">
+	<a href="/">Home</a>
+	<span class="nd-breadcrumb-separator"></span>
+	<a href="/{title}">{title}</a>
 	{#if name}
-		<BreadcrumbItem href="/{title}/{name}">{name}</BreadcrumbItem>
+		<span class="nd-breadcrumb-separator"></span>
+		<span style="color: var(--nd-text-primary);">{name}</span>
 	{/if}
-</Breadcrumb>
-<header class="mb-8">
-	<Heading tag="h1" class="text-primary-700 dark:text-primary-500">
-		{title}
-	</Heading>
+</nav>
+
+<header style="margin-bottom: var(--space-xl);">
+	<h1 class="nd-heading" style="font-size: var(--display-md); color: var(--nd-text-display);">{title}</h1>
 	{#if showSummary}
-		<div class="mt-4 flex space-x-4">
+		<div style="display: flex; gap: var(--space-md); margin-top: var(--space-sm);">
 			{#each Object.entries(summaryCounts) as [key, value]}
-				<p class={getTextColor(key)}>{key.replace('Count', '')}: {value}</p>
+				<span class="nd-mono" style="font-size: var(--body-sm); color: {getStatusColor(key)};">
+					{key.replace('Count', '')}: {value}
+				</span>
 			{/each}
 		</div>
 	{/if}

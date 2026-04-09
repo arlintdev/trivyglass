@@ -66,44 +66,6 @@ export function renderComponent<Props extends Record<string, unknown>>(
 	return render(component, { props });
 }
 
-// Mock for flowbite-svelte components
-vi.mock('flowbite-svelte', async () => {
-	const actual = await vi.importActual('flowbite-svelte');
-	return {
-		...actual,
-		Modal: vi.fn().mockImplementation(({ children }) => ({
-			render: () => ({ html: '<div class="modal">' + children + '</div>' })
-		})),
-		Button: vi.fn().mockImplementation(({ children, onclick }) => ({
-			render: () => ({
-				html: `<button class="button" data-testid="button">${children}</button>`,
-				component: { onclick }
-			})
-		})),
-		Alert: vi.fn().mockImplementation(({ children, color }) => ({
-			render: () => ({ html: `<div class="alert alert-${color}">${children}</div>` })
-		})),
-		Spinner: vi.fn().mockImplementation(() => ({
-			render: () => ({ html: '<div class="spinner"></div>' })
-		}))
-	};
-});
-
-// Mock for flowbite-svelte-icons
-vi.mock('flowbite-svelte-icons', async () => {
-	return {
-		ServerSolid: vi.fn().mockImplementation(() => ({
-			render: () => ({ html: '<svg class="server-icon"></svg>' })
-		})),
-		CogSolid: vi.fn().mockImplementation(() => ({
-			render: () => ({ html: '<svg class="cog-icon"></svg>' })
-		})),
-		ArchiveSolid: vi.fn().mockImplementation(() => ({
-			render: () => ({ html: '<svg class="archive-icon"></svg>' })
-		}))
-	};
-});
-
 // Mock for $app/stores if needed
 vi.mock('$app/stores', () => {
 	return {

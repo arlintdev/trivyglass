@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { Card, Badge, Alert } from 'flowbite-svelte';
-
-	// Define an interface for the security check objects
 	interface SecurityCheck {
 		severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
 		title?: string;
@@ -17,69 +14,47 @@
 
 	let { checks }: Props = $props();
 
-	// Severity color mapping (updated for new colors and dark mode compatibility)
-	const severityColors = {
-		LOW: 'bg-green-500 text-white dark:bg-green-600 dark:text-white',
-		MEDIUM: 'bg-yellow-400 text-gray-800 dark:bg-yellow-600 dark:text-gray-200',
-		HIGH: 'bg-orange-500 text-white dark:bg-orange-600 dark:text-white',
-		CRITICAL: 'bg-red-600 text-white dark:bg-red-700 dark:text-white',
-		UNKNOWN: 'bg-gray-400 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
-	};
+	function severityTag(s: string): string {
+		switch (s) {
+			case 'CRITICAL': return 'critical';
+			case 'HIGH': return 'high';
+			case 'MEDIUM': return 'medium';
+			case 'LOW': return 'low';
+			default: return 'unknown';
+		}
+	}
 
-	// Severity order for sorting
-	const severityOrder = {
-		CRITICAL: 1,
-		HIGH: 2,
-		MEDIUM: 3,
-		LOW: 4,
-		UNKNOWN: 5
-	};
+	const severityOrder: Record<string, number> = { CRITICAL: 1, HIGH: 2, MEDIUM: 3, LOW: 4, UNKNOWN: 5 };
 
-	// Sort checks by severity
 	const sortedChecks = $derived(
-		checks.slice().sort((a: SecurityCheck, b: SecurityCheck) => {
-			return (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5);
-		})
+		checks.slice().sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5))
 	);
 </script>
 
-<div class="col-span-1 md:col-span-2 lg:col-span-3">
-	<h1 class="mb-4 text-2xl font-semibold text-gray-800 dark:text-gray-200">Security Checks</h1>
-	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+<div>
+	<h2 class="nd-heading" style="margin-bottom: var(--space-lg);">Security Checks</h2>
+	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-md);">
 		{#each sortedChecks as check}
-			<Card
-				class="max-w-full rounded-lg border border-gray-200 shadow-md transition-shadow duration-300 hover:shadow-lg dark:border-gray-700"
-			>
-				<div class="flex items-center justify-between rounded-t-lg bg-gray-50 p-4 dark:bg-gray-800">
-					<h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+			<div class="nd-card" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+				<div style="display: flex; align-items: center; justify-content: space-between;">
+					<span class="nd-subheading" style="color: var(--nd-text-display);">
 						{check.title ?? 'Untitled Check'}
-					</h3>
-					<Badge class={severityColors[check.severity] ?? severityColors.UNKNOWN}
-						>{check.severity ?? 'UNKNOWN'}</Badge
-					>
+					</span>
+					<span class="nd-tag nd-tag-{severityTag(check.severity)}">{check.severity ?? 'UNKNOWN'}</span>
 				</div>
-				<div class="space-y-3 p-4 text-gray-700 dark:text-gray-300">
-					<p class="break-words whitespace-normal"><strong>ID:</strong> {check.checkID ?? 'N/A'}</p>
-					<p class="break-words whitespace-normal">
-						<strong>Description:</strong>
-						{check.description ?? 'No description available'}
-					</p>
-					<Alert color="red" class="mb-3">
-						<strong>Issue:</strong>
-						<span class="break-words whitespace-normal"
-							>{check.messages?.[0] ?? 'No specific issue reported'}</span
-						>
-					</Alert>
-					<div
-						class="rounded-r-lg border-l-4 border-gray-300 bg-gray-100 p-3 dark:border-gray-500 dark:bg-gray-700"
-					>
-						<p class="break-words whitespace-normal text-gray-700 dark:text-gray-300">
-							<strong>Remediation:</strong>
-							{check.remediation ?? 'No remediation provided'}
+				<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+					<p class="nd-body-sm"><span class="nd-caption">ID</span> {check.checkID ?? 'N/A'}</p>
+					<p class="nd-body-sm" style="color: var(--nd-text-secondary);">{check.description ?? 'No description available'}</p>
+					<div class="nd-alert nd-alert-error">
+						<strong>[ISSUE]</strong> {check.messages?.[0] ?? 'No specific issue reported'}
+					</div>
+					<div style="border-left: 2px solid var(--nd-border-visible); padding-left: var(--space-md);">
+						<p class="nd-caption" style="color: var(--nd-text-secondary);">
+							<strong>REMEDIATION:</strong> {check.remediation ?? 'No remediation provided'}
 						</p>
 					</div>
 				</div>
-			</Card>
+			</div>
 		{/each}
 	</div>
 </div>

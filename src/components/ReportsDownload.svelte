@@ -8,34 +8,28 @@
 
 	let { title, clusterName, showSummary, summaryCounts }: Props = $props();
 
-	import { Heading, P } from 'flowbite-svelte';
-	function getTextColor(key: string) {
+	function getStatusColor(key: string): string {
 		switch (key) {
-			case 'criticalCount':
-				return 'text-red-600';
-			case 'highCount':
-				return 'text-orange-600';
-			case 'mediumCount':
-				return 'text-yellow-600';
-			case 'lowCount':
-				return 'text-green-600';
-			case 'noneCount':
-				return 'text-gray-600';
-			default:
-				return 'text-blue-600';
+			case 'criticalCount': return 'var(--accent)';
+			case 'highCount': return 'var(--warning)';
+			case 'mediumCount': return 'var(--warning)';
+			case 'lowCount': return 'var(--success)';
+			default: return 'var(--nd-text-secondary)';
 		}
 	}
 </script>
 
-<header class="mb-8 text-center">
-	<Heading tag="h1" class="text-primary-700 dark:text-primary-500">
-		{title}
-	</Heading>
-	<P align="center" class="text-xl font-bold">Cluster: {clusterName}</P>
+<header style="text-align: center; margin-bottom: var(--space-xl);">
+	<h1 class="nd-heading" style="font-size: var(--display-md); color: var(--nd-text-display);">{title}</h1>
+	<p class="nd-body" style="color: var(--nd-text-secondary); margin-top: var(--space-sm);">
+		Cluster: <span style="color: var(--nd-text-display); font-weight: 500;">{clusterName}</span>
+	</p>
 	{#if showSummary}
-		<div class="mt-4 flex justify-center space-x-4">
+		<div style="display: flex; justify-content: center; gap: var(--space-md); margin-top: var(--space-sm);">
 			{#each Object.entries(summaryCounts) as [key, value]}
-				<p class={getTextColor(key)}>{key.replace('Count', '')}: {value}</p>
+				<span class="nd-mono" style="font-size: var(--body-sm); color: {getStatusColor(key)};">
+					{key.replace('Count', '')}: {value}
+				</span>
 			{/each}
 		</div>
 	{/if}

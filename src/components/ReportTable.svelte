@@ -1,23 +1,10 @@
 <script lang="ts">
-	import {
-		TableSearch,
-		TableHead,
-		TableBody,
-		TableBodyRow,
-		TableBodyCell,
-		Badge,
-		Button,
-		P,
-		Modal,
-		ButtonGroup
-	} from 'flowbite-svelte';
 	import { toastStore } from '$lib/stores/toastStore';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { SvelteSet } from 'svelte/reactivity';
 
-	// Define types for Badge color
-	type BadgeColorType = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'gray';
+	type TagType = 'critical' | 'high' | 'medium' | 'low' | 'pass' | 'fail' | 'unknown' | 'info';
 
 	interface Metadata {
 		namespace?: string;
@@ -45,21 +32,21 @@
 	interface TableColumn {
 		header: string;
 		value: string;
-		color?: BadgeColorType;
+		tag?: TagType;
 	}
 
 	let { reports = [], reportType, showNamespace = true, columns = [] }: Props = $props();
 
-	function getColor(header: string): BadgeColorType | undefined {
+	function getTag(header: string): TagType | undefined {
 		const lowerHeader = header.toLowerCase();
-		if (lowerHeader.includes('fail')) return 'red';
-		if (lowerHeader.includes('pass')) return 'green';
-		if (lowerHeader.includes('unknown')) return 'gray';
-		if (lowerHeader.includes('critical')) return 'red';
-		if (lowerHeader.includes('high')) return 'orange';
-		if (lowerHeader.includes('medium')) return 'yellow';
-		if (lowerHeader.includes('low')) return 'green';
-		if (lowerHeader.includes('none')) return 'gray';
+		if (lowerHeader.includes('fail')) return 'fail';
+		if (lowerHeader.includes('pass')) return 'pass';
+		if (lowerHeader.includes('unknown')) return 'unknown';
+		if (lowerHeader.includes('critical')) return 'critical';
+		if (lowerHeader.includes('high')) return 'high';
+		if (lowerHeader.includes('medium')) return 'medium';
+		if (lowerHeader.includes('low')) return 'low';
+		if (lowerHeader.includes('none')) return 'unknown';
 		return undefined;
 	}
 
@@ -68,52 +55,35 @@
 			return columns.map((col: Column) => ({
 				header: col.name,
 				value: col.jsonPath,
-				color: getColor(col.name)
+				tag: getTag(col.name)
 			}));
 		}
 		const allKeys = new SvelteSet<string>();
 		reports.forEach((report: Report) => {
 			Object.keys(report).forEach((key: string) => {
-				if (key !== 'metadata') {
-					allKeys.add(key);
-				}
+				if (key !== 'metadata') allKeys.add(key);
 			});
 		});
 		return Array.from(allKeys).map((key: string) => ({
 			header: key,
 			value: key,
-			color: getColor(key)
+			tag: getTag(key)
 		}));
 	});
 
 	let selectedReport = $state<Report | null>(null);
 	let showModal = $state(false);
-
-	// State for tracking refresh status
 	let isRefreshing = $state(false);
 
-	/**
-	 * Refreshes the report data by invalidating the cache and reloading the page
-	 * This forces a fresh fetch from Kubernetes
-	 */
 	async function refreshReports() {
 		try {
 			isRefreshing = true;
-
-			// Call the API to invalidate the cache
-			const response = await fetch(`/api/reports/invalidate/${reportType}`, {
-				method: 'POST'
-			});
-
+			const response = await fetch(`/api/reports/invalidate/${reportType}`, { method: 'POST' });
 			if (!response.ok) {
 				const errorData = await response.json();
 				throw new Error(errorData.error || 'Failed to refresh reports');
 			}
-
-			// Show success toast
 			toastStore.addToast(`Successfully refreshed ${reportType} data`, 'success');
-
-			// Reload the current page to fetch fresh data
 			goto($page.url.pathname, { invalidateAll: true });
 		} catch (error) {
 			console.error('Error refreshing reports:', error);
@@ -128,10 +98,7 @@
 
 	function get(obj: Record<string, unknown>, path: string): unknown {
 		if (!obj || !path) return undefined;
-		if (path.startsWith('.')) {
-			path = path.slice(1);
-		}
-
+		if (path.startsWith('.')) path = path.slice(1);
 		return path.split('.').reduce<unknown>((acc, part) => {
 			if (acc && typeof acc === 'object' && acc !== null) {
 				return (acc as Record<string, unknown>)[part];
@@ -140,72 +107,44 @@
 		}, obj);
 	}
 
-	/**
-	 * Downloads a single report as a formatted JSON file
-	 * Fetches the full report data from the server before downloading
-	 * The filename includes the date, report type, namespace (if available), and report name
-	 * @param report The report object to download
-	 */
 	async function downloadReport(report: Report) {
-		// Create a filename with date, report type, namespace (if available), and report name
 		const date = new Date().toISOString().split('T')[0];
 		const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
 		const filename = `${date}_${reportType}_${namespace}${report.metadata.name}.json`;
 
 		try {
-			// Construct the API endpoint URL for the full report
 			let apiUrl;
 			if (report.metadata.namespace) {
-				// Namespaced resource
 				apiUrl = `/api/reports/namespace/${report.metadata.namespace}/${reportType}/${report.metadata.name}`;
 			} else {
-				// Cluster-scoped resource
 				apiUrl = `/api/reports/cluster/${reportType}/${report.metadata.name}`;
 			}
-
-			// Fetch the full report data from the server
 			const response = await fetch(apiUrl);
-			if (!response.ok) {
-				throw new Error(`Failed to fetch report: ${response.statusText}`);
-			}
-
-			// Get the full report data
+			if (!response.ok) throw new Error(`Failed to fetch report: ${response.statusText}`);
 			const fullReportData = await response.json();
-
-			// Convert report to formatted JSON string
 			const jsonStr = JSON.stringify(fullReportData, null, 2);
-
-			// Create and trigger download
 			const blob = new Blob([jsonStr], { type: 'application/json' });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = filename;
 			a.click();
-			URL.revokeObjectURL(url); // Clean up to avoid memory leaks
+			URL.revokeObjectURL(url);
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				console.error('Error downloading report:', error);
 				alert(`Failed to download report: ${error.message}`);
 			} else {
-				console.error('Unknown error occurred:', error);
 				alert('Failed to download report: An unknown error occurred.');
 			}
 		}
 	}
 
-	/**
-	 * Opens the modal to view the full JSON of a report
-	 * @param report The report to view in the modal
-	 */
 	function viewReportJson(report: Report) {
 		selectedReport = report;
 		showModal = true;
 	}
 
-	/**
-	 * Closes the JSON view modal
-	 */
 	function closeModal() {
 		selectedReport = null;
 		showModal = false;
@@ -217,7 +156,6 @@
 
 	function compareValues(a: Report, b: Report, column: string, direction: 'asc' | 'desc') {
 		let valueA: unknown, valueB: unknown;
-
 		if (column === 'Namespace / Name') {
 			valueA = `${a.metadata?.namespace || ''}:${a.metadata?.name || ''}`;
 			valueB = `${b.metadata?.namespace || ''}:${b.metadata?.name || ''}`;
@@ -230,17 +168,12 @@
 				return 0;
 			}
 		}
-
 		if (valueA === undefined || valueA === null) valueA = '';
 		if (valueB === undefined || valueB === null) valueB = '';
-
 		const isNumericA = !isNaN(Number(valueA)) && typeof valueA !== 'boolean';
 		const isNumericB = !isNaN(Number(valueB)) && typeof valueB !== 'boolean';
-
 		if (isNumericA && isNumericB) {
-			const numA = Number(valueA);
-			const numB = Number(valueB);
-			return direction === 'asc' ? numA - numB : numB - numA;
+			return direction === 'asc' ? Number(valueA) - Number(valueB) : Number(valueB) - Number(valueA);
 		} else {
 			const strA = String(valueA).toLowerCase();
 			const strB = String(valueB).toLowerCase();
@@ -248,30 +181,18 @@
 		}
 	}
 
-	// Filter and sort the reports
 	let filteredReports = $derived(
 		reports
 			.filter((report) => {
 				if (!searchTerm) return true;
 				const term = searchTerm.toLowerCase();
 				let values: unknown[] = [];
-
-				if (showNamespace && report.metadata?.namespace) {
-					values.push(report.metadata.namespace);
-				}
-				if (report.metadata?.name) {
-					values.push(report.metadata.name);
-				}
-
+				if (showNamespace && report.metadata?.namespace) values.push(report.metadata.namespace);
+				if (report.metadata?.name) values.push(report.metadata.name);
 				tableColumns.forEach((column) => {
-					const value = column.value.includes('.')
-						? get(report, column.value)
-						: report[column.value];
-					if (value !== undefined && value !== null) {
-						values.push(value);
-					}
+					const value = column.value.includes('.') ? get(report, column.value) : report[column.value];
+					if (value !== undefined && value !== null) values.push(value);
 				});
-
 				return values.some((val) => String(val).toLowerCase().includes(term));
 			})
 			.sort((a, b) => {
@@ -280,7 +201,6 @@
 			})
 	);
 
-	// Using a function instead of a derived store to avoid the error
 	function getHeadItems(): string[] {
 		const headers = ['Namespace / Name'];
 		headers.push(...tableColumns.map((column) => column.header));
@@ -297,19 +217,8 @@
 		}
 	}
 
-	const tightTableClasses = {
-		wrapper: 'max-w-full overflow-x-auto',
-		table: 'w-full table-compact',
-		cell: 'px-2 py-1 text-sm whitespace-nowrap overflow-hidden text-ellipsis',
-		badge: 'py-0.5 px-1 text-xs',
-		button: 'py-1 px-2 text-xs'
-	};
-
 	function escapeCsvValue(value: unknown): string {
-		if (
-			typeof value === 'string' &&
-			(value.includes(',') || value.includes('"') || value.includes('\n'))
-		) {
+		if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
 			return `"${value.replace(/"/g, '""')}"`;
 		}
 		return String(value);
@@ -322,10 +231,7 @@
 			report.metadata.name,
 			...tableColumns.map((col) => get(report, col.value) || '')
 		]);
-		return [
-			headers.map(escapeCsvValue).join(','),
-			...rows.map((row) => row.map(escapeCsvValue).join(','))
-		].join('\n');
+		return [headers.map(escapeCsvValue).join(','), ...rows.map((row) => row.map(escapeCsvValue).join(','))].join('\n');
 	}
 
 	function generateMarkdown(): string {
@@ -351,38 +257,19 @@
 		return JSON.stringify(data, null, 2);
 	}
 
-	/**
-	 * Helper function to trigger a file download in the browser
-	 * @param content The content of the file to download
-	 * @param filename The name of the file to download
-	 * @param mimeType The MIME type of the file (e.g., 'text/csv', 'application/json')
-	 */
 	function downloadFile(content: string, filename: string, mimeType: string) {
-		// Create a blob with the content and MIME type
 		const blob = new Blob([content], { type: mimeType });
-
-		// Create a temporary URL for the blob
 		const url = URL.createObjectURL(blob);
-
-		// Create and trigger a download link
 		const a = document.createElement('a');
 		a.href = url;
 		a.download = filename;
 		a.click();
-
-		// Clean up to avoid memory leaks
 		URL.revokeObjectURL(url);
 	}
 
-	/**
-	 * Exports all filtered reports in the specified format (CSV, Markdown, or JSON)
-	 * The filename includes the date and report type
-	 * @param format The format to export ('csv', 'markdown', or 'json')
-	 */
 	function exportData(format: string) {
 		const date = new Date().toISOString().split('T')[0];
 		let content: string, filename: string, mimeType: string;
-
 		switch (format) {
 			case 'csv':
 				content = generateCsv();
@@ -402,8 +289,6 @@
 			default:
 				return;
 		}
-
-		// Trigger download of the generated file
 		downloadFile(content, filename, mimeType);
 	}
 
@@ -417,141 +302,111 @@
 </script>
 
 {#if reports.length === 0}
-	<P class="text-center">No {reportType} reports found.</P>
+	<p style="text-align: center; color: var(--nd-text-secondary);">No {reportType} reports found.</p>
 {:else}
-	<div class={tightTableClasses.wrapper}>
-		<div class="mb-4 flex justify-between">
-			<div class="flex flex-col">
-				<ButtonGroup>
-					<Button onclick={() => exportData('csv')}>Export All as CSV</Button>
-					<Button onclick={() => exportData('markdown')}>Export All as Markdown</Button>
-					<Button onclick={() => exportData('json')}>Export All as JSON</Button>
-				</ButtonGroup>
-				<span class="mt-1 text-xs text-gray-500"
-					>Export all filtered reports in the selected format</span
-				>
+	<div style="max-width: 100%; overflow-x: auto;">
+		<!-- Toolbar -->
+		<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); gap: var(--space-md); flex-wrap: wrap;">
+			<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('csv')}>Export CSV</button>
+				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('markdown')}>Export MD</button>
+				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('json')}>Export JSON</button>
 			</div>
-
-			<!-- Add the refresh button -->
-			<div>
-				<Button color="blue" onclick={refreshReports} disabled={isRefreshing}>
-					{#if isRefreshing}
-						<span class="mr-2 inline-block animate-spin">↻</span>Refreshing...
-					{:else}
-						<span class="mr-2">↻</span>Hard Refresh
-					{/if}
-				</Button>
-				<span class="mt-1 block text-xs text-gray-500">
-					Clears cache and fetches fresh data from Kubernetes
-				</span>
-			</div>
+			<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={refreshReports} disabled={isRefreshing}>
+				{isRefreshing ? '[REFRESHING...]' : 'Hard Refresh'}
+			</button>
 		</div>
-		<TableSearch placeholder="Search reports" hoverable={true} bind:inputValue={searchTerm}>
-			<TableHead>
-				{#each getHeadItems() as header}
-					<th
-						onclick={() => toggleSort(header)}
-						class="cursor-pointer bg-gray-100 px-2 py-1 text-sm transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-					>
-						<div class="flex items-center gap-1">
+
+		<!-- Search -->
+		<div style="margin-bottom: var(--space-md);">
+			<input
+				class="nd-input-bordered"
+				type="text"
+				placeholder="Search reports..."
+				bind:value={searchTerm}
+				style="width: 100%; max-width: 400px;"
+			/>
+		</div>
+
+		<!-- Table -->
+		<table class="nd-table">
+			<thead>
+				<tr>
+					{#each getHeadItems() as header}
+						<th onclick={() => toggleSort(header)}>
 							{header}
 							{#if sortColumn === header}
-								{sortDirection === 'asc' ? '▲' : '▼'}
+								{sortDirection === 'asc' ? ' \u25B2' : ' \u25BC'}
 							{/if}
-						</div>
-					</th>
-				{/each}
-			</TableHead>
-			<TableBody class={tightTableClasses.table}>
+						</th>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
 				{#if filteredReports.length === 0}
-					<TableBodyRow>
-						<TableBodyCell colspan={getHeadItems().length} class={tightTableClasses.cell}>
-							<P class="text-center">No matching {reportType} reports found.</P>
-						</TableBodyCell>
-					</TableBodyRow>
+					<tr>
+						<td colspan={getHeadItems().length} style="text-align: center; color: var(--nd-text-secondary);">
+							No matching {reportType} reports found.
+						</td>
+					</tr>
 				{:else}
 					{#each filteredReports as report (report.metadata.uid)}
-						<TableBodyRow class="cursor-pointer">
-							<TableBodyCell class={tightTableClasses.cell}>
-								<span>
-									{report?.metadata?.namespace || 'N/A'}
-								</span>
+						<tr>
+							<td>
+								<span class="nd-caption">{report?.metadata?.namespace || 'N/A'}</span>
 								<br />
-								<span title={report.metadata.name}>
+								<span style="font-size: var(--body-sm);" title={report.metadata.name}>
 									{report.metadata.name}
 								</span>
-							</TableBodyCell>
+							</td>
 							{#each tableColumns as column}
-								<TableBodyCell class={tightTableClasses.cell}>
-									{#if column.value.includes('.')}
-										{#if column.color}
-											<Badge color={column.color} class={tightTableClasses.badge}>
-												{String(get(report, column.value) ?? 'N/A')}
-											</Badge>
-										{:else}
-											<span title={String(get(report, column.value) ?? 'N/A')}>
-												{String(get(report, column.value) ?? 'N/A')}
-											</span>
-										{/if}
-									{:else if column.color}
-										<Badge color={column.color} class={tightTableClasses.badge}>
-											{String(report[column.value] ?? 'N/A')}
-										</Badge>
+								{@const val = column.value.includes('.') ? get(report, column.value) : report[column.value]}
+								<td>
+									{#if column.tag}
+										<span class="nd-tag nd-tag-{column.tag}">{String(val ?? 'N/A')}</span>
 									{:else}
-										<span title={String(report[column.value] ?? 'N/A')}>
-											{String(report[column.value] ?? 'N/A')}
-										</span>
+										<span title={String(val ?? 'N/A')}>{String(val ?? 'N/A')}</span>
 									{/if}
-								</TableBodyCell>
+								</td>
 							{/each}
-							<TableBodyCell class={tightTableClasses.cell}>
-								<div class="flex flex-wrap gap-1">
-									<Button
-										href={generateLink(report)}
-										color="blue"
-										size="sm"
-										class={tightTableClasses.button}
+							<td>
+								<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
+									<a href={generateLink(report)} class="nd-btn nd-btn-secondary nd-btn-xs">Details</a>
+									<button
+										class="nd-btn nd-btn-ghost nd-btn-xs"
+										onclick={() => { downloadReport(report).catch((err) => console.error('Error:', err)); }}
+										title="Download full report as JSON"
 									>
-										Details
-									</Button>
-									<Button
-										color="green"
-										size="sm"
-										class={tightTableClasses.button}
-										onclick={() => {
-											downloadReport(report).catch((err) => {
-												console.error('Error in download handler:', err);
-											});
-										}}
-										title="Download full report as a JSON file"
-									>
-										Download JSON
-									</Button>
-									<Button
-										color="purple"
-										size="sm"
-										class={tightTableClasses.button}
+										Download
+									</button>
+									<button
+										class="nd-btn nd-btn-ghost nd-btn-xs"
 										onclick={() => viewReportJson(report)}
-										title="View full report JSON in modal"
+										title="View full report JSON"
 									>
 										View JSON
-									</Button>
+									</button>
 								</div>
-							</TableBodyCell>
-						</TableBodyRow>
+							</td>
+						</tr>
 					{/each}
 				{/if}
-			</TableBody>
-		</TableSearch>
+			</tbody>
+		</table>
 	</div>
 {/if}
 
 <!-- Modal for viewing JSON -->
-<Modal bind:open={showModal} title="Report JSON" size="xl" onclose={closeModal}>
-	{#if selectedReport}
-		<pre
-			class="max-h-[70vh] overflow-auto rounded bg-gray-50 p-4 text-sm whitespace-pre-wrap text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-{JSON.stringify(selectedReport, null, 2)}
-		</pre>
-	{/if}
-</Modal>
+{#if showModal}
+	<div class="nd-modal-backdrop" onclick={closeModal} onkeydown={(e) => e.key === 'Escape' && closeModal()} role="dialog" tabindex="-1">
+		<div class="nd-modal nd-modal-xl" onclick={(e) => e.stopPropagation()} role="document">
+			<div class="nd-modal-header">
+				<span class="nd-modal-title">Report JSON</span>
+				<button class="nd-modal-close" onclick={closeModal}>[ X ]</button>
+			</div>
+			{#if selectedReport}
+				<pre class="nd-code" style="max-height: 70vh; overflow: auto;">{JSON.stringify(selectedReport, null, 2)}</pre>
+			{/if}
+		</div>
+	</div>
+{/if}

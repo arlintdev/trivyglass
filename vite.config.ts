@@ -16,7 +16,6 @@ export default defineConfig({
 			reporter: ['text', 'json', 'html'],
 			exclude: ['node_modules/', '.svelte-kit/']
 		},
-		// Suppress unhandled errors from jsdom inline scripts (e.g. Flowbite DarkMode matchMedia)
 		onUnhandledError(error) {
 			if (error instanceof TypeError && error.message.includes('matchMedia')) {
 				return;

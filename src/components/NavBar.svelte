@@ -1,31 +1,23 @@
 <script lang="ts">
-	import {
-		DarkMode,
-		MegaMenu,
-		Navbar,
-		NavBrand,
-		uiHelpers,
-		Dropdown,
-		DropdownHeader,
-		DropdownItem,
-		Button,
-		Spinner
-	} from 'flowbite-svelte';
-	import {
-		ChevronDownOutline,
-		ServerSolid,
-		ExclamationCircleSolid,
-		CogSolid
-	} from 'flowbite-svelte-icons';
 	import ClusterManager from './ClusterManager.svelte';
 	import { onMount } from 'svelte';
-	let dropdownUser = uiHelpers();
-	let dropdownUserStatus = $derived(dropdownUser.isOpen);
-	let closeDropdownUser = dropdownUser.close;
+
 	let clusterManagerOpen = $state(false);
 	function toggleClusterManager() {
 		clusterManagerOpen = !clusterManagerOpen;
 	}
+
+	// Dropdown state
+	let dropdownOpen = $state(false);
+
+	// Dark mode toggle
+	let isDark = $state(true);
+	function toggleDarkMode() {
+		isDark = !isDark;
+		document.documentElement.classList.toggle('dark', isDark);
+		localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+	}
+
 	// Current cluster info
 	let currentCluster = $state('local');
 	let connectionError = $state<string | null>(null);
@@ -35,30 +27,22 @@
 
 	// Track when we last switched clusters to prevent API from overriding too quickly
 	let lastClusterSwitchTime = 0;
-	const SWITCH_PROTECTION_PERIOD = 10000; // 10 seconds protection after switch
+	const SWITCH_PROTECTION_PERIOD = 10000;
 
-	// Fetch full cluster info including the list of available clusters
 	async function fetchClusterInfo() {
 		console.log('Fetching full cluster info from API');
 		isLoading = true;
 		try {
-			// Check if we recently switched clusters (within protection period)
 			const now = Date.now();
 			const recentlyChanged = now - lastClusterSwitchTime < SWITCH_PROTECTION_PERIOD;
-
-			// First check if we have a stored cluster name that should take precedence
 			const storedCluster = localStorage.getItem('currentCluster');
 			const clusterSwitched = localStorage.getItem('clusterSwitched');
 
 			if (storedCluster) {
 				console.log(`Found stored cluster in localStorage: ${storedCluster}`);
-
-				// If we recently switched or the clusterSwitched flag is set, prioritize localStorage
 				if (recentlyChanged || clusterSwitched === 'true') {
 					console.log('Using localStorage value due to recent switch or flag');
 					currentCluster = storedCluster;
-
-					// If this is the first time after a switch, update the timestamp
 					if (clusterSwitched === 'true') {
 						lastClusterSwitchTime = now;
 						localStorage.removeItem('clusterSwitched');
@@ -68,7 +52,6 @@
 				}
 			}
 
-			// Only fetch from API if we're not in the protection period
 			if (!recentlyChanged) {
 				const response = await fetch('/api/clusters');
 				if (!response.ok) {
@@ -81,50 +64,33 @@
 
 				const data = await response.json();
 				console.log('API response:', data);
-
-				// Update clusters list
 				clusters = data.clusters || [];
 
-				// Cache the clusters in localStorage
 				try {
 					localStorage.setItem('cachedClusters', JSON.stringify(clusters));
-					console.log('Cached clusters in localStorage');
 				} catch (storageErr) {
 					console.error('Error caching clusters:', storageErr);
 				}
 
-				// If we're not in protection period, update from API
 				if (currentCluster !== data.currentCluster) {
-					// If we have a stored cluster and it doesn't match API, log a warning
 					if (storedCluster && storedCluster !== data.currentCluster) {
 						console.warn(
 							`API cluster (${data.currentCluster}) doesn't match localStorage (${storedCluster})`
 						);
-
-						// If we recently switched, trust localStorage over API
-						if (recentlyChanged) {
-							console.log('Ignoring API value due to recent cluster switch');
-						} else {
+						if (!recentlyChanged) {
 							console.log(`Updating current cluster from API: ${data.currentCluster}`);
 							currentCluster = data.currentCluster;
-
-							// Update localStorage to keep in sync
 							try {
 								localStorage.setItem('currentCluster', data.currentCluster);
-								console.log('Updated localStorage with current cluster from API');
 							} catch (storageErr) {
 								console.error('Error updating localStorage:', storageErr);
 							}
 						}
 					} else {
-						// Normal update when no conflict
 						console.log(`Updating current cluster from API: ${data.currentCluster}`);
 						currentCluster = data.currentCluster;
-
-						// Update localStorage to keep in sync
 						try {
 							localStorage.setItem('currentCluster', data.currentCluster);
-							console.log('Updated localStorage with current cluster from API');
 						} catch (storageErr) {
 							console.error('Error updating localStorage:', storageErr);
 						}
@@ -141,25 +107,16 @@
 		}
 	}
 
-	// Only update the current cluster info without refreshing the clusters list
-	// This is used for polling to avoid UI glitches in the dropdown
 	async function updateCurrentClusterOnly() {
-		console.log('Updating current cluster info only');
 		try {
-			// Check if we recently switched clusters (within protection period)
 			const now = Date.now();
 			const recentlyChanged = now - lastClusterSwitchTime < SWITCH_PROTECTION_PERIOD;
-
-			// First check if we have a stored cluster name that should take precedence
 			const storedCluster = localStorage.getItem('currentCluster');
 			const clusterSwitched = localStorage.getItem('clusterSwitched');
 
 			if (storedCluster) {
-				// If we recently switched or the clusterSwitched flag is set, prioritize localStorage
 				if (recentlyChanged || clusterSwitched === 'true') {
 					currentCluster = storedCluster;
-
-					// If this is the first time after a switch, update the timestamp
 					if (clusterSwitched === 'true') {
 						lastClusterSwitchTime = now;
 						localStorage.removeItem('clusterSwitched');
@@ -168,7 +125,6 @@
 				}
 			}
 
-			// Only fetch from API if we're not in the protection period
 			if (!recentlyChanged) {
 				const response = await fetch('/api/clusters');
 				if (!response.ok) {
@@ -179,17 +135,10 @@
 
 				const data = await response.json();
 
-				// Only update the current cluster, not the clusters list
 				if (currentCluster !== data.currentCluster) {
-					// If we have a stored cluster and it doesn't match API, log a warning
 					if (storedCluster && storedCluster !== data.currentCluster) {
-						// If we recently switched, trust localStorage over API
-						if (recentlyChanged) {
-							// Do nothing, keep using localStorage value
-						} else {
+						if (!recentlyChanged) {
 							currentCluster = data.currentCluster;
-
-							// Update localStorage to keep in sync
 							try {
 								localStorage.setItem('currentCluster', data.currentCluster);
 							} catch (storageErr) {
@@ -197,10 +146,7 @@
 							}
 						}
 					} else {
-						// Normal update when no conflict
 						currentCluster = data.currentCluster;
-
-						// Update localStorage to keep in sync
 						try {
 							localStorage.setItem('currentCluster', data.currentCluster);
 						} catch (storageErr) {
@@ -213,11 +159,9 @@
 			connectionError = null;
 		} catch (err) {
 			connectionError = err instanceof Error ? err.message : 'Failed to connect to cluster';
-			console.error('Error updating current cluster info:', connectionError);
 		}
 	}
 
-	// Function to switch to a different cluster
 	async function switchCluster(cluster: string) {
 		if (currentCluster === cluster) return;
 
@@ -226,24 +170,17 @@
 		console.log(`Switching to cluster: ${cluster}`);
 
 		try {
-			// First, set the localStorage values before making the API call
-			console.log('Setting localStorage values');
 			try {
 				localStorage.setItem('clusterSwitched', 'true');
 				localStorage.setItem('currentCluster', cluster);
-				console.log('localStorage values set successfully');
 			} catch (storageErr) {
 				console.error('Error setting localStorage:', storageErr);
 			}
 
 			const response = await fetch('/api/clusters/switch', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					name: cluster
-				})
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: cluster })
 			});
 
 			if (!response.ok) {
@@ -251,72 +188,56 @@
 				throw new Error(errorData.message || 'Failed to switch cluster');
 			}
 
-			console.log(`Successfully switched to cluster: ${cluster}`);
-
-			// Update current cluster
 			currentCluster = cluster;
+			dropdownOpen = false;
 
-			// Close the dropdown
-			closeDropdownUser();
-
-			// Store the clusters list in localStorage before reloading
 			try {
 				localStorage.setItem('cachedClusters', JSON.stringify(clusters));
 			} catch (storageErr) {
 				console.error('Error caching clusters:', storageErr);
 			}
 
-			// Add a small delay before reloading to ensure localStorage is set
 			setTimeout(() => {
-				console.log('Reloading page...');
 				window.location.reload();
 			}, 100);
 		} catch (err) {
 			if (err instanceof Error) {
 				error = err.message;
-				console.error('Error switching cluster:', error);
 			} else {
 				error = 'An unknown error occurred';
-				console.error('Unknown error switching cluster');
 			}
 		} finally {
 			isLoading = false;
 		}
 	}
 
-	// Set up polling to keep cluster info updated
 	let clusterInfoInterval: number;
 
-	// No longer needed as this functionality is now integrated into fetchClusterInfo
-
 	onMount(() => {
-		console.log('NavBar component mounted');
+		// Init dark mode from storage
+		const storedTheme = localStorage.getItem('color-theme');
+		if (storedTheme === 'light') {
+			isDark = false;
+			document.documentElement.classList.remove('dark');
+		}
 
-		// Check if we have a last switch time stored
 		const lastSwitchTimeStr = localStorage.getItem('lastClusterSwitchTime');
 		if (lastSwitchTimeStr) {
 			lastClusterSwitchTime = parseInt(lastSwitchTimeStr, 10);
-			console.log('Loaded lastClusterSwitchTime from localStorage:', lastClusterSwitchTime);
 		}
 
-		// Force the stored cluster to be used on initial load
 		const storedCluster = localStorage.getItem('currentCluster');
 		if (storedCluster) {
-			console.log(`Using stored cluster on mount: ${storedCluster}`);
 			currentCluster = storedCluster;
-
-			// Set the switch time to now to protect it
 			lastClusterSwitchTime = Date.now();
 			localStorage.setItem('lastClusterSwitchTime', lastClusterSwitchTime.toString());
 		}
 
-		// Try to load cached clusters from localStorage first
 		try {
 			const cachedClustersJson = localStorage.getItem('cachedClusters');
 			if (cachedClustersJson) {
 				const cachedClusters = JSON.parse(cachedClustersJson);
 				if (Array.isArray(cachedClusters) && cachedClusters.length > 0) {
-					console.log('Using cached clusters from localStorage:', cachedClusters);
 					clusters = cachedClusters;
 				}
 			}
@@ -324,11 +245,8 @@
 			console.error('Error loading cached clusters:', err);
 		}
 
-		// Then fetch clusters from API to ensure we have the latest data
 		fetchClusterInfo().then(() => {
-			// If clusters list is still empty after initial fetch, try a direct API call
 			if (clusters.length === 0) {
-				console.log('Clusters list is still empty, trying direct API call');
 				fetch('/api/clusters')
 					.then((response) => {
 						if (response.ok) return response.json();
@@ -336,9 +254,6 @@
 					})
 					.then((data) => {
 						clusters = data.clusters || [];
-						console.log('Loaded clusters from direct API call:', $state.snapshot(clusters));
-
-						// Cache the clusters in localStorage
 						try {
 							localStorage.setItem('cachedClusters', JSON.stringify(clusters));
 						} catch (storageErr) {
@@ -351,149 +266,163 @@
 			}
 		});
 
-		// Set up polling every 5 seconds to keep cluster info updated
-		// Use updateCurrentClusterOnly to avoid refreshing the dropdown and causing UI glitches
 		clusterInfoInterval = setInterval(() => {
 			updateCurrentClusterOnly();
 		}, 5000) as unknown as number;
 
-		// Also set up a listener for storage events (in case localStorage is modified by another tab)
+		// Close dropdown on outside click
+		function handleClickOutside(e: MouseEvent) {
+			const target = e.target as HTMLElement;
+			if (!target.closest('.cluster-dropdown-container')) {
+				dropdownOpen = false;
+			}
+		}
+		document.addEventListener('click', handleClickOutside);
+
 		window.addEventListener('storage', (event) => {
 			if (
 				event.key === 'currentCluster' ||
 				event.key === 'clusterSwitched' ||
 				event.key === 'lastClusterSwitchTime'
 			) {
-				console.log('Storage event detected:', event);
-
-				// Update our local variables from localStorage
 				const storedCluster = localStorage.getItem('currentCluster');
 				const lastSwitchTimeStr = localStorage.getItem('lastClusterSwitchTime');
-
-				if (storedCluster) {
-					currentCluster = storedCluster;
-				}
-
-				if (lastSwitchTimeStr) {
-					lastClusterSwitchTime = parseInt(lastSwitchTimeStr, 10);
-				}
+				if (storedCluster) currentCluster = storedCluster;
+				if (lastSwitchTimeStr) lastClusterSwitchTime = parseInt(lastSwitchTimeStr, 10);
 			}
 		});
 
 		return () => {
-			// Clean up interval and event listener on component unmount
 			if (clusterInfoInterval) clearInterval(clusterInfoInterval);
+			document.removeEventListener('click', handleClickOutside);
 			window.removeEventListener('storage', () => {});
 		};
 	});
-	let menu = [
-		{ name: 'About us', href: '/about' },
-		{ name: 'Blog', href: '/blog' },
-		{ name: 'Contact us', href: '/contact' },
-		{ name: 'Library', href: '/library' },
-		{ name: 'Newsletter', href: '/news' },
-		{ name: 'Support Center', href: '/support' },
-		{ name: 'Resources', href: '/resource' },
-		{ name: 'Playground', href: '/play' },
-		{ name: 'Terms', href: '/terms' },
-		{ name: 'Pro Version', href: '/pro' },
-		{ name: 'License', href: '/license' }
-	];
 </script>
 
-<div class="h-16">
-	<Navbar
-		class="h-16 w-full divide-gray-100 border-gray-100 bg-white px-2 py-2.5 text-gray-700 sm:px-4 dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-	>
-		<NavBrand>
-			<img width="30" src="/trivyglass.png" alt="svelte icon" />
-			<span
-				class="text-primary-900 self-center text-2xl font-semibold whitespace-nowrap sm:text-3xl dark:text-white"
-				>Trivy Glass</span
+<div class="nd-navbar" style="height: 64px;">
+	<a href="/" class="nd-navbar-brand">
+		<img width="30" src="/trivyglass.png" alt="Trivy Glass" />
+		<span class="nd-navbar-brand-text">Trivy Glass</span>
+	</a>
+
+	<div style="display: flex; align-items: center; gap: var(--space-sm);">
+		{#if connectionError}
+			<span class="nd-status-error" title={connectionError} style="display: flex; align-items: center;">
+				<!-- Exclamation circle SVG -->
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="12" r="10"/>
+					<line x1="12" y1="8" x2="12" y2="12"/>
+					<line x1="12" y1="16" x2="12.01" y2="16"/>
+				</svg>
+			</span>
+		{/if}
+
+		<span class="nd-label" style="display: none; margin-right: var(--space-sm); color: var(--nd-text-secondary);" class:md-show={true}>
+			CLUSTER: <span style="color: var(--nd-text-display);">{currentCluster}</span>
+		</span>
+
+		<!-- Cluster dropdown -->
+		<div class="cluster-dropdown-container" style="position: relative;">
+			<button
+				class="nd-btn nd-btn-ghost nd-btn-sm"
+				onclick={() => (dropdownOpen = !dropdownOpen)}
+				style="display: flex; align-items: center; gap: var(--space-xs);"
 			>
-		</NavBrand>
+				<!-- Server icon -->
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+					<rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+					<line x1="6" y1="6" x2="6.01" y2="6"/>
+					<line x1="6" y1="18" x2="6.01" y2="18"/>
+				</svg>
+				<!-- Chevron -->
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="6 9 12 15 18 9"/>
+				</svg>
+			</button>
 
-		<div class="flex items-center space-x-1 md:order-2">
-			<div class="mr-2 flex items-center">
-				{#if connectionError}
-					<div class="mr-2 flex items-center text-red-500" title={connectionError}>
-						<ExclamationCircleSolid class="h-5 w-5" />
-					</div>
-				{/if}
-				<div class="relative flex items-center">
-					<div class="mr-2 hidden text-sm font-medium md:block">
-						Cluster: <span class="font-bold">{currentCluster}</span>
-					</div>
-
-					<!-- Quick Cluster Change Dropdown -->
-					<div class="relative mr-2">
-						<Button
-							color="gray"
-							class="flex items-center p-2"
-							onclick={() => (dropdownUserStatus = !dropdownUserStatus)}
-						>
-							<ServerSolid class="mr-1 h-5 w-5" />
-							<ChevronDownOutline class="h-4 w-4" />
-						</Button>
-
-						<Dropdown bind:isOpen={dropdownUserStatus} placement="bottom-end" class="w-56">
-							<DropdownHeader>
-								<span class="block text-sm">Switch Cluster</span>
-							</DropdownHeader>
-							{#if isLoading}
-								<DropdownItem class="flex justify-center py-2">
-									<Spinner color="blue" />
-								</DropdownItem>
-							{:else}
-								{#each clusters as cluster}
-									<DropdownItem
-										class="cursor-pointer {currentCluster === cluster.name
-											? 'bg-gray-100 dark:bg-gray-700 dark:text-white'
-											: ''}"
-										onclick={() => switchCluster(cluster.name)}
-									>
-										<div class="flex items-center">
-											<ServerSolid class="mr-2 h-4 w-4 text-gray-500" />
-											<span>{cluster.name}</span>
-											{#if currentCluster === cluster.name}
-												<span
-													class="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-												>
-													Active
-												</span>
-											{/if}
-										</div>
-									</DropdownItem>
-								{/each}
-							{/if}
-						</Dropdown>
-					</div>
-
-					<!-- Cluster Manager Button -->
-					<Button
-						color="gray"
-						class="cluster-manager-button p-2"
-						onclick={toggleClusterManager}
-						title="Manage Clusters"
-					>
-						<CogSolid class="h-5 w-5" />
-					</Button>
+			{#if dropdownOpen}
+				<div class="nd-dropdown" style="min-width: 224px;">
+					<div class="nd-dropdown-header">Switch Cluster</div>
+					{#if isLoading}
+						<div style="padding: var(--space-md); text-align: center;">
+							<span class="nd-spinner"></span>
+						</div>
+					{:else}
+						{#each clusters as cluster}
+							<button
+								class="nd-dropdown-item {currentCluster === cluster.name ? 'active' : ''}"
+								onclick={() => switchCluster(cluster.name)}
+							>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+									<rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+									<line x1="6" y1="6" x2="6.01" y2="6"/>
+									<line x1="6" y1="18" x2="6.01" y2="18"/>
+								</svg>
+								<span>{cluster.name}</span>
+								{#if currentCluster === cluster.name}
+									<span class="nd-tag nd-tag-active nd-btn-xs" style="margin-left: auto;">ACTIVE</span>
+								{/if}
+							</button>
+						{/each}
+					{/if}
 				</div>
-			</div>
-
-			<DarkMode />
+			{/if}
 		</div>
-	</Navbar>
-	<div class="relative">
-		<MegaMenu items={menu} class="absolute -top-[20px] left-[300px] w-[400px]">
-			{#snippet children(prop)}
-				<a href={prop.item.href} class="hover:text-primary-600 dark:hover:text-primary-500"
-					>{prop.item.name}</a
-				>
-			{/snippet}
-		</MegaMenu>
+
+		<!-- Settings button -->
+		<button
+			class="nd-btn nd-btn-ghost nd-btn-sm"
+			onclick={toggleClusterManager}
+			title="Manage Clusters"
+		>
+			<!-- Cog icon -->
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="12" cy="12" r="3"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+			</svg>
+		</button>
+
+		<!-- Dark mode toggle -->
+		<button
+			class="nd-btn nd-btn-ghost nd-btn-sm"
+			onclick={toggleDarkMode}
+			title="Toggle dark mode"
+		>
+			{#if isDark}
+				<!-- Sun icon -->
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="12" r="5"/>
+					<line x1="12" y1="1" x2="12" y2="3"/>
+					<line x1="12" y1="21" x2="12" y2="23"/>
+					<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+					<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+					<line x1="1" y1="12" x2="3" y2="12"/>
+					<line x1="21" y1="12" x2="23" y2="12"/>
+					<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+					<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+				</svg>
+			{:else}
+				<!-- Moon icon -->
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+				</svg>
+			{/if}
+		</button>
 	</div>
 </div>
 
-<!-- Cluster Manager -->
 <ClusterManager isOpen={clusterManagerOpen} />
+
+<style>
+	.md-show {
+		display: none !important;
+	}
+	@media (min-width: 768px) {
+		.md-show {
+			display: inline !important;
+		}
+	}
+</style>

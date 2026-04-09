@@ -1,30 +1,21 @@
 <script lang="ts">
-	import { Card } from 'flowbite-svelte';
-
 	const { secrets } = $props();
 </script>
 
-<!-- container grid div -->
-<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-	<!-- card div -->
-	<div class="rounded-lg p-4">
-		<h2 class="text-xl font-bold text-indigo-800 dark:text-indigo-200">Secrets</h2>
-
-		<Card
-			class="rounded-lg border border-gray-200 shadow-md transition-shadow duration-300 hover:shadow-lg dark:border-gray-700"
-		>
-			<div class="space-y-2 p-4 text-gray-700 dark:text-gray-300">
-				{#each secrets as secret}
-					<div class="rounded-t-lg bg-indigo-50 p-4 dark:bg-indigo-900">
-						<h2 class="text-xl font-bold text-indigo-800 dark:text-indigo-200">{secret.title}</h2>
-					</div>
-					<p class="break-words whitespace-normal"><strong>Category:</strong> {secret.category}</p>
-					<p class="break-words whitespace-normal"><strong>Match:</strong> {secret.match}</p>
-					<p class="break-words whitespace-normal"><strong>Rule ID:</strong> {secret.ruleID}</p>
-					<p class="break-words whitespace-normal"><strong>Severity:</strong> {secret.severity}</p>
-					<p class="break-words whitespace-normal"><strong>Target:</strong> {secret.target}</p>
-				{/each}
+<div style="padding: var(--space-lg) 0;">
+	<h2 class="nd-heading" style="margin-bottom: var(--space-lg);">Secrets</h2>
+	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: var(--space-md);">
+		{#each secrets as secret}
+			<div class="nd-card" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+				<span class="nd-subheading" style="color: var(--nd-text-display);">{secret.title}</span>
+				<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+					<p class="nd-caption">CATEGORY: <span style="color: var(--nd-text-primary);">{secret.category}</span></p>
+					<p class="nd-caption" style="word-break: break-all;">MATCH: <span style="color: var(--nd-text-primary);">{secret.match}</span></p>
+					<p class="nd-caption">RULE ID: <span style="color: var(--nd-text-primary);">{secret.ruleID}</span></p>
+					<p class="nd-caption">SEVERITY: <span class="nd-tag nd-tag-{secret.severity?.toLowerCase() === 'critical' ? 'critical' : secret.severity?.toLowerCase() === 'high' ? 'high' : secret.severity?.toLowerCase() === 'medium' ? 'medium' : 'low'}">{secret.severity}</span></p>
+					<p class="nd-caption">TARGET: <span style="color: var(--nd-text-primary);">{secret.target}</span></p>
+				</div>
 			</div>
-		</Card>
+		{/each}
 	</div>
 </div>

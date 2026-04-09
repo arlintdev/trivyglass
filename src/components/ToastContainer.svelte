@@ -1,33 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { toastStore, type Toast } from '$lib/stores/toastStore';
-	import { Toast as ToastComponent } from 'flowbite-svelte';
-	import { fly } from 'svelte/transition';
 
-	let toasts: Toast[] = [];
+	let toasts: Toast[] = $state([]);
 
-	// Subscribe to the toast store
 	onMount(() => {
 		const unsubscribe = toastStore.subscribe((value) => {
 			toasts = value;
 		});
-
 		return unsubscribe;
 	});
 </script>
 
 {#if toasts.length > 0}
-	<div class="fixed right-4 bottom-4 z-50 flex flex-col gap-2">
+	<div style="position: fixed; bottom: var(--space-md); right: var(--space-md); z-index: 200; display: flex; flex-direction: column; gap: var(--space-sm);">
 		{#each toasts as toast (toast.id)}
-			<div transition:fly={{ y: 20, duration: 300 }} class="max-w-md">
-				<div class="rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800">
-					<ToastComponent align={false} dismissable={true}>
-						<span class="font-semibold text-gray-900 dark:text-white">Notification</span>
-						<div class="mt-2 text-sm">
-							{toast.message}
-						</div>
-					</ToastComponent>
-				</div>
+			<div class="nd-surface-raised" style="padding: var(--space-md); border-radius: 8px; max-width: 400px; border: 1px solid var(--nd-border-visible);">
+				<p class="nd-label" style="margin-bottom: var(--space-xs);">
+					{toast.type === 'error' ? '[ERROR]' : toast.type === 'warning' ? '[WARNING]' : toast.type === 'success' ? '[OK]' : '[INFO]'}
+				</p>
+				<p class="nd-body-sm">{toast.message}</p>
 			</div>
 		{/each}
 	</div>

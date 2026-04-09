@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	resolve: {
+		conditions: ['browser']
+	},
 	test: {
 		globals: true,
 		environment: 'jsdom',
@@ -13,11 +16,12 @@ export default defineConfig({
 			reporter: ['text', 'json', 'html'],
 			exclude: ['node_modules/', '.svelte-kit/']
 		},
-		// Add these options to fix Svelte component testing
-		server: {
-			deps: {
-				inline: [/svelte/]
+		// Suppress unhandled errors from jsdom inline scripts (e.g. Flowbite DarkMode matchMedia)
+		onUnhandledError(error) {
+			if (error instanceof TypeError && error.message.includes('matchMedia')) {
+				return;
 			}
+			throw error;
 		}
 	}
 });

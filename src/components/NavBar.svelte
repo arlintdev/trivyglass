@@ -20,7 +20,7 @@
 	import ClusterManager from './ClusterManager.svelte';
 	import { onMount } from 'svelte';
 	let dropdownUser = uiHelpers();
-	let dropdownUserStatus = $state(false);
+	let dropdownUserStatus = $derived(dropdownUser.isOpen);
 	let closeDropdownUser = dropdownUser.close;
 	let clusterManagerOpen = $state(false);
 	function toggleClusterManager() {
@@ -336,7 +336,7 @@
 					})
 					.then((data) => {
 						clusters = data.clusters || [];
-						console.log('Loaded clusters from direct API call:', clusters);
+						console.log('Loaded clusters from direct API call:', $state.snapshot(clusters));
 
 						// Cache the clusters in localStorage
 						try {
@@ -399,9 +399,6 @@
 		{ name: 'Pro Version', href: '/pro' },
 		{ name: 'License', href: '/license' }
 	];
-	$effect(() => {
-		dropdownUserStatus = dropdownUser.isOpen;
-	});
 </script>
 
 <div class="h-16">

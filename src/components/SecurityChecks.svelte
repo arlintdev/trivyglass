@@ -36,10 +36,11 @@
 	};
 
 	// Sort checks by severity
-	const sortedChecks =
+	const sortedChecks = $derived(
 		checks.slice().sort((a: SecurityCheck, b: SecurityCheck) => {
 			return (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5);
-		}) ?? [];
+		})
+	);
 </script>
 
 <div class="col-span-1 md:col-span-2 lg:col-span-3">

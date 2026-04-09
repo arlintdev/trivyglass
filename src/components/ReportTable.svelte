@@ -14,6 +14,7 @@
 	import { toastStore } from '$lib/stores/toastStore';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	// Define types for Badge color
 	type BadgeColorType = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'gray';
@@ -49,8 +50,6 @@
 
 	let { reports = [], reportType, showNamespace = true, columns = [] }: Props = $props();
 
-	let tableColumns = $state<TableColumn[]>([]);
-
 	function getColor(header: string): BadgeColorType | undefined {
 		const lowerHeader = header.toLowerCase();
 		if (lowerHeader.includes('fail')) return 'red';
@@ -64,14 +63,15 @@
 		return undefined;
 	}
 
-	if (columns.length > 0) {
-		tableColumns = columns.map((col: Column) => ({
-			header: col.name,
-			value: col.jsonPath,
-			color: getColor(col.name)
-		}));
-	} else {
-		const allKeys = new Set<string>();
+	let tableColumns: TableColumn[] = $derived.by(() => {
+		if (columns.length > 0) {
+			return columns.map((col: Column) => ({
+				header: col.name,
+				value: col.jsonPath,
+				color: getColor(col.name)
+			}));
+		}
+		const allKeys = new SvelteSet<string>();
 		reports.forEach((report: Report) => {
 			Object.keys(report).forEach((key: string) => {
 				if (key !== 'metadata') {
@@ -79,12 +79,12 @@
 				}
 			});
 		});
-		tableColumns = Array.from(allKeys).map((key: string) => ({
+		return Array.from(allKeys).map((key: string) => ({
 			header: key,
 			value: key,
 			color: getColor(key)
 		}));
-	}
+	});
 
 	let selectedReport = $state<Report | null>(null);
 	let showModal = $state(false);

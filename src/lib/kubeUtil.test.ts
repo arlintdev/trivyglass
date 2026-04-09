@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
 	encryptKubeconfig,
 	decryptKubeconfig,
@@ -10,57 +10,62 @@ import {
 	getCurrentClusterName,
 	switchCluster
 } from './kubeUtil';
-import redis from 'redis';
+
+// Mock objects defined outside vi.mock so they can be re-applied in beforeEach
+const cipherMock = {
+	update: vi.fn(),
+	final: vi.fn()
+};
+
+const decipherMock = {
+	update: vi.fn(),
+	final: vi.fn()
+};
+
+const mockRedisClient = {
+	on: vi.fn(),
+	connect: vi.fn(),
+	hSet: vi.fn(),
+	hGet: vi.fn(),
+	hDel: vi.fn(),
+	sAdd: vi.fn(),
+	sRem: vi.fn(),
+	sMembers: vi.fn(),
+	get: vi.fn(),
+	setEx: vi.fn(),
+	del: vi.fn(),
+	keys: vi.fn(),
+	quit: vi.fn()
+};
 
 // Mock redis client
 vi.mock('redis', () => {
-	const mockRedisClient = {
-		on: vi.fn(),
-		connect: vi.fn().mockResolvedValue(undefined),
-		hSet: vi.fn().mockResolvedValue(undefined),
-		hGet: vi.fn().mockResolvedValue(null),
-		hDel: vi.fn().mockResolvedValue(undefined),
-		sAdd: vi.fn().mockResolvedValue(undefined),
-		sRem: vi.fn().mockResolvedValue(undefined),
-		sMembers: vi.fn().mockResolvedValue([]),
-		get: vi.fn().mockResolvedValue(null),
-		setEx: vi.fn().mockResolvedValue(undefined),
-		del: vi.fn().mockResolvedValue(undefined),
-		keys: vi.fn().mockResolvedValue([]),
-		quit: vi.fn().mockResolvedValue(undefined)
-	};
-
 	return {
 		default: {
-			createClient: vi.fn().mockReturnValue(mockRedisClient)
+			createClient: vi.fn(() => mockRedisClient)
 		},
-		createClient: vi.fn().mockReturnValue(mockRedisClient)
+		createClient: vi.fn(() => mockRedisClient)
 	};
 });
 
 // Mock crypto
 vi.mock('crypto', () => {
-	const cipherMock = {
-		update: vi.fn().mockReturnValue('encrypted'),
-		final: vi.fn().mockReturnValue('final')
-	};
-
-	const decipherMock = {
-		update: vi.fn().mockReturnValue('decrypted'),
-		final: vi.fn().mockReturnValue('final')
+	const cryptoImpl = {
+		randomBytes: vi.fn(() => Buffer.from('0123456789abcdef')),
+		createCipheriv: vi.fn(() => cipherMock),
+		createDecipheriv: vi.fn(() => decipherMock)
 	};
 
 	return {
-		randomBytes: vi.fn().mockReturnValue(Buffer.from('0123456789abcdef')),
-		createCipheriv: vi.fn().mockReturnValue(cipherMock),
-		createDecipheriv: vi.fn().mockReturnValue(decipherMock)
+		...cryptoImpl,
+		default: cryptoImpl
 	};
 });
 
 // Mock js-yaml
 vi.mock('js-yaml', () => {
-	return {
-		load: vi.fn().mockImplementation((yaml) => {
+	const yamlImpl = {
+		load: vi.fn((yaml) => {
 			if (typeof yaml === 'string' && yaml.includes('contexts:')) {
 				return {
 					contexts: [{ name: 'test-context-1' }, { name: 'test-context-2' }],
@@ -71,25 +76,32 @@ vi.mock('js-yaml', () => {
 			}
 			return {};
 		}),
-		dump: vi.fn().mockReturnValue('mocked yaml content')
+		dump: vi.fn(() => 'mocked yaml content')
+	};
+
+	return {
+		...yamlImpl,
+		default: yamlImpl
 	};
 });
 
 // Mock KubeConfig
 vi.mock('@kubernetes/client-node', () => {
-	const KubeConfigMock = vi.fn().mockImplementation(() => ({
-		loadFromDefault: vi.fn(),
-		loadFromCluster: vi.fn(),
-		loadFromString: vi.fn(),
-		makeApiClient: vi.fn().mockImplementation(() => ({
-			listClusterCustomObject: vi.fn().mockResolvedValue({ items: [] }),
-			listCustomObjectForAllNamespaces: vi.fn().mockResolvedValue({ items: [] }),
-			getClusterCustomObject: vi.fn().mockResolvedValue({ spec: { versions: [] } })
-		})),
-		getContexts: vi.fn().mockReturnValue([]),
-		getCurrentContext: vi.fn().mockReturnValue('default'),
-		setCurrentContext: vi.fn()
-	}));
+	const KubeConfigMock = vi.fn(function () {
+		return {
+			loadFromDefault: vi.fn(),
+			loadFromCluster: vi.fn(),
+			loadFromString: vi.fn(),
+			makeApiClient: vi.fn(() => ({
+				listClusterCustomObject: vi.fn(() => Promise.resolve({ items: [] })),
+				listCustomObjectForAllNamespaces: vi.fn(() => Promise.resolve({ items: [] })),
+				getClusterCustomObject: vi.fn(() => Promise.resolve({ spec: { versions: [] } }))
+			})),
+			getContexts: vi.fn(() => []),
+			getCurrentContext: vi.fn(() => 'default'),
+			setCurrentContext: vi.fn()
+		};
+	});
 
 	return {
 		KubeConfig: KubeConfigMock,
@@ -98,23 +110,25 @@ vi.mock('@kubernetes/client-node', () => {
 });
 
 describe('kubeUtil', () => {
-	const mockRedisClient = redis.createClient() as unknown as {
-		hSet: ReturnType<typeof vi.fn>;
-		hGet: ReturnType<typeof vi.fn>;
-		hDel: ReturnType<typeof vi.fn>;
-		sAdd: ReturnType<typeof vi.fn>;
-		sRem: ReturnType<typeof vi.fn>;
-		sMembers: ReturnType<typeof vi.fn>;
-		del: ReturnType<typeof vi.fn>;
-		keys: ReturnType<typeof vi.fn>;
-	};
-
 	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
-	afterEach(() => {
-		vi.resetAllMocks();
+		// Restore mock implementations after global resetAllMocks clears them
+		cipherMock.update.mockReturnValue('encrypted');
+		cipherMock.final.mockReturnValue('final');
+		decipherMock.update.mockReturnValue('decrypted');
+		decipherMock.final.mockReturnValue('final');
+		mockRedisClient.on.mockReturnValue(undefined);
+		mockRedisClient.connect.mockResolvedValue(undefined);
+		mockRedisClient.hSet.mockResolvedValue(undefined);
+		mockRedisClient.hGet.mockResolvedValue(null);
+		mockRedisClient.hDel.mockResolvedValue(undefined);
+		mockRedisClient.sAdd.mockResolvedValue(undefined);
+		mockRedisClient.sRem.mockResolvedValue(undefined);
+		mockRedisClient.sMembers.mockResolvedValue([]);
+		mockRedisClient.get.mockResolvedValue(null);
+		mockRedisClient.setEx.mockResolvedValue(undefined);
+		mockRedisClient.del.mockResolvedValue(undefined);
+		mockRedisClient.keys.mockResolvedValue([]);
+		mockRedisClient.quit.mockResolvedValue(undefined);
 	});
 
 	describe('encryptKubeconfig', () => {

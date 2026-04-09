@@ -143,13 +143,11 @@ sequenceDiagram
 ## Testing Plan
 
 1. **Unit Tests**:
-
    - Test encryption/decryption functions
    - Test Redis storage and retrieval
    - Test cluster switching logic
 
 2. **Integration Tests**:
-
    - Test API endpoints
    - Test UI components
 
@@ -163,12 +161,10 @@ sequenceDiagram
 ## Deployment Considerations
 
 1. **Environment Variables**:
-
    - Add `ENCRYPTION_KEY` to environment variables
    - Update Redis connection configuration if needed
 
 2. **Redis Configuration**:
-
    - Ensure Redis is properly secured
    - Consider enabling persistence for Redis to prevent data loss
 

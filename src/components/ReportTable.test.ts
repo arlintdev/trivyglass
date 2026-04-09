@@ -50,31 +50,34 @@ const mockColumns = [
 	{ name: 'Low', jsonPath: 'Low' }
 ];
 
-// Mock URL.createObjectURL and URL.revokeObjectURL
-URL.createObjectURL = vi.fn().mockReturnValue('mock-url');
-URL.revokeObjectURL = vi.fn();
-
 // Mock document.createElement and element.click
 const mockAnchorElement = {
 	href: '',
 	download: '',
 	click: vi.fn()
 };
-vi.spyOn(document, 'createElement').mockImplementation((tag) => {
-	if (tag === 'a') return mockAnchorElement as unknown as HTMLElement;
-	return document.createElement(tag);
-});
+const originalCreateElement = document.createElement.bind(document);
 
 describe('ReportTable Component', () => {
+	let createElementSpy: ReturnType<typeof vi.spyOn>;
+
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockAnchorElement.href = '';
 		mockAnchorElement.download = '';
 		mockAnchorElement.click.mockReset();
+
+		// Set up mocks that get cleared by global resetAllMocks
+		URL.createObjectURL = vi.fn().mockReturnValue('mock-url');
+		URL.revokeObjectURL = vi.fn();
+		createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+			if (tag === 'a') return mockAnchorElement as unknown as HTMLElement;
+			return originalCreateElement(tag);
+		});
 	});
 
 	afterEach(() => {
-		vi.resetAllMocks();
+		createElementSpy?.mockRestore();
 	});
 
 	it('renders the report table with data', () => {
@@ -168,7 +171,7 @@ describe('ReportTable Component', () => {
 		});
 
 		// Click on the CSV export button
-		const csvButton = screen.getByText('CSV');
+		const csvButton = screen.getByText('Export All as CSV');
 		await fireEvent.click(csvButton);
 
 		// Check if download was triggered
@@ -188,7 +191,7 @@ describe('ReportTable Component', () => {
 		});
 
 		// Click on the Markdown export button
-		const mdButton = screen.getByText('Markdown');
+		const mdButton = screen.getByText('Export All as Markdown');
 		await fireEvent.click(mdButton);
 
 		// Check if download was triggered
@@ -206,7 +209,7 @@ describe('ReportTable Component', () => {
 		});
 
 		// Click on the JSON export button
-		const jsonButton = screen.getByText('JSON');
+		const jsonButton = screen.getByText('Export All as JSON');
 		await fireEvent.click(jsonButton);
 
 		// Check if download was triggered

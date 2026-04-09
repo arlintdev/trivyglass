@@ -218,7 +218,7 @@
 </script>
 
 <!-- Cluster Manager Modal -->
-<Modal title="Manage Clusters" bind:open={isOpen} size="lg" params={{ duration: 300 }}>
+<Modal title="Manage Clusters" bind:open={isOpen} size="lg">
 	{#if error}
 		<Alert color="red" class="mt-4">
 			{error}

@@ -28,8 +28,8 @@
 	--color-secondary-900: #2a4f6b;
 }
 
-@source "../node_modules/flowbite-svelte/dist";
-@source "../node_modules/flowbite-svelte-icons/dist";
+@source '../node_modules/flowbite-svelte/dist';
+@source '../node_modules/flowbite-svelte-icons/dist';
 
 html body {
 	background-color: #ffffff;
@@ -57,27 +57,27 @@ nav li::after {
 }
 
 /* Ensure sub-items are indented */
-:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > a),
-:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > div > a) {
+.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > a,
+.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > div > a {
 	padding-left: 2.5rem !important;
 }
 
 /* Ensure dropdown headers are not indented */
-:global(.sidebar-wrapper > a),
-:global(.sidebar-wrapper > [data-sidebar-dropdown-wrapper] > button) {
+.sidebar-wrapper > a,
+.sidebar-wrapper > [data-sidebar-dropdown-wrapper] > button {
 	padding-left: 1rem !important;
 }
 
 /* Make dropdown headers a slightly darker grey */
-:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > button),
-:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > button) {
+.sidebar-wrapper [data-sidebar-dropdown-wrapper] > button,
+.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > button {
 	background-color: rgba(55, 65, 81, 0.15) !important;
 }
 
 /* Darker grey for dark mode */
 @media (prefers-color-scheme: dark) {
-	:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > button),
-	:global(.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > button) {
+	.sidebar-wrapper [data-sidebar-dropdown-wrapper] > button,
+	.sidebar-wrapper [data-sidebar-dropdown-wrapper] > div > button {
 		background-color: rgba(75, 85, 99, 0.4) !important;
 	}
 }

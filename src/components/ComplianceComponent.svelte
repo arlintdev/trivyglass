@@ -83,18 +83,18 @@
 	const statusOrder: Record<string, number> = { Failed: 1, Passed: 2, Manual: 3 };
 
 	// Process and sort controls data
-	let controls: Control[] = $state([]);
-
-	if (
-		data?.manifest?.spec?.compliance?.controls &&
-		data?.manifest?.status?.summaryReport?.controlCheck
-	) {
-		controls = data.manifest.spec.compliance.controls
+	let controls: Control[] = $derived.by(() => {
+		if (
+			!data?.manifest?.spec?.compliance?.controls ||
+			!data?.manifest?.status?.summaryReport?.controlCheck
+		) {
+			return [];
+		}
+		return data.manifest.spec.compliance.controls
 			.map((control: Control) => {
 				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find(
 					(c: StatusControl) => c.id === control.id
 				);
-				// Handle the case where statusControl might be undefined
 				const totalFail = statusControl?.totalFail;
 
 				return {
@@ -118,7 +118,7 @@
 					(severityOrder[b.severity as keyof typeof severityOrder] || 5)
 				);
 			});
-	}
+	});
 
 	// State for selected control and modal
 	let selectedControl = $state<Control | null>(null);

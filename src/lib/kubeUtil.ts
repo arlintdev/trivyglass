@@ -171,7 +171,8 @@ export function decryptKubeconfig(encryptedData: string, iv: string): string {
 	} catch (err) {
 		Logger.error('Failed to decrypt kubeconfig', err);
 		throw new Error(
-			'Failed to decrypt kubeconfig: ' + (err instanceof Error ? err.message : String(err))
+			'Failed to decrypt kubeconfig: ' + (err instanceof Error ? err.message : String(err)),
+			{ cause: err }
 		);
 	}
 }

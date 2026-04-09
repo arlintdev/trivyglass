@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ReportHeader from '../../components/ReportHeader.svelte';
 	import ReportTable from '../../components/ReportTable.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	// data now includes the dynamic columns from the CRD
 	interface Manifest {
@@ -33,18 +34,6 @@
 	}
 
 	let { data }: Props = $props();
-
-	const reportsWithMetadata: Report[] = data.manifests.map((manifest) => {
-		const report: Report = {
-			...manifest,
-			metadata: {
-				name: getResourceName(manifest), // Extract name from manifest
-				namespace: getResourceNamespace(manifest), // Extract namespace if available
-				uid: getResourceUID(manifest) // Extract UID if available
-			}
-		};
-		return report;
-	});
 
 	// Helper functions to extract metadata from manifests
 	function getResourceName(manifest: Manifest): string {
@@ -102,10 +91,6 @@
 		return undefined;
 	}
 
-	let uniqueCounts: Record<string, number> = {};
-	let totalCounts: Record<string, number> = {};
-	let showSummary = false; // We'll create our own custom summary display
-
 	// Function to create a unique key for a manifest (excluding metadata and age)
 	function createUniqueKey(manifest: Manifest): string {
 		return Object.entries(manifest)
@@ -115,42 +100,67 @@
 			.join('|');
 	}
 
-	// Group manifests by their unique key (excluding metadata and age)
-	const uniqueGroups = new Map<string, Manifest[]>();
-
-	// First pass: group manifests by their unique key
-	for (const manifest of data.manifests) {
-		const uniqueKey = createUniqueKey(manifest);
-		if (!uniqueGroups.has(uniqueKey)) {
-			uniqueGroups.set(uniqueKey, []);
-		}
-		uniqueGroups.get(uniqueKey)!.push(manifest);
-	}
-
-	// Calculate total counts from all manifests
-	for (const manifest of data.manifests) {
-		for (const key in manifest) {
-			if (typeof manifest[key] === 'number') {
-				if (!totalCounts[key]) {
-					totalCounts[key] = 0;
+	const reportsWithMetadata: Report[] = $derived(
+		data.manifests.map((manifest) => {
+			const report: Report = {
+				...manifest,
+				metadata: {
+					name: getResourceName(manifest),
+					namespace: getResourceNamespace(manifest),
+					uid: getResourceUID(manifest)
 				}
-				totalCounts[key] += manifest[key];
+			};
+			return report;
+		})
+	);
+
+	let showSummary = false;
+
+	// Derived computations from data.manifests
+	const computedCounts = $derived.by(() => {
+		const uniqueGroups = new SvelteMap<string, Manifest[]>();
+		const totalCounts: Record<string, number> = {};
+		const uniqueCounts: Record<string, number> = {};
+
+		// Group manifests by their unique key
+		for (const manifest of data.manifests) {
+			const uniqueKey = createUniqueKey(manifest);
+			if (!uniqueGroups.has(uniqueKey)) {
+				uniqueGroups.set(uniqueKey, []);
+			}
+			uniqueGroups.get(uniqueKey)!.push(manifest);
+		}
+
+		// Calculate total counts from all manifests
+		for (const manifest of data.manifests) {
+			for (const key in manifest) {
+				if (typeof manifest[key] === 'number') {
+					if (!totalCounts[key]) {
+						totalCounts[key] = 0;
+					}
+					totalCounts[key] += manifest[key];
+				}
 			}
 		}
-	}
 
-	// Calculate unique counts using one representative from each group
-	const uniqueManifests = Array.from(uniqueGroups.values()).map((group) => group[0]);
-	for (const manifest of uniqueManifests) {
-		for (const key in manifest) {
-			if (typeof manifest[key] === 'number') {
-				if (!uniqueCounts[key]) {
-					uniqueCounts[key] = 0;
+		// Calculate unique counts using one representative from each group
+		const uniqueManifests = Array.from(uniqueGroups.values()).map((group) => group[0]);
+		for (const manifest of uniqueManifests) {
+			for (const key in manifest) {
+				if (typeof manifest[key] === 'number') {
+					if (!uniqueCounts[key]) {
+						uniqueCounts[key] = 0;
+					}
+					uniqueCounts[key] += manifest[key];
 				}
-				uniqueCounts[key] += manifest[key];
 			}
 		}
-	}
+
+		return { uniqueCounts, totalCounts, uniqueGroups };
+	});
+
+	let uniqueCounts = $derived(computedCounts.uniqueCounts);
+	let totalCounts = $derived(computedCounts.totalCounts);
 
 	// Function to get text color based on key (copied from ReportHeader)
 	function getTextColor(key: string) {
@@ -181,8 +191,6 @@
 				return 'text-blue-600';
 		}
 	}
-
-	console.log({ uniqueCounts, totalCounts });
 </script>
 
 <ReportHeader title={data.resource} name={null} summaryCounts={{}} {showSummary} />

@@ -1,19 +1,100 @@
 import '@testing-library/jest-dom/vitest';
 import { vi, beforeEach } from 'vitest';
 
+// Polyfill HTMLDialogElement for jsdom (used by Flowbite Modal)
+if (typeof HTMLDialogElement !== 'undefined') {
+	HTMLDialogElement.prototype.showModal =
+		HTMLDialogElement.prototype.showModal ||
+		function (this: HTMLDialogElement) {
+			this.setAttribute('open', '');
+		};
+	HTMLDialogElement.prototype.close =
+		HTMLDialogElement.prototype.close ||
+		function (this: HTMLDialogElement) {
+			this.removeAttribute('open');
+		};
+} else {
+	// jsdom may not have HTMLDialogElement at all
+	Object.defineProperty(window, 'HTMLDialogElement', {
+		value: class HTMLDialogElement extends HTMLElement {
+			showModal() {
+				this.setAttribute('open', '');
+			}
+			close() {
+				this.removeAttribute('open');
+			}
+		}
+	});
+}
+// Ensure all dialog elements have showModal/close
+const origCreateElement = document.createElement.bind(document);
+const _origCreateElementNS = document.createElementNS.bind(document);
+const patchDialog = (el: Element) => {
+	if (el.tagName === 'DIALOG' && !('showModal' in el)) {
+		(el as any).showModal = function () {
+			this.setAttribute('open', '');
+		};
+		(el as any).close = function () {
+			this.removeAttribute('open');
+		};
+	}
+	return el;
+};
+document.createElement = ((tag: string, options?: ElementCreationOptions) => {
+	return patchDialog(origCreateElement(tag, options));
+}) as typeof document.createElement;
+
+// Polyfill Element.animate for jsdom (used by Flowbite transitions)
+if (!Element.prototype.animate) {
+	Element.prototype.animate = function () {
+		return {
+			finished: Promise.resolve(),
+			cancel: () => {},
+			onfinish: null,
+			oncancel: null,
+			play: () => {},
+			pause: () => {},
+			reverse: () => {},
+			finish: () => {},
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => true,
+			currentTime: 0,
+			playbackRate: 1,
+			playState: 'finished',
+			effect: null,
+			timeline: null,
+			id: '',
+			pending: false,
+			ready: Promise.resolve(),
+			startTime: null,
+			persist: () => {},
+			commitStyles: () => {},
+			replaceState: 'active',
+			updatePlaybackRate: () => {}
+		} as unknown as Animation;
+	};
+}
+
 // required for svelte5 + jsdom as jsdom does not support matchMedia
+// Use a plain function (not vi.fn) so resetAllMocks doesn't clear it
+const matchMediaPolyfill = (query: string) => ({
+	matches: false,
+	media: query,
+	onchange: null,
+	addEventListener: () => {},
+	removeEventListener: () => {},
+	dispatchEvent: () => true
+});
 Object.defineProperty(window, 'matchMedia', {
 	writable: true,
 	enumerable: true,
-	value: vi.fn().mockImplementation((query) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn()
-	}))
+	value: matchMediaPolyfill
 });
+// Also set on globalThis for inline scripts in jsdom VM contexts
+if (typeof globalThis !== 'undefined' && !globalThis.matchMedia) {
+	(globalThis as Record<string, unknown>).matchMedia = matchMediaPolyfill;
+}
 
 // Mock localStorage
 const localStorageMock = (() => {

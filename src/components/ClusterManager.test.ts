@@ -1,23 +1,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import ClusterManager from './ClusterManager.svelte';
 import {
 	mockClusterListResponse,
-	mockClusterSaveResponse,
 	mockClusterSwitchResponse,
-	mockClusterDeleteResponse,
 	mockApiError,
 	mockClusters
 } from '../test-utils';
-
-// Mock localStorage
-const localStorageMock = {
-	getItem: vi.fn(),
-	setItem: vi.fn(),
-	removeItem: vi.fn(),
-	clear: vi.fn()
-};
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 // Mock window.location.reload
 const reloadMock = vi.fn();
@@ -32,10 +21,6 @@ Object.defineProperty(window, 'location', {
 describe('ClusterManager Component', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		localStorageMock.getItem.mockReset();
-		localStorageMock.setItem.mockReset();
-		localStorageMock.removeItem.mockReset();
-		localStorageMock.clear.mockReset();
 		reloadMock.mockReset();
 
 		// Default mock responses
@@ -43,94 +28,119 @@ describe('ClusterManager Component', () => {
 	});
 
 	afterEach(() => {
-		vi.resetAllMocks();
+		vi.restoreAllMocks();
 	});
 
 	it('renders the cluster manager modal', () => {
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
-		expect(document.querySelector('.cluster-manager-modal')).not.toBeNull();
+		render(ClusterManager, { props: { isOpen: true } });
+		expect(screen.getByText('Manage Clusters')).toBeInTheDocument();
 	});
 
 	it('displays a list of clusters', async () => {
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
+		render(ClusterManager, { props: { isOpen: true } });
 
-		// Wait for the component to load clusters
-		await vi.runAllTimersAsync();
-
-		// Check if all clusters from the mock data are displayed
-		mockClusters.forEach((cluster) => {
-			expect(screen.getByText(cluster.name)).toBeInTheDocument();
+		// Wait for the component to load clusters via onMount fetch
+		await waitFor(() => {
+			mockClusters.forEach((cluster) => {
+				expect(screen.getByText(cluster.name)).toBeInTheDocument();
+			});
 		});
 	});
 
 	it('shows active status for the current cluster', async () => {
-		// Mock the API to return 'local' as the current cluster
-		mockClusterListResponse();
+		render(ClusterManager, { props: { isOpen: true } });
 
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
-		await vi.runAllTimersAsync();
-
-		// Check if the 'Active' label is shown for the local cluster
-		expect(screen.getByText('Active')).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText('Active')).toBeInTheDocument();
+		});
 	});
 
 	it('shows error message when API call fails', async () => {
 		mockApiError(500, 'Failed to load clusters');
 
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
-		await vi.runAllTimersAsync();
+		render(ClusterManager, { props: { isOpen: true } });
 
-		expect(screen.getByText('Failed to load clusters')).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText('Failed to load clusters')).toBeInTheDocument();
+		});
 	});
 
 	it('handles cluster switching', async () => {
 		mockClusterListResponse();
+
+		render(ClusterManager, { props: { isOpen: true } });
+
+		await waitFor(() => {
+			expect(screen.getAllByText('Switch').length).toBeGreaterThan(0);
+		});
+
+		// Switch to a non-active cluster
 		mockClusterSwitchResponse();
-
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
-		await vi.runAllTimersAsync();
-
-		// Find the switch button for a non-active cluster
 		const switchButton = screen.getAllByText('Switch')[0];
 		await fireEvent.click(switchButton);
 
-		// Check if localStorage was updated
-		expect(localStorageMock.setItem).toHaveBeenCalledWith('clusterSwitched', 'true');
-		expect(localStorageMock.setItem).toHaveBeenCalledWith('currentCluster', expect.any(String));
-
-		// Check if page reload was triggered
-		expect(reloadMock).toHaveBeenCalled();
+		await waitFor(() => {
+			expect(reloadMock).toHaveBeenCalled();
+		});
 	});
 
 	it('handles cluster deletion', async () => {
 		mockClusterListResponse();
-		mockClusterDeleteResponse();
 
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
-		await vi.runAllTimersAsync();
+		render(ClusterManager, { props: { isOpen: true } });
 
-		// Find the delete button for a non-local cluster
-		const deleteButtons = document.querySelectorAll('.p-1');
-		const deleteButton = Array.from(deleteButtons).find((button) =>
-			button.querySelector('.cog-icon')
-		);
+		await waitFor(() => {
+			expect(screen.getByText('test-cluster-1')).toBeInTheDocument();
+		});
 
-		if (deleteButton) {
-			await fireEvent.click(deleteButton);
+		// Find and click a delete button (ArchiveSolid icon button with color="red")
+		const deleteButtons = screen.getAllByTitle('Delete cluster');
+		expect(deleteButtons.length).toBeGreaterThan(0);
 
-			// Check if success message is shown
+		await fireEvent.click(deleteButtons[0]);
+
+		// Confirm deletion dialog should appear
+		await waitFor(() => {
+			expect(screen.getByText('Confirm Delete')).toBeInTheDocument();
+		});
+
+		// Mock delete then subsequent loadClusters call
+		let deleteCallCount = 0;
+		global.fetch = vi.fn().mockImplementation(() => {
+			deleteCallCount++;
+			if (deleteCallCount === 1) {
+				// Delete response
+				return Promise.resolve({
+					ok: true,
+					status: 200,
+					json: () => Promise.resolve({ success: true })
+				});
+			}
+			// loadClusters after delete
+			return Promise.resolve({
+				ok: true,
+				status: 200,
+				json: () =>
+					Promise.resolve({
+						clusters: [{ name: 'local', isLocal: true }],
+						currentCluster: 'local'
+					})
+			});
+		});
+		const confirmButton = screen.getByText('Delete');
+		await fireEvent.click(confirmButton);
+
+		await waitFor(() => {
 			expect(screen.getByText(/deleted successfully/)).toBeInTheDocument();
-		} else {
-			// If no delete button is found, the test should fail
-			expect(deleteButton).not.toBeUndefined();
-		}
+		});
 	});
 
 	it('handles file upload method selection', async () => {
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
+		render(ClusterManager, { props: { isOpen: true } });
 
 		// Check if file upload is selected by default
 		const fileRadio = document.querySelector('input[value="file"]') as HTMLInputElement;
+		expect(fileRadio).not.toBeNull();
 		expect(fileRadio.checked).toBe(true);
 
 		// Switch to text input method
@@ -138,27 +148,78 @@ describe('ClusterManager Component', () => {
 		await fireEvent.click(textRadio);
 
 		// Check if text area is now visible
-		expect(document.querySelector('textarea')).not.toBeNull();
+		await waitFor(() => {
+			expect(document.querySelector('textarea')).not.toBeNull();
+		});
 	});
 
 	it('validates input before upload', async () => {
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
+		render(ClusterManager, { props: { isOpen: true } });
 
 		// Try to upload without selecting a file
-		const uploadButton = screen.getByText('Upload Kubeconfig');
+		const uploadButton = screen
+			.getAllByText('Upload Kubeconfig')
+			.find((el) => el.tagName === 'BUTTON' || el.closest('button'))!;
 		await fireEvent.click(uploadButton);
 
-		// Check if error message is shown
-		expect(screen.getByText('Please select a kubeconfig file')).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText('Please select a kubeconfig file')).toBeInTheDocument();
+		});
 	});
 
 	it('handles successful kubeconfig upload', async () => {
-		mockClusterSaveResponse();
-		render(ClusterManager, { props: { toggleOpen: vi.fn() } });
+		// First call: onMount loadClusters, subsequent: save then loadClusters again
+		let callCount = 0;
+		global.fetch = vi.fn().mockImplementation(() => {
+			callCount++;
+			if (callCount === 1) {
+				// Initial loadClusters on mount
+				return Promise.resolve({
+					ok: true,
+					status: 200,
+					json: () =>
+						Promise.resolve({
+							clusters: [{ name: 'local', isLocal: true }],
+							currentCluster: 'local'
+						})
+				});
+			}
+			if (callCount === 2) {
+				// Save response
+				return Promise.resolve({
+					ok: true,
+					status: 200,
+					json: () =>
+						Promise.resolve({
+							success: true,
+							contexts: ['test-context-1', 'test-context-2']
+						})
+				});
+			}
+			// Subsequent loadClusters after save
+			return Promise.resolve({
+				ok: true,
+				status: 200,
+				json: () =>
+					Promise.resolve({
+						clusters: [
+							{ name: 'local', isLocal: true },
+							{ name: 'test-context-1' },
+							{ name: 'test-context-2' }
+						],
+						currentCluster: 'local'
+					})
+			});
+		});
+		render(ClusterManager, { props: { isOpen: true } });
 
 		// Switch to text input method
 		const textRadio = document.querySelector('input[value="text"]') as HTMLInputElement;
 		await fireEvent.click(textRadio);
+
+		await waitFor(() => {
+			expect(document.querySelector('textarea')).not.toBeNull();
+		});
 
 		// Enter kubeconfig text
 		const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
@@ -167,10 +228,13 @@ describe('ClusterManager Component', () => {
 		});
 
 		// Submit the form
-		const uploadButton = screen.getByText('Upload Kubeconfig');
+		const uploadButton = screen
+			.getAllByText('Upload Kubeconfig')
+			.find((el) => el.tagName === 'BUTTON' || el.closest('button'))!;
 		await fireEvent.click(uploadButton);
 
-		// Check if success message is shown
-		expect(screen.getByText(/Successfully added/)).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText(/Successfully added/)).toBeInTheDocument();
+		});
 	});
 });

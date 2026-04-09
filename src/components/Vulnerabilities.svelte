@@ -34,9 +34,13 @@
 	};
 
 	// Sort vulnerabilities by severity
-	const sortedVulnerabilities = vulnerabilities.sort(
-		(a: Vulnerability, b: Vulnerability) =>
-			severityOrder[b.severity.toUpperCase()] - severityOrder[a.severity.toUpperCase()]
+	const sortedVulnerabilities = $derived(
+		vulnerabilities
+			.slice()
+			.sort(
+				(a: Vulnerability, b: Vulnerability) =>
+					severityOrder[b.severity.toUpperCase()] - severityOrder[a.severity.toUpperCase()]
+			)
 	);
 
 	// Severity color mapping

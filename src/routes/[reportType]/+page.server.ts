@@ -20,16 +20,20 @@ export const load: PageServerLoad = async ({ params }) => {
 	const namespaceResult = results[1].status === 'fulfilled' ? results[1].value : null;
 
 	// Tag each manifest with scope and CRD plural for downstream use
-	const clusterManifests = (clusterResult?.manifests ?? []).map((m: Record<string, unknown>) => ({
-		...m,
-		_scope: 'cluster' as const,
-		_crdPlural: config.cluster
-	}));
-	const namespaceManifests = (namespaceResult?.manifests ?? []).map((m: Record<string, unknown>) => ({
-		...m,
-		_scope: 'namespace' as const,
-		_crdPlural: config.namespace
-	}));
+	const clusterManifests = ((clusterResult?.manifests ?? []) as Record<string, unknown>[]).map(
+		(m) => ({
+			...m,
+			_scope: 'cluster' as const,
+			_crdPlural: config.cluster
+		})
+	);
+	const namespaceManifests = ((namespaceResult?.manifests ?? []) as Record<string, unknown>[]).map(
+		(m) => ({
+			...m,
+			_scope: 'namespace' as const,
+			_crdPlural: config.namespace
+		})
+	);
 
 	const manifests = [...clusterManifests, ...namespaceManifests];
 	const clusterName = clusterResult?.clusterName ?? namespaceResult?.clusterName ?? '';

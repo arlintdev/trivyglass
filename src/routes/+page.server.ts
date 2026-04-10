@@ -53,8 +53,8 @@ export const load: PageServerLoad = async () => {
 
 	// Aggregate vulnerability counts
 	const vulnManifests = [
-		...data['vulnerabilities_cluster'] ?? [],
-		...data['vulnerabilities_namespace'] ?? []
+		...(data['vulnerabilities_cluster'] ?? []),
+		...(data['vulnerabilities_namespace'] ?? [])
 	];
 	const vulnerabilities: SeverityCounts = {
 		critical: sumField(vulnManifests, 'Critical'),
@@ -65,8 +65,8 @@ export const load: PageServerLoad = async () => {
 
 	// Config audit counts
 	const auditManifests = [
-		...data['config-audit_cluster'] ?? [],
-		...data['config-audit_namespace'] ?? []
+		...(data['config-audit_cluster'] ?? []),
+		...(data['config-audit_namespace'] ?? [])
 	];
 	const configAudit = {
 		pass: sumField(auditManifests, 'Pass'),
@@ -80,7 +80,8 @@ export const load: PageServerLoad = async () => {
 		fail: sumField(complianceManifests, 'Fail')
 	};
 	const complianceTotal = compliance.pass + compliance.fail;
-	const complianceScore = complianceTotal > 0 ? Math.round((compliance.pass / complianceTotal) * 100) : null;
+	const complianceScore =
+		complianceTotal > 0 ? Math.round((compliance.pass / complianceTotal) * 100) : null;
 
 	// Exposed secrets - namespace only
 	const secretsManifests = data['secrets_namespace'] ?? [];
@@ -106,7 +107,7 @@ export const load: PageServerLoad = async () => {
 				low: typeof m.Low === 'number' ? m.Low : 0
 			};
 		})
-		.sort((a, b) => (b.critical + b.high) - (a.critical + a.high))
+		.sort((a, b) => b.critical + b.high - (a.critical + a.high))
 		.slice(0, 10);
 
 	// Report counts per type

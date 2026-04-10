@@ -32,9 +32,12 @@
 
 	function typeTag(t: string): string {
 		switch (t) {
-			case 'application': return 'active';
-			case 'library': return 'info';
-			default: return 'unknown';
+			case 'application':
+				return 'active';
+			case 'library':
+				return 'info';
+			default:
+				return 'unknown';
 		}
 	}
 
@@ -48,7 +51,9 @@
 				c.version?.toLowerCase().includes(term) ||
 				c.purl?.toLowerCase().includes(term) ||
 				c.supplier?.name?.toLowerCase().includes(term) ||
-				c.properties?.some((p) => p.name.toLowerCase().includes(term) || p.value.toLowerCase().includes(term))
+				c.properties?.some(
+					(p) => p.name.toLowerCase().includes(term) || p.value.toLowerCase().includes(term)
+				)
 			);
 		})
 	);
@@ -65,39 +70,61 @@
 		/>
 		<h2 class="nd-heading">
 			Components
-			<span class="nd-caption" style="margin-left: var(--space-sm);">({filteredComponents.length} found)</span>
-			<span class="nd-caption" style="margin-left: var(--space-md);">FORMAT: {components.bomFormat}</span>
+			<span class="nd-caption" style="margin-left: var(--space-sm);"
+				>({filteredComponents.length} found)</span
+			>
+			<span class="nd-caption" style="margin-left: var(--space-md);"
+				>FORMAT: {components.bomFormat}</span
+			>
 		</h2>
 	</div>
 
-	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md);">
+	<div
+		style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md);"
+	>
 		{#each filteredComponents as component}
 			<div class="nd-card" style="display: flex; flex-direction: column; gap: var(--space-sm);">
-				<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm);">
-					<span class="nd-body-sm" style="color: var(--nd-text-display); font-weight: 500;" title={component.name}>
+				<div
+					style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm);"
+				>
+					<span
+						class="nd-body-sm"
+						style="color: var(--nd-text-display); font-weight: 500;"
+						title={component.name}
+					>
 						{component.name}
 					</span>
 					<span class="nd-tag nd-tag-{typeTag(component.type)}">{component.type}</span>
 				</div>
 				<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
-					<p class="nd-caption" style="word-break: break-all;">ID: <span style="color: var(--nd-text-primary);">{component['bom-ref']}</span></p>
+					<p class="nd-caption" style="word-break: break-all;">
+						ID: <span style="color: var(--nd-text-primary);">{component['bom-ref']}</span>
+					</p>
 					{#if component.version}
-						<p class="nd-caption">VERSION: <span style="color: var(--nd-text-primary);">{component.version}</span></p>
+						<p class="nd-caption">
+							VERSION: <span style="color: var(--nd-text-primary);">{component.version}</span>
+						</p>
 					{/if}
 					{#if component.purl}
-						<p class="nd-caption" style="word-break: break-all;">PURL: <span style="color: var(--nd-text-primary);">{component.purl}</span></p>
+						<p class="nd-caption" style="word-break: break-all;">
+							PURL: <span style="color: var(--nd-text-primary);">{component.purl}</span>
+						</p>
 					{/if}
 				</div>
 				{#if component.properties?.length}
 					<div style="border-top: 1px solid var(--nd-border); padding-top: var(--space-sm);">
 						<p class="nd-label" style="margin-bottom: var(--space-xs);">Properties</p>
 						{#each component.properties as prop}
-							<p class="nd-caption" style="word-break: break-all;">{prop.name}: <span style="color: var(--nd-text-disabled);">{prop.value}</span></p>
+							<p class="nd-caption" style="word-break: break-all;">
+								{prop.name}: <span style="color: var(--nd-text-disabled);">{prop.value}</span>
+							</p>
 						{/each}
 					</div>
 				{/if}
 				{#if component.supplier?.name}
-					<p class="nd-caption">SUPPLIER: <span style="color: var(--nd-text-primary);">{component.supplier.name}</span></p>
+					<p class="nd-caption">
+						SUPPLIER: <span style="color: var(--nd-text-primary);">{component.supplier.name}</span>
+					</p>
 				{/if}
 			</div>
 		{/each}

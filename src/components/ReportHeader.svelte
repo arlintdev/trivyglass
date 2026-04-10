@@ -10,11 +10,21 @@
 
 	function getStatusColor(key: string): string {
 		switch (key.toLowerCase()) {
-			case 'critical': case 'fail': case 'error': return 'var(--accent)';
-			case 'high': return 'var(--warning)';
-			case 'warning': case 'medium': return 'var(--warning)';
-			case 'pass': case 'success': case 'low': return 'var(--success)';
-			default: return 'var(--nd-text-secondary)';
+			case 'critical':
+			case 'fail':
+			case 'error':
+				return 'var(--accent)';
+			case 'high':
+				return 'var(--warning)';
+			case 'warning':
+			case 'medium':
+				return 'var(--warning)';
+			case 'pass':
+			case 'success':
+			case 'low':
+				return 'var(--success)';
+			default:
+				return 'var(--nd-text-secondary)';
 		}
 	}
 </script>
@@ -30,7 +40,9 @@
 </nav>
 
 <header style="margin-bottom: var(--space-xl);">
-	<h1 class="nd-heading" style="font-size: var(--display-md); color: var(--nd-text-display);">{title}</h1>
+	<h1 class="nd-heading" style="font-size: var(--display-md); color: var(--nd-text-display);">
+		{title}
+	</h1>
 	{#if showSummary}
 		<div style="display: flex; gap: var(--space-md); margin-top: var(--space-sm);">
 			{#each Object.entries(summaryCounts) as [key, value]}

@@ -33,36 +33,61 @@
 
 	let { data }: Props = $props();
 
-	const severityOrder: Record<string, number> = { CRITICAL: 1, HIGH: 2, MEDIUM: 3, LOW: 4, UNKNOWN: 5 };
+	const severityOrder: Record<string, number> = {
+		CRITICAL: 1,
+		HIGH: 2,
+		MEDIUM: 3,
+		LOW: 4,
+		UNKNOWN: 5
+	};
 	const statusOrder: Record<string, number> = { Failed: 1, Passed: 2, Manual: 3 };
 
 	function severityTag(s: string): string {
 		switch (s) {
-			case 'CRITICAL': return 'critical';
-			case 'HIGH': return 'high';
-			case 'MEDIUM': return 'medium';
-			case 'LOW': return 'low';
-			default: return 'unknown';
+			case 'CRITICAL':
+				return 'critical';
+			case 'HIGH':
+				return 'high';
+			case 'MEDIUM':
+				return 'medium';
+			case 'LOW':
+				return 'low';
+			default:
+				return 'unknown';
 		}
 	}
 
 	function statusTag(s: string): string {
 		switch (s) {
-			case 'Failed': return 'fail';
-			case 'Passed': return 'pass';
-			default: return 'unknown';
+			case 'Failed':
+				return 'fail';
+			case 'Passed':
+				return 'pass';
+			default:
+				return 'unknown';
 		}
 	}
 
 	let controls: Control[] = $derived.by(() => {
-		if (!data?.manifest?.spec?.compliance?.controls || !data?.manifest?.status?.summaryReport?.controlCheck) return [];
+		if (
+			!data?.manifest?.spec?.compliance?.controls ||
+			!data?.manifest?.status?.summaryReport?.controlCheck
+		)
+			return [];
 		return data.manifest.spec.compliance.controls
 			.map((control: Control) => {
-				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find((c: StatusControl) => c.id === control.id);
+				const statusControl = data.manifest.status?.summaryReport?.controlCheck.find(
+					(c: StatusControl) => c.id === control.id
+				);
 				const totalFail = statusControl?.totalFail;
 				return {
 					...control,
-					status: totalFail !== undefined && totalFail > 0 ? 'Failed' : totalFail !== undefined && totalFail === 0 ? 'Passed' : 'Manual',
+					status:
+						totalFail !== undefined && totalFail > 0
+							? 'Failed'
+							: totalFail !== undefined && totalFail === 0
+								? 'Passed'
+								: 'Manual',
 					totalFail: totalFail ?? null
 				};
 			})
@@ -105,10 +130,21 @@
 					<tr>
 						<td class="nd-mono-cell">{control.id}</td>
 						<td>{control.name}</td>
-						<td><span class="nd-tag nd-tag-{severityTag(control.severity)}">{control.severity || 'UNKNOWN'}</span></td>
-						<td><span class="nd-tag nd-tag-{statusTag(control.status || '')}">{control.status}</span></td>
+						<td
+							><span class="nd-tag nd-tag-{severityTag(control.severity)}"
+								>{control.severity || 'UNKNOWN'}</span
+							></td
+						>
+						<td
+							><span class="nd-tag nd-tag-{statusTag(control.status || '')}">{control.status}</span
+							></td
+						>
 						<td class="nd-mono-cell">{control.totalFail ?? 'N/A'}</td>
-						<td><button class="nd-btn nd-btn-secondary nd-btn-xs" onclick={() => openModal(control)}>Details</button></td>
+						<td
+							><button class="nd-btn nd-btn-secondary nd-btn-xs" onclick={() => openModal(control)}
+								>Details</button
+							></td
+						>
 					</tr>
 				{/each}
 			</tbody>
@@ -120,20 +156,38 @@
 	{/if}
 
 	{#if showModal && selectedControl}
-		<div class="nd-modal-backdrop" onclick={closeModal} onkeydown={(e) => e.key === 'Escape' && closeModal()} role="dialog" tabindex="-1">
+		<div
+			class="nd-modal-backdrop"
+			onclick={closeModal}
+			onkeydown={(e) => e.key === 'Escape' && closeModal()}
+			role="dialog"
+			tabindex="-1"
+		>
 			<div class="nd-modal" onclick={(e) => e.stopPropagation()} role="document">
 				<div class="nd-modal-header">
 					<span class="nd-modal-title">{selectedControl.name}</span>
 					<button class="nd-modal-close" onclick={closeModal}>[ X ]</button>
 				</div>
-				<p class="nd-body-sm" style="color: var(--nd-text-secondary); margin-bottom: var(--space-md);">{selectedControl.description}</p>
+				<p
+					class="nd-body-sm"
+					style="color: var(--nd-text-secondary); margin-bottom: var(--space-md);"
+				>
+					{selectedControl.description}
+				</p>
 				{#if selectedControl.checks}
 					<div>
 						<p class="nd-label" style="margin-bottom: var(--space-sm);">Checks</p>
 						{#each selectedControl.checks as check}
-							<div style="margin-bottom: var(--space-md); padding-left: var(--space-md); border-left: 1px solid var(--nd-border);">
-								<p class="nd-body-sm"><strong>{check.id}:</strong> {check.name}
-									<span class="nd-tag nd-tag-{severityTag(check.severity)}" style="margin-left: var(--space-xs);">{check.severity}</span>
+							<div
+								style="margin-bottom: var(--space-md); padding-left: var(--space-md); border-left: 1px solid var(--nd-border);"
+							>
+								<p class="nd-body-sm">
+									<strong>{check.id}:</strong>
+									{check.name}
+									<span
+										class="nd-tag nd-tag-{severityTag(check.severity)}"
+										style="margin-left: var(--space-xs);">{check.severity}</span
+									>
 								</p>
 								{#if check.description}
 									<p class="nd-caption" style="margin-top: var(--space-xs);">{check.description}</p>
@@ -142,7 +196,10 @@
 									<div style="margin-top: var(--space-xs);">
 										<p class="nd-caption" style="font-weight: bold;">Commands:</p>
 										{#each check.commands as cmd}
-											<p class="nd-caption" style="margin-left: var(--space-md);"><strong>{cmd.id}:</strong> {cmd.description}</p>
+											<p class="nd-caption" style="margin-left: var(--space-md);">
+												<strong>{cmd.id}:</strong>
+												{cmd.description}
+											</p>
 										{/each}
 									</div>
 								{/if}

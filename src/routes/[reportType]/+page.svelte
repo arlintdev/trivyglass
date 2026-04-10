@@ -90,7 +90,9 @@
 
 	function createUniqueKey(manifest: Manifest): string {
 		return Object.entries(manifest)
-			.filter(([key]) => key !== 'metadata' && key !== 'Age' && key !== '_scope' && key !== '_crdPlural')
+			.filter(
+				([key]) => key !== 'metadata' && key !== 'Age' && key !== '_scope' && key !== '_crdPlural'
+			)
 			.map(([key, value]) => `${key}:${JSON.stringify(value)}`)
 			.sort()
 			.join('|');
@@ -199,10 +201,16 @@
 <div style="display: flex; flex-wrap: wrap; gap: var(--space-lg); margin-bottom: var(--space-lg);">
 	{#each Object.keys(totalCounts) as key}
 		<div style="display: flex; flex-direction: column; align-items: center;">
-			<span class="nd-tag {getSeverityTag(key)}" style="font-size: var(--body); padding: var(--space-xs) var(--space-sm);">
+			<span
+				class="nd-tag {getSeverityTag(key)}"
+				style="font-size: var(--body); padding: var(--space-xs) var(--space-sm);"
+			>
 				{key.replace('Count', '')}: {totalCounts[key]}
 			</span>
-			<span class="nd-caption" style="margin-top: var(--space-2xs); color: var(--nd-text-secondary);">
+			<span
+				class="nd-caption"
+				style="margin-top: var(--space-2xs); color: var(--nd-text-secondary);"
+			>
 				Unique: {uniqueCounts[key] || 0}
 			</span>
 		</div>

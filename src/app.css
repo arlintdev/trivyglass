@@ -37,11 +37,11 @@
 	--duration-transition: 250ms;
 
 	/* Status Colors (constant across modes) */
-	--accent: #D71921;
+	--accent: #d71921;
 	--accent-subtle: rgba(215, 25, 33, 0.15);
-	--success: #4A9E5C;
-	--warning: #D4A843;
-	--error: #D71921;
+	--success: #4a9e5c;
+	--warning: #d4a843;
+	--error: #d71921;
 }
 
 /* ─── Dark Mode (default) ─── */
@@ -49,29 +49,29 @@
 .dark {
 	--nd-black: #000000;
 	--nd-surface: #111111;
-	--nd-surface-raised: #1A1A1A;
+	--nd-surface-raised: #1a1a1a;
 	--nd-border: #222222;
 	--nd-border-visible: #333333;
 	--nd-text-disabled: #666666;
 	--nd-text-secondary: #999999;
-	--nd-text-primary: #E8E8E8;
-	--nd-text-display: #FFFFFF;
-	--nd-interactive: #5B9BF6;
+	--nd-text-primary: #e8e8e8;
+	--nd-text-display: #ffffff;
+	--nd-interactive: #5b9bf6;
 }
 
 /* ─── Light Mode ─── */
 :root:not(.dark),
 .light {
-	--nd-black: #F5F5F5;
-	--nd-surface: #FFFFFF;
-	--nd-surface-raised: #F0F0F0;
-	--nd-border: #E8E8E8;
-	--nd-border-visible: #CCCCCC;
+	--nd-black: #f5f5f5;
+	--nd-surface: #ffffff;
+	--nd-surface-raised: #f0f0f0;
+	--nd-border: #e8e8e8;
+	--nd-border-visible: #cccccc;
 	--nd-text-disabled: #999999;
 	--nd-text-secondary: #666666;
-	--nd-text-primary: #1A1A1A;
+	--nd-text-primary: #1a1a1a;
 	--nd-text-display: #000000;
-	--nd-interactive: #007AFF;
+	--nd-interactive: #007aff;
 }
 
 /* ─── Base Styles ─── */
@@ -79,7 +79,8 @@
 	box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
 	margin: 0;
 	padding: 0;
 	background-color: var(--nd-black);
@@ -190,8 +191,9 @@ html, body {
 	align-items: center;
 	justify-content: center;
 	gap: var(--space-sm);
-	transition: opacity var(--duration-micro) var(--ease-out),
-	            border-color var(--duration-micro) var(--ease-out);
+	transition:
+		opacity var(--duration-micro) var(--ease-out),
+		border-color var(--duration-micro) var(--ease-out);
 	text-decoration: none;
 	white-space: nowrap;
 }
@@ -321,15 +323,42 @@ html, body {
 	white-space: nowrap;
 }
 
-.nd-tag-critical { color: var(--accent); border-color: var(--accent); }
-.nd-tag-high { color: var(--warning); border-color: var(--warning); }
-.nd-tag-medium { color: var(--warning); border-color: var(--nd-border-visible); }
-.nd-tag-low { color: var(--success); border-color: var(--success); }
-.nd-tag-pass { color: var(--success); border-color: var(--success); }
-.nd-tag-fail { color: var(--accent); border-color: var(--accent); }
-.nd-tag-unknown { color: var(--nd-text-disabled); border-color: var(--nd-border-visible); }
-.nd-tag-active { color: var(--nd-interactive); border-color: var(--nd-interactive); }
-.nd-tag-info { color: var(--nd-text-secondary); border-color: var(--nd-border-visible); }
+.nd-tag-critical {
+	color: var(--accent);
+	border-color: var(--accent);
+}
+.nd-tag-high {
+	color: var(--warning);
+	border-color: var(--warning);
+}
+.nd-tag-medium {
+	color: var(--warning);
+	border-color: var(--nd-border-visible);
+}
+.nd-tag-low {
+	color: var(--success);
+	border-color: var(--success);
+}
+.nd-tag-pass {
+	color: var(--success);
+	border-color: var(--success);
+}
+.nd-tag-fail {
+	color: var(--accent);
+	border-color: var(--accent);
+}
+.nd-tag-unknown {
+	color: var(--nd-text-disabled);
+	border-color: var(--nd-border-visible);
+}
+.nd-tag-active {
+	color: var(--nd-interactive);
+	border-color: var(--nd-interactive);
+}
+.nd-tag-info {
+	color: var(--nd-text-secondary);
+	border-color: var(--nd-border-visible);
+}
 
 /* ─── Tables ─── */
 .nd-table {
@@ -655,10 +684,18 @@ html, body {
 	letter-spacing: 0.04em;
 }
 
-.nd-status-error { color: var(--accent); }
-.nd-status-success { color: var(--success); }
-.nd-status-warning { color: var(--warning); }
-.nd-status-info { color: var(--nd-text-secondary); }
+.nd-status-error {
+	color: var(--accent);
+}
+.nd-status-success {
+	color: var(--success);
+}
+.nd-status-warning {
+	color: var(--warning);
+}
+.nd-status-info {
+	color: var(--nd-text-secondary);
+}
 
 /* ─── Breadcrumb ─── */
 .nd-breadcrumb {
@@ -725,7 +762,9 @@ html, body {
 }
 
 @keyframes nd-blink {
-	50% { opacity: 0.4; }
+	50% {
+		opacity: 0.4;
+	}
 }
 
 /* ─── Dot Grid Motif ─── */
@@ -745,10 +784,18 @@ a.nd-link:hover {
 }
 
 /* ─── Utility ─── */
-.nd-text-display { color: var(--nd-text-display); }
-.nd-text-primary { color: var(--nd-text-primary); }
-.nd-text-secondary { color: var(--nd-text-secondary); }
-.nd-text-disabled { color: var(--nd-text-disabled); }
+.nd-text-display {
+	color: var(--nd-text-display);
+}
+.nd-text-primary {
+	color: var(--nd-text-primary);
+}
+.nd-text-secondary {
+	color: var(--nd-text-secondary);
+}
+.nd-text-disabled {
+	color: var(--nd-text-disabled);
+}
 
 /* ─── Pre / Code ─── */
 pre.nd-code {

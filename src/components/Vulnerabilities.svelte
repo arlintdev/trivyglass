@@ -26,18 +26,25 @@
 
 	function severityTag(s: string): string {
 		switch (s.toUpperCase()) {
-			case 'CRITICAL': return 'critical';
-			case 'HIGH': return 'high';
-			case 'MEDIUM': return 'medium';
-			case 'LOW': return 'low';
-			default: return 'unknown';
+			case 'CRITICAL':
+				return 'critical';
+			case 'HIGH':
+				return 'high';
+			case 'MEDIUM':
+				return 'medium';
+			case 'LOW':
+				return 'low';
+			default:
+				return 'unknown';
 		}
 	}
 
 	const sortedVulnerabilities = $derived(
 		vulnerabilities
 			.slice()
-			.sort((a, b) => severityOrder[b.severity.toUpperCase()] - severityOrder[a.severity.toUpperCase()])
+			.sort(
+				(a, b) => severityOrder[b.severity.toUpperCase()] - severityOrder[a.severity.toUpperCase()]
+			)
 	);
 
 	const filteredVulnerabilities = $derived(
@@ -70,38 +77,64 @@
 		/>
 		<h2 class="nd-heading">
 			Vulnerabilities
-			<span class="nd-caption" style="margin-left: var(--space-sm);">({filteredVulnerabilities.length} found)</span>
+			<span class="nd-caption" style="margin-left: var(--space-sm);"
+				>({filteredVulnerabilities.length} found)</span
+			>
 		</h2>
 	</div>
 
-	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md);">
+	<div
+		style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md);"
+	>
 		{#each filteredVulnerabilities as v}
 			<div class="nd-card" style="display: flex; flex-direction: column; gap: var(--space-sm);">
-				<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm);">
-					<span class="nd-body-sm" style="color: var(--nd-text-display); font-weight: 500;" title={v.title}>
+				<div
+					style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-sm);"
+				>
+					<span
+						class="nd-body-sm"
+						style="color: var(--nd-text-display); font-weight: 500;"
+						title={v.title}
+					>
 						{v.title}
 					</span>
 					<span class="nd-tag nd-tag-{severityTag(v.severity)}">{v.severity}</span>
 				</div>
 				<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
-					<p class="nd-caption">ID: <span style="color: var(--nd-text-primary);">{v.vulnerabilityID}</span></p>
-					<p class="nd-caption">RESOURCE: <span style="color: var(--nd-text-primary);">{v.resource}</span></p>
+					<p class="nd-caption">
+						ID: <span style="color: var(--nd-text-primary);">{v.vulnerabilityID}</span>
+					</p>
+					<p class="nd-caption">
+						RESOURCE: <span style="color: var(--nd-text-primary);">{v.resource}</span>
+					</p>
 					<p class="nd-caption">
 						VERSION: <span style="color: var(--nd-text-primary);">{v.installedVersion}</span>
 						{#if v.fixedVersion}
 							<span style="color: var(--success);"> &rarr; {v.fixedVersion}</span>
 						{/if}
 					</p>
-					<p class="nd-caption">SCORE: <span style="color: var(--nd-text-primary);">{v.score}</span></p>
+					<p class="nd-caption">
+						SCORE: <span style="color: var(--nd-text-primary);">{v.score}</span>
+					</p>
 				</div>
 				<div style="margin-top: auto;">
-					<a href={v.primaryLink} target="_blank" rel="noopener noreferrer" class="nd-link" style="font-size: var(--caption); word-break: break-all;">
+					<a
+						href={v.primaryLink}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="nd-link"
+						style="font-size: var(--caption); word-break: break-all;"
+					>
 						{v.primaryLink}
 					</a>
 				</div>
 				<div style="display: flex; gap: var(--space-md);">
-					<span class="nd-caption" style="color: var(--nd-text-disabled);">Published: {new Date(v.publishedDate).toLocaleDateString()}</span>
-					<span class="nd-caption" style="color: var(--nd-text-disabled);">Modified: {new Date(v.lastModifiedDate).toLocaleDateString()}</span>
+					<span class="nd-caption" style="color: var(--nd-text-disabled);"
+						>Published: {new Date(v.publishedDate).toLocaleDateString()}</span
+					>
+					<span class="nd-caption" style="color: var(--nd-text-disabled);"
+						>Modified: {new Date(v.lastModifiedDate).toLocaleDateString()}</span
+					>
 				</div>
 			</div>
 		{/each}

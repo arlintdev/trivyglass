@@ -29,9 +29,19 @@
 <div class="nd-card">
 	<h3 class="nd-label" style="margin-bottom: var(--space-md);">Error Notification Demo</h3>
 	<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-		<button class="nd-btn nd-btn-destructive nd-btn-sm" onclick={simulateClusterError}>Simulate Cluster Error</button>
-		<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={simulateRedisError}>Simulate Redis Error</button>
-		<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={showGenericError}>Show Generic Error</button>
-		<button class="nd-btn nd-btn-destructive nd-btn-sm" onclick={() => toastStore.addToast('Direct error toast test', 'error', 7000)}>Test Error Toast</button>
+		<button class="nd-btn nd-btn-destructive nd-btn-sm" onclick={simulateClusterError}
+			>Simulate Cluster Error</button
+		>
+		<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={simulateRedisError}
+			>Simulate Redis Error</button
+		>
+		<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={showGenericError}
+			>Show Generic Error</button
+		>
+		<button
+			class="nd-btn nd-btn-destructive nd-btn-sm"
+			onclick={() => toastStore.addToast('Direct error toast test', 'error', 7000)}
+			>Test Error Toast</button
+		>
 	</div>
 </div>

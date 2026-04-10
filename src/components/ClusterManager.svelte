@@ -45,10 +45,18 @@
 		try {
 			let kubeConfigData: string;
 			if (uploadMethod === 'file') {
-				if (!kubeConfigFile) { error = 'Please select a kubeconfig file'; isLoading = false; return; }
+				if (!kubeConfigFile) {
+					error = 'Please select a kubeconfig file';
+					isLoading = false;
+					return;
+				}
 				kubeConfigData = await kubeConfigFile.text();
 			} else {
-				if (!kubeConfigText) { error = 'Please enter kubeconfig content'; isLoading = false; return; }
+				if (!kubeConfigText) {
+					error = 'Please enter kubeconfig content';
+					isLoading = false;
+					return;
+				}
 				kubeConfigData = kubeConfigText;
 			}
 			const response = await fetch('/api/clusters', {
@@ -62,9 +70,10 @@
 			}
 			const data = await response.json();
 			uploadedContexts = data.contexts || [];
-			success = uploadedContexts.length > 0
-				? `Successfully added ${uploadedContexts.length} cluster context${uploadedContexts.length > 1 ? 's' : ''}: ${uploadedContexts.join(', ')}`
-				: 'Kubeconfig uploaded successfully';
+			success =
+				uploadedContexts.length > 0
+					? `Successfully added ${uploadedContexts.length} cluster context${uploadedContexts.length > 1 ? 's' : ''}: ${uploadedContexts.join(', ')}`
+					: 'Kubeconfig uploaded successfully';
 			kubeConfigText = '';
 			kubeConfigFile = null;
 			await loadClusters();
@@ -99,11 +108,16 @@
 	}
 
 	function showDeleteConfirmation(cluster: string) {
-		if (cluster === 'local') { error = 'Cannot delete local cluster'; return; }
+		if (cluster === 'local') {
+			error = 'Cannot delete local cluster';
+			return;
+		}
 		clusterToDelete = cluster;
 	}
 
-	function cancelDelete() { clusterToDelete = null; }
+	function cancelDelete() {
+		clusterToDelete = null;
+	}
 
 	async function confirmDeleteCluster() {
 		if (!clusterToDelete) return;
@@ -112,7 +126,9 @@
 		isLoading = true;
 		error = null;
 		try {
-			const response = await fetch(`/api/clusters/${encodeURIComponent(cluster)}`, { method: 'DELETE' });
+			const response = await fetch(`/api/clusters/${encodeURIComponent(cluster)}`, {
+				method: 'DELETE'
+			});
 			if (!response.ok) {
 				const errorData = await response.json();
 				throw new Error(errorData.message || 'Failed to delete cluster');
@@ -145,7 +161,9 @@
 			{/if}
 
 			{#if success}
-				<div class="nd-alert nd-alert-success" style="margin-bottom: var(--space-md);">{success}</div>
+				<div class="nd-alert nd-alert-success" style="margin-bottom: var(--space-md);">
+					{success}
+				</div>
 			{/if}
 
 			<!-- Delete confirmation -->
@@ -153,12 +171,19 @@
 				<div class="nd-modal-backdrop" style="z-index: 110;">
 					<div class="nd-modal" style="max-width: 400px;">
 						<h3 class="nd-subheading" style="margin-bottom: var(--space-md);">Confirm Delete</h3>
-						<p class="nd-body-sm" style="margin-bottom: var(--space-lg); color: var(--nd-text-secondary);">
+						<p
+							class="nd-body-sm"
+							style="margin-bottom: var(--space-lg); color: var(--nd-text-secondary);"
+						>
 							Are you sure you want to delete "{clusterToDelete}"? This cannot be undone.
 						</p>
 						<div style="display: flex; justify-content: flex-end; gap: var(--space-sm);">
-							<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={cancelDelete}>Cancel</button>
-							<button class="nd-btn nd-btn-destructive nd-btn-sm" onclick={confirmDeleteCluster}>Delete</button>
+							<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={cancelDelete}
+								>Cancel</button
+							>
+							<button class="nd-btn nd-btn-destructive nd-btn-sm" onclick={confirmDeleteCluster}
+								>Delete</button
+							>
 						</div>
 					</div>
 				</div>
@@ -178,10 +203,35 @@
 						{#each clusters as cluster}
 							<div
 								class="nd-surface-raised"
-								style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); border-radius: 8px; {currentCluster === cluster.name ? 'border-color: var(--nd-interactive);' : ''}"
+								style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); border-radius: 8px; {currentCluster ===
+								cluster.name
+									? 'border-color: var(--nd-interactive);'
+									: ''}"
 							>
 								<div style="display: flex; align-items: center; gap: var(--space-sm);">
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										><rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect
+											x="2"
+											y="14"
+											width="20"
+											height="8"
+											rx="2"
+											ry="2"
+										/><line x1="6" y1="6" x2="6.01" y2="6" /><line
+											x1="6"
+											y1="18"
+											x2="6.01"
+											y2="18"
+										/></svg
+									>
 									<span>{cluster.name}</span>
 									{#if currentCluster === cluster.name}
 										<span class="nd-tag nd-tag-active">ACTIVE</span>
@@ -189,11 +239,32 @@
 								</div>
 								<div style="display: flex; gap: var(--space-xs);">
 									{#if currentCluster !== cluster.name}
-										<button class="nd-btn nd-btn-secondary nd-btn-xs" onclick={() => switchCluster(cluster.name)} disabled={isLoading}>Switch</button>
+										<button
+											class="nd-btn nd-btn-secondary nd-btn-xs"
+											onclick={() => switchCluster(cluster.name)}
+											disabled={isLoading}>Switch</button
+										>
 									{/if}
 									{#if !cluster.isLocal}
-										<button class="nd-btn nd-btn-destructive nd-btn-xs" onclick={() => showDeleteConfirmation(cluster.name)} disabled={isLoading} title="Delete cluster">
-											<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+										<button
+											class="nd-btn nd-btn-destructive nd-btn-xs"
+											onclick={() => showDeleteConfirmation(cluster.name)}
+											disabled={isLoading}
+											title="Delete cluster"
+										>
+											<svg
+												width="14"
+												height="14"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.5"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												><polyline points="3 6 5 6 21 6" /><path
+													d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+												/></svg
+											>
 										</button>
 									{/if}
 								</div>
@@ -206,7 +277,10 @@
 			<!-- Upload Kubeconfig -->
 			<div style="border-top: 1px solid var(--nd-border); padding-top: var(--space-lg);">
 				<h3 class="nd-label" style="margin-bottom: var(--space-sm);">Upload Kubeconfig</h3>
-				<p class="nd-caption" style="margin-bottom: var(--space-md); color: var(--nd-text-disabled);">
+				<p
+					class="nd-caption"
+					style="margin-bottom: var(--space-md); color: var(--nd-text-disabled);"
+				>
 					All contexts in the kubeconfig will be automatically added.
 				</p>
 
@@ -214,12 +288,28 @@
 					<fieldset style="border: none; padding: 0; margin: 0;">
 						<legend class="nd-label" style="margin-bottom: var(--space-sm);">Upload Method</legend>
 						<div style="display: flex; gap: var(--space-md);">
-							<label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; color: var(--nd-text-primary); font-size: var(--body-sm);">
-								<input type="radio" name="uploadMethod" value="file" checked={uploadMethod === 'file'} onchange={() => (uploadMethod = 'file')} />
+							<label
+								style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; color: var(--nd-text-primary); font-size: var(--body-sm);"
+							>
+								<input
+									type="radio"
+									name="uploadMethod"
+									value="file"
+									checked={uploadMethod === 'file'}
+									onchange={() => (uploadMethod = 'file')}
+								/>
 								File Upload
 							</label>
-							<label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; color: var(--nd-text-primary); font-size: var(--body-sm);">
-								<input type="radio" name="uploadMethod" value="text" checked={uploadMethod === 'text'} onchange={() => (uploadMethod = 'text')} />
+							<label
+								style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer; color: var(--nd-text-primary); font-size: var(--body-sm);"
+							>
+								<input
+									type="radio"
+									name="uploadMethod"
+									value="text"
+									checked={uploadMethod === 'text'}
+									onchange={() => (uploadMethod = 'text')}
+								/>
 								Text Input
 							</label>
 						</div>
@@ -227,7 +317,11 @@
 
 					{#if uploadMethod === 'file'}
 						<div>
-							<label for="kubeConfigFile" class="nd-label" style="display: block; margin-bottom: var(--space-xs);">Kubeconfig File</label>
+							<label
+								for="kubeConfigFile"
+								class="nd-label"
+								style="display: block; margin-bottom: var(--space-xs);">Kubeconfig File</label
+							>
 							<input
 								type="file"
 								id="kubeConfigFile"
@@ -239,7 +333,11 @@
 						</div>
 					{:else}
 						<div>
-							<label for="kubeConfigText" class="nd-label" style="display: block; margin-bottom: var(--space-xs);">Kubeconfig Content</label>
+							<label
+								for="kubeConfigText"
+								class="nd-label"
+								style="display: block; margin-bottom: var(--space-xs);">Kubeconfig Content</label
+							>
 							<textarea
 								id="kubeConfigText"
 								bind:value={kubeConfigText}
@@ -250,7 +348,12 @@
 						</div>
 					{/if}
 
-					<button class="nd-btn nd-btn-primary" onclick={handleUpload} disabled={isLoading} style="width: 100%;">
+					<button
+						class="nd-btn nd-btn-primary"
+						onclick={handleUpload}
+						disabled={isLoading}
+						style="width: 100%;"
+					>
 						{#if isLoading}
 							[UPLOADING...]
 						{:else}

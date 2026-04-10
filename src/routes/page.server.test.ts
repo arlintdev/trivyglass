@@ -6,7 +6,7 @@ vi.mock('$lib/kubeUtil', () => ({
 	getCurrentClusterName: vi.fn().mockReturnValue('test-cluster')
 }));
 
-import { loadReports, getCurrentClusterName } from '$lib/kubeUtil';
+import { loadReports } from '$lib/kubeUtil';
 
 // We test the aggregation logic by importing and calling load() directly
 // Since SvelteKit page server loads are just functions, we can test them
@@ -32,8 +32,20 @@ describe('+page.server aggregation logic', () => {
 			if (crd === 'vulnerabilityreports') {
 				return {
 					manifests: [
-						{ metadata: { name: 'pod-1', namespace: 'default' }, Critical: 7, High: 15, Medium: 20, Low: 8 },
-						{ metadata: { name: 'pod-2', namespace: 'kube-system' }, Critical: 1, High: 2, Medium: 3, Low: 4 }
+						{
+							metadata: { name: 'pod-1', namespace: 'default' },
+							Critical: 7,
+							High: 15,
+							Medium: 20,
+							Low: 8
+						},
+						{
+							metadata: { name: 'pod-2', namespace: 'kube-system' },
+							Critical: 1,
+							High: 2,
+							Medium: 3,
+							Low: 4
+						}
 					],
 					clusterName: 'test-cluster',
 					scope: 'Namespaced',
@@ -59,9 +71,7 @@ describe('+page.server aggregation logic', () => {
 		mockLoadReports.mockImplementation(async (crd: string) => {
 			if (crd === 'clustercompliancereports') {
 				return {
-					manifests: [
-						{ metadata: { name: 'comp-1' }, Pass: 80, Fail: 20 }
-					],
+					manifests: [{ metadata: { name: 'comp-1' }, Pass: 80, Fail: 20 }],
 					clusterName: 'test-cluster',
 					scope: 'Cluster',
 					resource: crd
@@ -99,9 +109,27 @@ describe('+page.server aggregation logic', () => {
 			if (crd === 'vulnerabilityreports') {
 				return {
 					manifests: [
-						{ metadata: { name: 'low-risk', namespace: 'ns1' }, Critical: 0, High: 1, Medium: 5, Low: 10 },
-						{ metadata: { name: 'high-risk', namespace: 'ns2' }, Critical: 10, High: 20, Medium: 5, Low: 2 },
-						{ metadata: { name: 'mid-risk', namespace: 'ns1' }, Critical: 3, High: 5, Medium: 8, Low: 3 }
+						{
+							metadata: { name: 'low-risk', namespace: 'ns1' },
+							Critical: 0,
+							High: 1,
+							Medium: 5,
+							Low: 10
+						},
+						{
+							metadata: { name: 'high-risk', namespace: 'ns2' },
+							Critical: 10,
+							High: 20,
+							Medium: 5,
+							Low: 2
+						},
+						{
+							metadata: { name: 'mid-risk', namespace: 'ns1' },
+							Critical: 3,
+							High: 5,
+							Medium: 8,
+							Low: 3
+						}
 					],
 					clusterName: 'test-cluster',
 					scope: 'Namespaced',
@@ -147,8 +175,20 @@ describe('+page.server aggregation logic', () => {
 			if (crd === 'exposedsecretreports') {
 				return {
 					manifests: [
-						{ metadata: { name: 's1', namespace: 'default' }, Critical: 2, High: 3, Medium: 1, Low: 0 },
-						{ metadata: { name: 's2', namespace: 'default' }, Critical: 0, High: 0, Medium: 0, Low: 0 }
+						{
+							metadata: { name: 's1', namespace: 'default' },
+							Critical: 2,
+							High: 3,
+							Medium: 1,
+							Low: 0
+						},
+						{
+							metadata: { name: 's2', namespace: 'default' },
+							Critical: 0,
+							High: 0,
+							Medium: 0,
+							Low: 0
+						}
 					],
 					clusterName: 'test-cluster',
 					scope: 'Namespaced',

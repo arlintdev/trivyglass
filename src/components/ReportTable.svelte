@@ -122,9 +122,11 @@
 	async function downloadReport(report: Report) {
 		const date = new Date().toISOString().split('T')[0];
 		const namespace = report.metadata.namespace ? `${report.metadata.namespace}_` : '';
-		const crdPlural = (typeof (report as Record<string, unknown>)._crdPlural === 'string'
-			? (report as Record<string, unknown>)._crdPlural
-			: reportType) as string;
+		const crdPlural = (
+			typeof (report as Record<string, unknown>)._crdPlural === 'string'
+				? (report as Record<string, unknown>)._crdPlural
+				: reportType
+		) as string;
 		const filename = `${date}_${crdPlural}_${namespace}${report.metadata.name}.json`;
 
 		try {
@@ -188,7 +190,9 @@
 		const isNumericA = !isNaN(Number(valueA)) && typeof valueA !== 'boolean';
 		const isNumericB = !isNaN(Number(valueB)) && typeof valueB !== 'boolean';
 		if (isNumericA && isNumericB) {
-			return direction === 'asc' ? Number(valueA) - Number(valueB) : Number(valueB) - Number(valueA);
+			return direction === 'asc'
+				? Number(valueA) - Number(valueB)
+				: Number(valueB) - Number(valueA);
 		} else {
 			const strA = String(valueA).toLowerCase();
 			const strB = String(valueB).toLowerCase();
@@ -205,7 +209,9 @@
 				if (showNamespace && report.metadata?.namespace) values.push(report.metadata.namespace);
 				if (report.metadata?.name) values.push(report.metadata.name);
 				tableColumns.forEach((column) => {
-					const value = column.value.includes('.') ? get(report, column.value) : report[column.value];
+					const value = column.value.includes('.')
+						? get(report, column.value)
+						: report[column.value];
 					if (value !== undefined && value !== null) values.push(value);
 				});
 				return values.some((val) => String(val).toLowerCase().includes(term));
@@ -233,7 +239,10 @@
 	}
 
 	function escapeCsvValue(value: unknown): string {
-		if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+		if (
+			typeof value === 'string' &&
+			(value.includes(',') || value.includes('"') || value.includes('\n'))
+		) {
 			return `"${value.replace(/"/g, '""')}"`;
 		}
 		return String(value);
@@ -246,7 +255,10 @@
 			report.metadata.name,
 			...tableColumns.map((col) => get(report, col.value) || '')
 		]);
-		return [headers.map(escapeCsvValue).join(','), ...rows.map((row) => row.map(escapeCsvValue).join(','))].join('\n');
+		return [
+			headers.map(escapeCsvValue).join(','),
+			...rows.map((row) => row.map(escapeCsvValue).join(','))
+		].join('\n');
 	}
 
 	function generateMarkdown(): string {
@@ -321,13 +333,25 @@
 {:else}
 	<div style="max-width: 100%;">
 		<!-- Toolbar -->
-		<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); gap: var(--space-md); flex-wrap: wrap;">
+		<div
+			style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-md); gap: var(--space-md); flex-wrap: wrap;"
+		>
 			<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
-				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('csv')}>Export CSV</button>
-				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('markdown')}>Export MD</button>
-				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('json')}>Export JSON</button>
+				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('csv')}
+					>Export CSV</button
+				>
+				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('markdown')}
+					>Export MD</button
+				>
+				<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={() => exportData('json')}
+					>Export JSON</button
+				>
 			</div>
-			<button class="nd-btn nd-btn-secondary nd-btn-sm" onclick={refreshReports} disabled={isRefreshing}>
+			<button
+				class="nd-btn nd-btn-secondary nd-btn-sm"
+				onclick={refreshReports}
+				disabled={isRefreshing}
+			>
 				{isRefreshing ? '[REFRESHING...]' : 'Hard Refresh'}
 			</button>
 		</div>
@@ -361,7 +385,10 @@
 				<tbody>
 					{#if filteredReports.length === 0}
 						<tr>
-							<td colspan={getHeadItems().length} style="text-align: center; color: var(--nd-text-secondary);">
+							<td
+								colspan={getHeadItems().length}
+								style="text-align: center; color: var(--nd-text-secondary);"
+							>
 								No matching {reportType} reports found.
 							</td>
 						</tr>
@@ -376,7 +403,9 @@
 									</span>
 								</td>
 								{#each tableColumns as column}
-									{@const val = column.value.includes('.') ? get(report, column.value) : report[column.value]}
+									{@const val = column.value.includes('.')
+										? get(report, column.value)
+										: report[column.value]}
 									<td>
 										{#if column.tag}
 											<span class="nd-tag nd-tag-{column.tag}">{String(val ?? 'N/A')}</span>
@@ -387,10 +416,14 @@
 								{/each}
 								<td>
 									<div style="display: flex; gap: var(--space-xs); flex-wrap: wrap;">
-										<a href={generateLink(report)} class="nd-btn nd-btn-secondary nd-btn-xs">Details</a>
+										<a href={generateLink(report)} class="nd-btn nd-btn-secondary nd-btn-xs"
+											>Details</a
+										>
 										<button
 											class="nd-btn nd-btn-ghost nd-btn-xs"
-											onclick={() => { downloadReport(report).catch((err) => console.error('Error:', err)); }}
+											onclick={() => {
+												downloadReport(report).catch((err) => console.error('Error:', err));
+											}}
 											title="Download full report as JSON"
 										>
 											Download
@@ -420,20 +453,30 @@
 			{:else}
 				<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
 					{#each filteredReports as report (report.metadata.uid)}
-						<a href={generateLink(report)} class="nd-card" style="text-decoration: none; display: block;">
+						<a
+							href={generateLink(report)}
+							class="nd-card"
+							style="text-decoration: none; display: block;"
+						>
 							<!-- Name / Namespace -->
 							<div style="margin-bottom: var(--space-sm);">
 								{#if report.metadata.namespace}
-									<span class="nd-caption" style="color: var(--nd-text-disabled);">{report.metadata.namespace}</span>
+									<span class="nd-caption" style="color: var(--nd-text-disabled);"
+										>{report.metadata.namespace}</span
+									>
 								{/if}
-								<div style="font-size: var(--body-sm); color: var(--nd-text-primary); word-break: break-all;">
+								<div
+									style="font-size: var(--body-sm); color: var(--nd-text-primary); word-break: break-all;"
+								>
 									{report.metadata.name}
 								</div>
 							</div>
 							<!-- Severity / column tags inline -->
 							<div style="display: flex; flex-wrap: wrap; gap: var(--space-xs);">
 								{#each tableColumns as column}
-									{@const val = column.value.includes('.') ? get(report, column.value) : report[column.value]}
+									{@const val = column.value.includes('.')
+										? get(report, column.value)
+										: report[column.value]}
 									{#if column.tag}
 										<span class="nd-tag nd-tag-{column.tag}" style="font-size: var(--caption);">
 											{column.header}: {String(val ?? '0')}
@@ -455,14 +498,24 @@
 
 <!-- Modal for viewing JSON -->
 {#if showModal}
-	<div class="nd-modal-backdrop" onclick={closeModal} onkeydown={(e) => e.key === 'Escape' && closeModal()} role="dialog" tabindex="-1">
+	<div
+		class="nd-modal-backdrop"
+		onclick={closeModal}
+		onkeydown={(e) => e.key === 'Escape' && closeModal()}
+		role="dialog"
+		tabindex="-1"
+	>
 		<div class="nd-modal nd-modal-xl" onclick={(e) => e.stopPropagation()} role="document">
 			<div class="nd-modal-header">
 				<span class="nd-modal-title">Report JSON</span>
 				<button class="nd-modal-close" onclick={closeModal}>[ X ]</button>
 			</div>
 			{#if selectedReport}
-				<pre class="nd-code" style="max-height: 70vh; overflow: auto;">{JSON.stringify(selectedReport, null, 2)}</pre>
+				<pre class="nd-code" style="max-height: 70vh; overflow: auto;">{JSON.stringify(
+						selectedReport,
+						null,
+						2
+					)}</pre>
 			{/if}
 		</div>
 	</div>

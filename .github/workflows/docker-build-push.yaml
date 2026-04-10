@@ -57,6 +57,9 @@ jobs:
           key: node-modules-${{ github.sha }}
           fail-on-cache-miss: true
 
+      - name: Sync SvelteKit
+        run: npx svelte-kit sync
+
       - name: ESLint + svelte-check
         run: npx eslint vite.config.ts src && npx svelte-check --tsconfig ./tsconfig.json
 
@@ -103,6 +106,9 @@ jobs:
           key: node-modules-${{ github.sha }}
           fail-on-cache-miss: true
 
+      - name: Sync SvelteKit
+        run: npx svelte-kit sync
+
       - name: Run unit tests
         run: npm test
 
@@ -125,6 +131,9 @@ jobs:
           path: node_modules
           key: node-modules-${{ github.sha }}
           fail-on-cache-miss: true
+
+      - name: Sync SvelteKit
+        run: npx svelte-kit sync
 
       - name: Build app
         run: npm run build

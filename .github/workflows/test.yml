@@ -6,7 +6,8 @@ on:
     branches-ignore: ['main']
 
 jobs:
-  quality:
+  install:
+    name: Install Dependencies
     runs-on: ubuntu-24.04
     steps:
       - name: checkout 🛒
@@ -16,18 +17,81 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
+          cache: npm
 
       - name: install ♦️
         run: npm ci
 
-      - name: format check 🎨
+      - name: cache node_modules 📦
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    needs: install
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+          fail-on-cache-miss: true
+      - name: ESLint + svelte-check 🧹
+        run: npx eslint vite.config.ts src && npx svelte-check --tsconfig ./tsconfig.json
+
+  format:
+    name: Format Check
+    runs-on: ubuntu-24.04
+    needs: install
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+          fail-on-cache-miss: true
+      - name: Prettier check 🎨
         run: npx prettier --check vite.config.ts src
 
-      - name: lint 🧹
-        run: npm run lint
-
-      - name: test 🧪
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+    needs: install
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+          fail-on-cache-miss: true
+      - name: Run unit tests 🧪
         run: npm test
 
-      - name: build 🏗️
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    needs: [lint, format, test]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+          fail-on-cache-miss: true
+      - name: Build app 🏗️
         run: npm run build

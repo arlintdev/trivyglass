@@ -2,11 +2,12 @@
 	interface Props {
 		title: string;
 		name: string | null;
+		href?: string;
 		summaryCounts?: Record<string, number>;
 		showSummary?: boolean;
 	}
 
-	let { title, name, showSummary = true, summaryCounts = {} }: Props = $props();
+	let { title, name, href, showSummary = true, summaryCounts = {} }: Props = $props();
 
 	function getStatusColor(key: string): string {
 		switch (key.toLowerCase()) {
@@ -32,7 +33,7 @@
 <nav class="nd-breadcrumb">
 	<a href="/">Home</a>
 	<span class="nd-breadcrumb-separator"></span>
-	<a href="/{title}">{title}</a>
+	<a href={href ?? `/${title}`}>{title}</a>
 	{#if name}
 		<span class="nd-breadcrumb-separator"></span>
 		<span style="color: var(--nd-text-primary);">{name}</span>

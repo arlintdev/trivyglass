@@ -165,7 +165,13 @@
 	}
 </script>
 
-<ReportHeader title={data.label} name={null} summaryCounts={{}} {showSummary} />
+<ReportHeader
+	title={data.label}
+	href="/{data.resource}"
+	name={null}
+	summaryCounts={{}}
+	{showSummary}
+/>
 
 <!-- Scope filter -->
 {#if hasBothScopes}

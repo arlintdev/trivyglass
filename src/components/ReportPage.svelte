@@ -6,11 +6,18 @@
 	import Vulnerabilities from './Vulnerabilities.svelte';
 	import SBOM from './SBOM.svelte';
 	import DownloadReport from './DownloadReport.svelte';
+	import { REPORT_TYPES, slugFromCrdPlural } from '$lib/reportTypes';
 
 	const { data } = $props();
+
+	const slug = $derived(slugFromCrdPlural(data.resource));
+	const sectionLabel = $derived(
+		slug ? (REPORT_TYPES[slug]?.label ?? data.resource) : data.resource
+	);
+	const sectionHref = $derived(slug ? `/${slug}` : `/${data.resource}`);
 </script>
 
-<ReportHeader title={data.resource} name={data.name} />
+<ReportHeader title={sectionLabel} href={sectionHref} name={data.name} />
 <DownloadReport {data} />
 
 <div

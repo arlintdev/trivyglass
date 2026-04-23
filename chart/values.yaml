@@ -61,6 +61,51 @@ serviceAccount:
   # -- Service account annotations
   annotations: {}
 
+# -- Manual attestation of STIG controls. When enabled, the viewer persists
+# attestations (manual-pass / manual-fail / not-applicable) as ConfigMaps
+# named `trivyglass-attestations-<reportName>` in the namespace below.
+# Disable if this install must be read-only.
+attestations:
+  # -- Enable read/write of attestation ConfigMaps
+  enabled: true
+  # -- Namespace where attestation ConfigMaps live. Must exist before install
+  # (or pass --create-namespace if that's where trivyglass itself lives).
+  namespace: trivyglass-system
+
+# -- Automated STIG scanning via kube-bench. When enabled, a CronJob runs
+# kube-bench on a schedule, writes the JSON output to a ConfigMap in
+# `attestations.namespace`, and the viewer merges the results into the
+# compliance report under a KUBE-BENCH badge. kube-bench results override
+# `Not_Reviewed` controls; real scanner results still win over kube-bench.
+kubeBench:
+  # -- Enable the kube-bench CronJob and result ingestion
+  enabled: false
+  # -- Cron schedule for the scan (default: every 6 hours)
+  schedule: "0 */6 * * *"
+  # -- kube-bench benchmark id. EKS STIG default; swap for `cis-1.23`,
+  # `rke2-cis-1.24`, `k3s-cis-1.24`, etc. for non-EKS clusters.
+  benchmark: eks-stig-kubernetes-v1r6
+  # -- kube-bench image
+  image:
+    repository: aquasec/kube-bench
+    tag: v0.10.1
+    pullPolicy: IfNotPresent
+  # -- kubectl image used to upsert results into the ConfigMap
+  kubectlImage:
+    repository: bitnami/kubectl
+    tag: "1.31"
+    pullPolicy: IfNotPresent
+  # -- Resource limits for the Job
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  # -- ServiceAccount annotations (e.g. IRSA role arn on EKS)
+  serviceAccountAnnotations: {}
+
 # -- ConfigMap configuration
 configMap:
   # -- Enable ConfigMap

@@ -150,7 +150,7 @@
 
 {#if isOpen}
 	<div class="nd-modal-backdrop" role="dialog" tabindex="-1">
-		<div class="nd-modal nd-modal-lg" onclick={(e) => e.stopPropagation()} role="document">
+		<div class="nd-modal nd-modal-lg" role="document">
 			<div class="nd-modal-header">
 				<span class="nd-modal-title">Manage Clusters</span>
 				<button class="nd-modal-close" onclick={() => (isOpen = false)}>[ X ]</button>

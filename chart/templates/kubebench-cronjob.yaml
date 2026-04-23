@@ -1,0 +1,113 @@
+{{- if .Values.kubeBench.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-kubebench
+  namespace: {{ include "trivy-glass.namespace" . }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ include "trivy-glass.name" . }}
+    app.kubernetes.io/component: kubebench
+spec:
+  schedule: {{ .Values.kubeBench.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ include "trivy-glass.name" . }}
+            app.kubernetes.io/component: kubebench
+        spec:
+          serviceAccountName: {{ include "trivy-glass.fullname" . }}-kubebench
+          restartPolicy: Never
+          hostPID: true
+          initContainers:
+            # kube-bench inspects the node it runs on: it reads the kubelet
+            # config file and kubelet process cmdline, not just the K8s API.
+            # Without host mounts (and hostPID for kubelet process discovery),
+            # flag-based checks like 3.2.7 come back FAIL by default because
+            # kube-bench can't see the actual kubelet config. Mount the paths
+            # the aquasec/kube-bench canonical job-eks.yaml uses, read-only.
+            - name: kube-bench
+              image: "{{ .Values.kubeBench.image.repository }}:{{ .Values.kubeBench.image.tag }}"
+              imagePullPolicy: {{ .Values.kubeBench.image.pullPolicy }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  kube-bench run \
+                    --benchmark {{ .Values.kubeBench.benchmark | quote }} \
+                    --json \
+                    --outputfile /data/results.json
+                  echo "kube-bench wrote $(wc -c < /data/results.json) bytes to /data/results.json"
+              resources:
+                {{- toYaml .Values.kubeBench.resources | nindent 16 }}
+              volumeMounts:
+                - name: results
+                  mountPath: /data
+                - name: var-lib-kubelet
+                  mountPath: /var/lib/kubelet
+                  readOnly: true
+                - name: etc-systemd
+                  mountPath: /etc/systemd
+                  readOnly: true
+                - name: etc-kubernetes
+                  mountPath: /etc/kubernetes
+                  readOnly: true
+                - name: usr-bin
+                  mountPath: /usr/local/mount-from-host/bin
+                  readOnly: true
+          containers:
+            # kubectl container upserts the result into a ConfigMap in the
+            # attestations namespace. We use apply on a client-side-rendered
+            # YAML so create-or-update is a single call regardless of whether
+            # the ConfigMap exists yet.
+            - name: upload
+              image: "{{ .Values.kubeBench.kubectlImage.repository }}:{{ .Values.kubeBench.kubectlImage.tag }}"
+              imagePullPolicy: {{ .Values.kubeBench.kubectlImage.pullPolicy }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  if [ ! -s /data/results.json ]; then
+                    echo "kube-bench produced no output; aborting upload" >&2
+                    exit 1
+                  fi
+                  kubectl -n {{ .Values.attestations.namespace }} create configmap \
+                    trivyglass-kubebench-{{ .Values.kubeBench.benchmark }} \
+                    --from-file=results.json=/data/results.json \
+                    --dry-run=client -o yaml \
+                  | kubectl apply -f -
+                  kubectl -n {{ .Values.attestations.namespace }} label configmap \
+                    trivyglass-kubebench-{{ .Values.kubeBench.benchmark }} \
+                    app.kubernetes.io/managed-by=trivyglass \
+                    trivyglass.io/source=kube-bench \
+                    trivyglass.io/benchmark={{ .Values.kubeBench.benchmark }} \
+                    --overwrite
+              resources:
+                {{- toYaml .Values.kubeBench.resources | nindent 16 }}
+              volumeMounts:
+                - name: results
+                  mountPath: /data
+                  readOnly: true
+          volumes:
+            - name: results
+              emptyDir: {}
+            - name: var-lib-kubelet
+              hostPath:
+                path: /var/lib/kubelet
+            - name: etc-systemd
+              hostPath:
+                path: /etc/systemd
+            - name: etc-kubernetes
+              hostPath:
+                path: /etc/kubernetes
+            - name: usr-bin
+              hostPath:
+                path: /usr/bin
+{{- end }}

@@ -50,21 +50,83 @@
 		status?: string;
 	}
 
+	interface Attestation {
+		status: 'manual-pass' | 'manual-fail' | 'not-applicable';
+		reviewedBy: string;
+		reviewedAt: string;
+		evidence?: string;
+		reason?: string;
+	}
+	type AttestationMap = Record<string, Attestation>;
+
+	interface KubeBenchResult {
+		status: 'PASS' | 'FAIL' | 'WARN' | 'INFO';
+		testDesc: string;
+		audit: string;
+		remediation: string;
+		actualValue: string;
+		benchmark: string;
+		section: string;
+		scannedAt: string;
+	}
+
+	interface KubeBenchSummary {
+		benchmark: string;
+		scannedAt: string;
+		totals: { pass: number; fail: number; warn: number; info: number };
+		results: Record<string, Omit<KubeBenchResult, 'scannedAt'>>;
+	}
+
+	type OverlaySource = 'kubebench' | 'attestation';
+
 	interface EnrichedControl extends Control {
 		status: StigStatus;
 		totalFail: number | null;
 		totalEvaluated: number;
 		detail: DetailResult | null;
+		attestation: Attestation | null;
+		kubebench: KubeBenchResult | null;
+		// Non-null when the displayed status comes from an overlay rather than
+		// the scanner. Scanner results always win; kube-bench PASS/FAIL beats
+		// attestations (automated > manual); kube-bench WARN/INFO leaves a note
+		// and attestation can still fill in.
+		overlay: OverlaySource | null;
+	}
+
+	interface DriftEntry {
+		id: string;
+		title: string;
+		cat: string;
 	}
 
 	interface Props {
 		data: {
+			name: string;
 			manifest: {
 				metadata?: { annotations?: Record<string, string> };
 				spec?: { compliance?: { controls: Control[] } };
 				status?: {
 					summaryReport?: { controlCheck: StatusControl[] };
 					detailReport?: { results?: DetailResult[] };
+				};
+			};
+			attestations?: AttestationMap;
+			attestationNamespace?: string;
+			attestationError?: string;
+			kubebench?: KubeBenchSummary[];
+			kubebenchError?: string;
+			stig?: {
+				source: {
+					filename: string;
+					date: string;
+					count: number;
+					cat1: number;
+					cat2: number;
+					cat3: number;
+				};
+				drift: {
+					missingFromSpec: DriftEntry[];
+					extraInSpec: string[];
 				};
 			};
 		};
@@ -78,6 +140,13 @@
 	const NA_REASON_ANNOTATION = 'stig.trivyglass.io/not-applicable-reason';
 
 	let { data }: Props = $props();
+
+	// Attestations are mutable — the form writes via the API and we mirror the
+	// server response here so the table updates without a page reload. The
+	// initial seed is a snapshot from the loader; after mount, this state is
+	// owned by the client and re-seeding from data would stomp local edits.
+	// svelte-ignore state_referenced_locally
+	let attestations = $state<AttestationMap>(data.attestations ? { ...data.attestations } : {});
 
 	// DISA XCCDF uses four statuses. `Open` and `NotAFinding` map to a scan that
 	// actually ran; `Not_Reviewed` means no enforceable check executed against the
@@ -175,6 +244,38 @@
 		data?.manifest?.metadata?.annotations?.[NA_REASON_ANNOTATION] ?? ''
 	);
 
+	// Flatten all kube-bench summaries into a single V-ID → result lookup.
+	// When multiple benchmarks report on the same V-ID (unusual but possible),
+	// the most recently-scanned result wins — fresher data beats older data.
+	const kubeBenchByVid = $derived.by(() => {
+		const out = new SvelteMap<string, KubeBenchResult>();
+		const summaries = data.kubebench ?? [];
+		const sorted = [...summaries].sort((a, b) => (a.scannedAt < b.scannedAt ? 1 : -1));
+		for (const s of sorted) {
+			for (const [vId, r] of Object.entries(s.results)) {
+				if (out.has(vId)) continue;
+				out.set(vId, { ...r, scannedAt: s.scannedAt });
+			}
+		}
+		return out;
+	});
+
+	const kubeBenchTotals = $derived.by(() => {
+		const summaries = data.kubebench ?? [];
+		const acc = { pass: 0, fail: 0, warn: 0, info: 0 };
+		for (const s of summaries) {
+			acc.pass += s.totals.pass;
+			acc.fail += s.totals.fail;
+			acc.warn += s.totals.warn;
+			acc.info += s.totals.info;
+		}
+		return acc;
+	});
+
+	const kubeBenchSources = $derived(
+		(data.kubebench ?? []).map((s) => ({ benchmark: s.benchmark, scannedAt: s.scannedAt }))
+	);
+
 	let controls: EnrichedControl[] = $derived.by(() => {
 		const specControls = data?.manifest?.spec?.compliance?.controls;
 		if (!specControls) return [];
@@ -222,26 +323,87 @@
 		return specControls
 			.map((control: Control): EnrichedControl => {
 				const detail = detailById.get(control.id) ?? null;
-				// Annotation-declared NA wins over any scanner output so operators can
-				// flag entire swaths of a benchmark (e.g. control-plane flag rules on
-				// a managed Kubernetes service) as out-of-scope without deleting them
-				// from the spec.
+				const attestation = attestations[control.id] ?? null;
+				const kubebench = kubeBenchByVid.get(control.id) ?? null;
+				// Annotation-declared NA wins over any scanner/overlay output so
+				// operators can flag entire swaths of a benchmark (e.g. control-plane
+				// flag rules on a managed Kubernetes service) as out-of-scope without
+				// deleting them from the spec.
 				if (naIds.has(control.id)) {
 					return {
 						...control,
 						status: 'Not_Applicable',
 						totalFail: null,
 						totalEvaluated: 0,
-						detail
+						detail,
+						attestation,
+						kubebench,
+						overlay: null
 					};
 				}
 				const st = statusById.get(control.id);
+				const scannerStatus = st?.status ?? 'Not_Reviewed';
+				// Overlays only fire when the scanner didn't bind a result. A real
+				// scanner fail/pass is authoritative — operators must remediate or
+				// use the NA annotation, not hide findings via automation or manual
+				// attestation.
+				if (scannerStatus !== 'Not_Reviewed') {
+					return {
+						...control,
+						status: scannerStatus,
+						totalFail: st?.totalFail ?? null,
+						totalEvaluated: st?.totalEvaluated ?? 0,
+						detail,
+						attestation,
+						kubebench,
+						overlay: null
+					};
+				}
+				// kube-bench PASS/FAIL outranks manual attestation — an automated
+				// result is higher-trust than a signed-off assertion. WARN/INFO is
+				// not actionable on its own and falls through to attestation.
+				if (kubebench && (kubebench.status === 'PASS' || kubebench.status === 'FAIL')) {
+					return {
+						...control,
+						status: kubebench.status === 'FAIL' ? 'Open' : 'NotAFinding',
+						totalFail: kubebench.status === 'FAIL' ? 1 : null,
+						totalEvaluated: 1,
+						detail,
+						attestation,
+						kubebench,
+						overlay: 'kubebench'
+					};
+				}
+				if (attestation) {
+					const attestedStatus: StigStatus =
+						attestation.status === 'manual-pass'
+							? 'NotAFinding'
+							: attestation.status === 'manual-fail'
+								? 'Open'
+								: 'Not_Applicable';
+					return {
+						...control,
+						status: attestedStatus,
+						totalFail: attestation.status === 'manual-fail' ? 1 : null,
+						totalEvaluated: 0,
+						detail,
+						attestation,
+						kubebench,
+						overlay: 'attestation'
+					};
+				}
+				// Nothing overlaid — stays Not_Reviewed. If kube-bench left a
+				// WARN/INFO, the detail modal will surface it so a reviewer has
+				// context; it just doesn't move the status.
 				return {
 					...control,
-					status: st?.status ?? 'Not_Reviewed',
-					totalFail: st?.totalFail ?? null,
-					totalEvaluated: st?.totalEvaluated ?? 0,
-					detail
+					status: 'Not_Reviewed',
+					totalFail: null,
+					totalEvaluated: 0,
+					detail,
+					attestation,
+					kubebench,
+					overlay: null
 				};
 			})
 			.sort((a, b) => {
@@ -314,6 +476,19 @@
 	// specific control. Tailored to whether the control had a real scanner
 	// binding or was unreachable on this environment.
 	function statusExplanation(c: EnrichedControl, naReason: string): string {
+		if (c.overlay === 'kubebench' && c.kubebench) {
+			const when = c.kubebench.scannedAt
+				? ` at ${new Date(c.kubebench.scannedAt).toLocaleString()}`
+				: '';
+			return `Marked ${statusLabel(c.status)} by kube-bench (${c.kubebench.benchmark}, section ${c.kubebench.section || 'n/a'})${when}. kube-bench result overrides because no trivy-operator check was bound to this control; a scanner fail/pass would still win.`;
+		}
+		if (c.overlay === 'attestation' && c.attestation) {
+			const who = c.attestation.reviewedBy || 'unknown reviewer';
+			const when = c.attestation.reviewedAt || '';
+			const base = `Marked ${statusLabel(c.status)} via manual attestation by ${who}${when ? ` on ${when}` : ''}.`;
+			const reason = c.attestation.reason ? ` Reason: ${c.attestation.reason}` : '';
+			return `${base}${reason} Attestation applies because no scanner check and no kube-bench PASS/FAIL was bound to this control.`;
+		}
 		switch (c.status) {
 			case 'Open':
 				return `Scanner evaluated this control and found ${c.totalFail} failing instance(s) across ${c.totalEvaluated} check result(s). Each instance is listed below with its target resource and remediation.`;
@@ -338,10 +513,212 @@
 	function closeModal(): void {
 		selectedControl = null;
 		showModal = false;
+		formStatus = '';
+		formReviewedBy = '';
+		formEvidence = '';
+		formReason = '';
+		saveError = '';
 	}
+
+	// Attestation form state. Rebuilt from the selected control each time the
+	// modal opens so the form pre-fills with the existing attestation (if any)
+	// rather than confusing the reviewer with a blank slate they'd have to
+	// re-type.
+	let formStatus = $state<'' | Attestation['status']>('');
+	let formReviewedBy = $state('');
+	let formEvidence = $state('');
+	let formReason = $state('');
+	let saving = $state(false);
+	let saveError = $state('');
+
+	$effect(() => {
+		if (!selectedControl) return;
+		const a = selectedControl.attestation;
+		formStatus = a?.status ?? '';
+		formReviewedBy = a?.reviewedBy ?? '';
+		formEvidence = a?.evidence ?? '';
+		formReason = a?.reason ?? '';
+		saveError = '';
+	});
+
+	// Attestation is permitted when nothing definitive has fired: Not_Reviewed
+	// without a kube-bench PASS/FAIL, or an existing attestation that the
+	// reviewer wants to edit/clear. Scanner and kube-bench definitive results
+	// lock out manual attestation so an operator can't paper over automation.
+	function canAttest(c: EnrichedControl | null): boolean {
+		if (!c) return false;
+		if (c.overlay === 'attestation') return true;
+		if (c.overlay === 'kubebench') return false;
+		return c.status === 'Not_Reviewed';
+	}
+
+	async function saveAttestation(action: 'save' | 'clear'): Promise<void> {
+		if (!selectedControl) return;
+		saving = true;
+		saveError = '';
+		try {
+			const next: AttestationMap = { ...attestations };
+			if (action === 'clear') {
+				delete next[selectedControl.id];
+			} else {
+				if (!formStatus) {
+					saveError = 'Pick a status.';
+					saving = false;
+					return;
+				}
+				if (!formReviewedBy.trim()) {
+					saveError = 'Reviewer is required.';
+					saving = false;
+					return;
+				}
+				next[selectedControl.id] = {
+					status: formStatus,
+					reviewedBy: formReviewedBy.trim(),
+					reviewedAt: new Date().toISOString(),
+					evidence: formEvidence.trim() || undefined,
+					reason: formReason.trim() || undefined
+				};
+			}
+			const res = await fetch(`/api/attestations/cluster/${encodeURIComponent(data.name)}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ attestations: next })
+			});
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({}));
+				throw new Error(body.error || `HTTP ${res.status}`);
+			}
+			const body = await res.json();
+			attestations = body.attestations ?? {};
+			closeModal();
+		} catch (err) {
+			saveError = err instanceof Error ? err.message : String(err);
+		} finally {
+			saving = false;
+		}
+	}
+
+	let driftOpen = $state(false);
 </script>
 
 <div style="padding: var(--space-md);">
+	{#if data.attestationError}
+		<div class="nd-alert nd-alert-error" style="margin-bottom: var(--space-md);">
+			Attestation store unavailable: {data.attestationError}. Namespace
+			<code>{data.attestationNamespace}</code> must exist and the controller's service account must have
+			get/create/patch on configmaps in it.
+		</div>
+	{/if}
+
+	{#if data.kubebenchError}
+		<div class="nd-alert nd-alert-error" style="margin-bottom: var(--space-md);">
+			kube-bench results unavailable: {data.kubebenchError}.
+		</div>
+	{/if}
+
+	{#if kubeBenchSources.length > 0}
+		<div
+			class="nd-card"
+			style="margin-bottom: var(--space-md); display: flex; flex-wrap: wrap; gap: var(--space-md); align-items: center;"
+		>
+			<div>
+				<span class="nd-label">kube-bench</span>
+				<span class="nd-caption" style="margin-left: var(--space-sm);">
+					{#each kubeBenchSources as s, i}
+						<span class="nd-mono">{s.benchmark}</span>{#if s.scannedAt}
+							<span class="nd-caption"> ({new Date(s.scannedAt).toLocaleString()})</span>
+						{/if}{#if i < kubeBenchSources.length - 1},
+						{/if}
+					{/each}
+				</span>
+			</div>
+			<div style="display: flex; gap: var(--space-sm);">
+				<span class="nd-tag nd-tag-pass">PASS {kubeBenchTotals.pass}</span>
+				<span class="nd-tag nd-tag-fail">FAIL {kubeBenchTotals.fail}</span>
+				<span class="nd-tag nd-tag-unknown">WARN {kubeBenchTotals.warn}</span>
+				{#if kubeBenchTotals.info > 0}
+					<span class="nd-tag nd-tag-info">INFO {kubeBenchTotals.info}</span>
+				{/if}
+			</div>
+		</div>
+	{/if}
+
+	{#if data.stig}
+		{@const src = data.stig.source}
+		{@const miss = data.stig.drift.missingFromSpec}
+		{@const extra = data.stig.drift.extraInSpec}
+		{@const dateStr = src.date ? new Date(src.date).toISOString().slice(0, 10) : ''}
+		<div class="nd-card" style="margin-bottom: var(--space-md);">
+			<button
+				type="button"
+				class="nd-btn nd-btn-plain"
+				style="width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; background: none; border: none; padding: var(--space-sm) 0;"
+				onclick={() => (driftOpen = !driftOpen)}
+				aria-expanded={driftOpen}
+			>
+				<span>
+					<span class="nd-label">DISA STIG drift</span>
+					<span class="nd-caption" style="margin-left: var(--space-sm);">
+						source {src.filename}{dateStr ? ` (${dateStr})` : ''} · {src.count} controls ({src.cat1}
+						CAT I / {src.cat2} CAT II{src.cat3 ? ` / ${src.cat3} CAT III` : ''})
+					</span>
+				</span>
+				<span class="nd-caption">
+					{#if miss.length === 0 && extra.length === 0}
+						in sync
+					{:else}
+						{miss.length} missing · {extra.length} extra {driftOpen ? '▾' : '▸'}
+					{/if}
+				</span>
+			</button>
+			{#if driftOpen}
+				<div style="margin-top: var(--space-sm);">
+					{#if miss.length > 0}
+						<p class="nd-label" style="margin-bottom: var(--space-xs);">
+							In STIG, missing from this spec ({miss.length})
+						</p>
+						<p class="nd-caption" style="margin-bottom: var(--space-sm);">
+							These DISA controls are in the bundled CSV but no control with that id exists in
+							<code>spec.compliance.controls</code>, so trivy-operator cannot evaluate them.
+						</p>
+						<ul class="nd-body-sm" style="margin: 0 0 var(--space-md) var(--space-md); padding: 0;">
+							{#each miss as m}
+								<li>
+									<span class="nd-mono"><strong>{m.id}</strong></span>
+									<span
+										class="nd-tag nd-tag-{m.cat === 'CAT 1' ? 'critical' : 'medium'}"
+										style="margin: 0 var(--space-xs);">{m.cat}</span
+									>
+									{m.title}
+								</li>
+							{/each}
+						</ul>
+					{/if}
+					{#if extra.length > 0}
+						<p class="nd-label" style="margin-bottom: var(--space-xs);">
+							In spec, not in current STIG ({extra.length})
+						</p>
+						<p class="nd-caption" style="margin-bottom: var(--space-sm);">
+							These ids appear in the ClusterComplianceReport spec but not in the bundled CSV —
+							either the STIG dropped them, the CSV is stale, or the spec uses non-DISA ids.
+						</p>
+						<ul class="nd-body-sm" style="margin: 0 0 0 var(--space-md); padding: 0;">
+							{#each extra as id}
+								<li><span class="nd-mono">{id}</span></li>
+							{/each}
+						</ul>
+					{/if}
+					{#if miss.length === 0 && extra.length === 0}
+						<p class="nd-caption">
+							The spec covers every V-ID in the bundled STIG — evaluation scope matches the
+							benchmark.
+						</p>
+					{/if}
+				</div>
+			{/if}
+		</div>
+	{/if}
+
 	{#if controls.length > 0}
 		<div
 			style="display: flex; flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-md);"
@@ -421,11 +798,36 @@
 								>{control.severity || 'UNKNOWN'}</span
 							></td
 						>
-						<td
-							><span class="nd-tag nd-tag-{statusTag(control.status || '')}"
+						<td>
+							<span class="nd-tag nd-tag-{statusTag(control.status || '')}"
 								>{statusLabel(control.status || '')}</span
-							></td
-						>
+							>
+							{#if control.overlay === 'kubebench'}
+								<span
+									class="nd-tag nd-tag-info"
+									style="margin-left: var(--space-xs); font-size: var(--caption);"
+									title="Status from kube-bench — no trivy-operator binding"
+								>
+									KUBE-BENCH
+								</span>
+							{:else if control.overlay === 'attestation'}
+								<span
+									class="nd-tag nd-tag-info"
+									style="margin-left: var(--space-xs); font-size: var(--caption);"
+									title="Manually attested — no scanner or kube-bench binding"
+								>
+									ATTESTED
+								</span>
+							{:else if control.kubebench && (control.kubebench.status === 'WARN' || control.kubebench.status === 'INFO')}
+								<span
+									class="nd-tag nd-tag-unknown"
+									style="margin-left: var(--space-xs); font-size: var(--caption);"
+									title="kube-bench {control.kubebench.status} — needs review"
+								>
+									KB-{control.kubebench.status}
+								</span>
+							{/if}
+						</td>
 						<td class="nd-mono-cell">{control.totalFail ?? 'N/A'}</td>
 					</tr>
 				{/each}
@@ -440,12 +842,12 @@
 	{#if showModal && selectedControl}
 		<div
 			class="nd-modal-backdrop"
-			onclick={closeModal}
+			onclick={(e) => e.target === e.currentTarget && closeModal()}
 			onkeydown={(e) => e.key === 'Escape' && closeModal()}
 			role="dialog"
 			tabindex="-1"
 		>
-			<div class="nd-modal" onclick={(e) => e.stopPropagation()} role="document">
+			<div class="nd-modal" role="document">
 				<div class="nd-modal-header">
 					<span class="nd-modal-title"
 						><span class="nd-mono">{selectedControl.id}</span> — {selectedControl.name}</span
@@ -455,7 +857,7 @@
 
 				<!-- Severity + status row -->
 				<div
-					style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); align-items: center;"
+					style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); align-items: center; flex-wrap: wrap;"
 				>
 					<span class="nd-caption">Severity:</span>
 					<span class="nd-tag nd-tag-{severityTag(selectedControl.severity)}"
@@ -465,6 +867,16 @@
 					<span class="nd-tag nd-tag-{statusTag(selectedControl.status)}"
 						>{statusLabel(selectedControl.status)}</span
 					>
+					{#if selectedControl.overlay === 'kubebench'}
+						<span class="nd-tag nd-tag-info" style="margin-left: var(--space-xs);">KUBE-BENCH</span>
+					{:else if selectedControl.overlay === 'attestation'}
+						<span class="nd-tag nd-tag-info" style="margin-left: var(--space-xs);">ATTESTED</span>
+					{/if}
+					{#if selectedControl.kubebench && selectedControl.overlay !== 'kubebench' && (selectedControl.kubebench.status === 'WARN' || selectedControl.kubebench.status === 'INFO')}
+						<span class="nd-tag nd-tag-unknown" style="margin-left: var(--space-xs);">
+							KB-{selectedControl.kubebench.status}
+						</span>
+					{/if}
 					{#if selectedControl.totalEvaluated > 0}
 						<span class="nd-caption" style="margin-left: var(--space-md);">
 							{selectedControl.totalFail ?? 0} fail / {selectedControl.totalEvaluated} evaluated
@@ -576,10 +988,162 @@
 							</div>
 						{/each}
 					</div>
-				{:else if selectedControl.status === 'Not_Reviewed'}
+				{:else if selectedControl.status === 'Not_Reviewed' && !selectedControl.overlay}
 					<p class="nd-caption" style="color: var(--nd-text-secondary);">
 						No spec checks declared — this control is manual-review only.
 					</p>
+				{/if}
+
+				<!-- kube-bench details. Shown whenever kube-bench produced a result,
+				  regardless of whether it drove the status (PASS/FAIL) or just left a
+				  WARN/INFO note. Distinct from the spec-check section above. -->
+				{#if selectedControl.kubebench}
+					{@const kb = selectedControl.kubebench}
+					<div
+						style="margin-top: var(--space-lg); padding: var(--space-md); border-left: 2px solid var(--accent); background: var(--nd-surface-subtle);"
+					>
+						<p class="nd-label" style="margin-bottom: var(--space-xs);">
+							kube-bench — <span class="nd-mono">{kb.benchmark}</span>
+							{#if kb.section}<span class="nd-caption"> · §{kb.section}</span>{/if}
+							<span
+								class="nd-tag nd-tag-{kb.status === 'PASS'
+									? 'pass'
+									: kb.status === 'FAIL'
+										? 'fail'
+										: 'unknown'}"
+								style="margin-left: var(--space-sm);">{kb.status}</span
+							>
+						</p>
+						{#if kb.scannedAt}
+							<p class="nd-caption" style="margin-bottom: var(--space-sm);">
+								Scanned {new Date(kb.scannedAt).toLocaleString()}
+							</p>
+						{/if}
+						{#if kb.testDesc}
+							<p class="nd-body-sm" style="margin-bottom: var(--space-sm);">{kb.testDesc}</p>
+						{/if}
+						{#if kb.audit}
+							<p class="nd-caption" style="font-weight: bold;">Audit command</p>
+							<pre
+								class="nd-code"
+								style="max-height: 160px; overflow: auto; font-size: var(--caption);">{kb.audit}</pre>
+						{/if}
+						{#if kb.actualValue}
+							<p class="nd-caption" style="font-weight: bold; margin-top: var(--space-xs);">
+								Actual value
+							</p>
+							<pre
+								class="nd-code"
+								style="max-height: 120px; overflow: auto; font-size: var(--caption);">{kb.actualValue}</pre>
+						{/if}
+						{#if kb.remediation && kb.status !== 'PASS'}
+							<p class="nd-caption" style="font-weight: bold; margin-top: var(--space-xs);">
+								Remediation
+							</p>
+							<p class="nd-caption">{kb.remediation}</p>
+						{/if}
+					</div>
+				{/if}
+
+				<!-- Manual attestation. Only available when no scanner or kube-bench
+				  PASS/FAIL is bound (or the control is already attested, so it can be
+				  edited/cleared). -->
+				{#if canAttest(selectedControl)}
+					<div
+						style="margin-top: var(--space-lg); padding: var(--space-md); border: 1px solid var(--nd-border); border-radius: 4px;"
+					>
+						<p class="nd-label" style="margin-bottom: var(--space-sm);">Manual attestation</p>
+						{#if selectedControl.attestation}
+							<p class="nd-caption" style="margin-bottom: var(--space-sm);">
+								Current: <strong>{statusLabel(selectedControl.status)}</strong> — {selectedControl
+									.attestation.reviewedBy}
+								{#if selectedControl.attestation.reviewedAt}
+									on {new Date(selectedControl.attestation.reviewedAt).toLocaleString()}
+								{/if}
+							</p>
+						{/if}
+						<p class="nd-caption" style="margin-bottom: var(--space-sm);">
+							Persisted to ConfigMap <code>trivyglass-attestations-{data.name}</code> in namespace
+							<code>{data.attestationNamespace}</code>.
+						</p>
+
+						<div
+							style="display: grid; grid-template-columns: 160px 1fr; gap: var(--space-sm) var(--space-md); align-items: center;"
+						>
+							<label class="nd-label" for="attest-status">Status</label>
+							<select
+								id="attest-status"
+								class="nd-input-bordered"
+								bind:value={formStatus}
+								disabled={saving}
+							>
+								<option value="">— pick —</option>
+								<option value="manual-pass">Not a Finding (manual-pass)</option>
+								<option value="manual-fail">Open (manual-fail)</option>
+								<option value="not-applicable">Not Applicable</option>
+							</select>
+
+							<label class="nd-label" for="attest-reviewer">Reviewer</label>
+							<input
+								id="attest-reviewer"
+								class="nd-input-bordered"
+								type="text"
+								placeholder="e.g. patrick@radiusmethod.com"
+								bind:value={formReviewedBy}
+								disabled={saving}
+							/>
+
+							<label class="nd-label" for="attest-evidence">Evidence</label>
+							<textarea
+								id="attest-evidence"
+								class="nd-textarea"
+								rows="2"
+								placeholder="Ticket, screenshot URL, output of a manual check…"
+								bind:value={formEvidence}
+								disabled={saving}
+							></textarea>
+
+							<label class="nd-label" for="attest-reason">Reason</label>
+							<textarea
+								id="attest-reason"
+								class="nd-textarea"
+								rows="2"
+								placeholder="Why this status applies"
+								bind:value={formReason}
+								disabled={saving}
+							></textarea>
+						</div>
+
+						{#if saveError}
+							<p
+								class="nd-alert nd-alert-error"
+								style="margin-top: var(--space-sm); padding: var(--space-xs) var(--space-sm);"
+							>
+								{saveError}
+							</p>
+						{/if}
+
+						<div
+							style="margin-top: var(--space-md); display: flex; gap: var(--space-sm); justify-content: flex-end;"
+						>
+							{#if selectedControl.attestation}
+								<button
+									type="button"
+									class="nd-btn nd-btn-destructive nd-btn-sm"
+									onclick={() => saveAttestation('clear')}
+									disabled={saving}>Clear attestation</button
+								>
+							{/if}
+							<button
+								type="button"
+								class="nd-btn nd-btn-primary nd-btn-sm"
+								onclick={() => saveAttestation('save')}
+								disabled={saving}
+							>
+								{saving ? 'Saving…' : 'Save attestation'}
+							</button>
+						</div>
+					</div>
 				{/if}
 			</div>
 		</div>

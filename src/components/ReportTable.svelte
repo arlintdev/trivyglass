@@ -500,12 +500,12 @@
 {#if showModal}
 	<div
 		class="nd-modal-backdrop"
-		onclick={closeModal}
+		onclick={(e) => e.target === e.currentTarget && closeModal()}
 		onkeydown={(e) => e.key === 'Escape' && closeModal()}
 		role="dialog"
 		tabindex="-1"
 	>
-		<div class="nd-modal nd-modal-xl" onclick={(e) => e.stopPropagation()} role="document">
+		<div class="nd-modal nd-modal-xl" role="document">
 			<div class="nd-modal-header">
 				<span class="nd-modal-title">Report JSON</span>
 				<button class="nd-modal-close" onclick={closeModal}>[ X ]</button>

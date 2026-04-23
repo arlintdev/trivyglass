@@ -1,0 +1,95 @@
+{{- if .Values.kubeBench.enabled }}
+# ServiceAccount for the kube-bench Job. Runs in the release namespace so we
+# keep all trivyglass-managed workloads together; upserts results into the
+# attestations namespace via a narrowly-scoped Role.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-kubebench
+  namespace: {{ include "trivy-glass.namespace" . }}
+  {{- with .Values.kubeBench.serviceAccountAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+# ClusterRole for kube-bench itself. Only cluster-read of the objects it
+# actually inspects — no write, no secrets content, no exec.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-kubebench-read
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - nodes
+      - namespaces
+      - serviceaccounts
+      - configmaps
+    verbs: ["get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - networkpolicies
+      - ingresses
+    verbs: ["get", "list"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - daemonsets
+      - statefulsets
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-kubebench-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "trivy-glass.fullname" . }}-kubebench-read
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "trivy-glass.fullname" . }}-kubebench
+    namespace: {{ include "trivy-glass.namespace" . }}
+---
+# Narrow Role to upsert the result ConfigMap in the attestations namespace.
+# Scoped by resourceNames so kube-bench can only touch its own output.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-kubebench-write
+  namespace: {{ .Values.attestations.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames:
+      - trivyglass-kubebench-{{ .Values.kubeBench.benchmark }}
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-kubebench-write
+  namespace: {{ .Values.attestations.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "trivy-glass.fullname" . }}-kubebench-write
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "trivy-glass.fullname" . }}-kubebench
+    namespace: {{ include "trivy-glass.namespace" . }}
+{{- end }}

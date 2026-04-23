@@ -70,6 +70,10 @@ spec:
               value: "localhost"  # Redis runs in the same pod
             - name: REDIS_PORT
               value: "6379"       # Default Redis port
+            {{- if .Values.attestations.enabled }}
+            - name: TRIVYGLASS_ATTESTATIONS_NAMESPACE
+              value: {{ .Values.attestations.namespace | quote }}
+            {{- end }}
             {{- if .Values.settings.env }}
             {{- toYaml .Values.settings.env | nindent 12 }}
             {{- end }}

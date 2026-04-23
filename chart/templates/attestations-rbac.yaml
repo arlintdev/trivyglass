@@ -1,0 +1,28 @@
+{{- if and .Values.attestations.enabled .Values.serviceAccount.create }}
+# Role + RoleBinding granting the viewer's ServiceAccount the minimum verbs
+# needed to read/upsert attestation ConfigMaps. Scoped to a single namespace
+# (`attestations.namespace`) — no cluster-level grant, no delete, no secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-attestations
+  namespace: {{ .Values.attestations.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "trivy-glass.fullname" . }}-attestations
+  namespace: {{ .Values.attestations.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "trivy-glass.fullname" . }}-attestations
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name }}
+    namespace: {{ include "trivy-glass.namespace" . }}
+{{- end }}

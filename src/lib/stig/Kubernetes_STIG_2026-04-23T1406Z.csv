@@ -1,0 +1,1408 @@
+﻿Marking,"CAT","STIG Id","Group Id","Group Title","Rule Id","Rule Title","Check","Fix","Discussion","CCIs"
+(CUI),"CAT 2","CNTR-K8-000150","V-242376","SRG-APP-000014-CTR-000035","SV-242376r960759_rule","The Kubernetes Controller Manager must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+
+grep -i tls-min-version * 
+
+If the setting ""tls-min-version"" is not configured in the Kubernetes Controller Manager manifest file or it is set to ""VersionTLS10"" or ""VersionTLS11"", this is a finding.","Edit the Kubernetes Controller Manager manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--tls-min-version"" to ""VersionTLS12"" or higher.","The Kubernetes Controller Manager will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
+
+The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and key store. To enable the minimum version of TLS to be used by the Kubernetes Controller Manager, the setting ""tls-min-version"" must be set.","000068"
+(CUI),"CAT 2","CNTR-K8-000160","V-242377","SRG-APP-000014-CTR-000035","SV-242377r960759_rule","The Kubernetes Scheduler must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+
+grep -i tls-min-version * 
+
+If the setting ""tls-min-version"" is not configured in the Kubernetes Scheduler manifest file or it is set to ""VersionTLS10"" or ""VersionTLS11"", this is a finding.","Edit the Kubernetes Scheduler manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--tls-min-version"" to ""VersionTLS12"" or higher.","The Kubernetes Scheduler will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
+
+The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and keystore. To enable the minimum version of TLS to be used by the Kubernetes API Server, the setting ""tls-min-version"" must be set.","000068"
+(CUI),"CAT 2","CNTR-K8-000170","V-242378","SRG-APP-000014-CTR-000040","SV-242378r960759_rule","The Kubernetes API Server must use TLS 1.2, at a minimum, to protect the confidentiality of sensitive data during electronic dissemination.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i tls-min-version * 
+
+If the setting ""tls-min-version"" is not configured in the Kubernetes API Server manifest file or it is set to ""VersionTLS10"" or ""VersionTLS11"", this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--tls-min-version"" to ""VersionTLS12"" or higher.","The Kubernetes API Server will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
+
+The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and keystore. To enable the minimum version of TLS to be used by the Kubernetes API Server, the setting ""tls-min-version"" must be set.","000068"
+(CUI),"CAT 2","CNTR-K8-000180","V-242379","SRG-APP-000014-CTR-000035","SV-242379r960759_rule","The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i  auto-tls * 
+
+If the setting ""--auto-tls"" is not configured in the Kubernetes etcd manifest file or it is set to true, this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--auto-tls"" to ""false"".","Kubernetes etcd will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
+
+The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and keystore. To enable the minimum version of TLS to be used by the Kubernetes API Server, the setting ""--auto-tls"" must be set.","000068"
+(CUI),"CAT 2","CNTR-K8-000190","V-242380","SRG-APP-000014-CTR-000035","SV-242380r960759_rule","The Kubernetes etcd must use TLS to protect the confidentiality of sensitive data during electronic dissemination.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -I  peer-auto-tls * 
+
+If the setting ""--peer-auto-tls"" is not configured in the Kubernetes etcd manifest file or it is set to ""true"", this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--peer-auto-tls"" to ""false"".","The Kubernetes API Server will prohibit the use of SSL and unauthorized versions of TLS protocols to properly secure communication.
+
+The use of unsupported protocol exposes vulnerabilities to the Kubernetes by rogue traffic interceptions, man-in-the-middle attacks, and impersonation of users or services from the container platform runtime, registry, and keystore. To enable the minimum version of TLS to be used by the Kubernetes API Server, the setting ""--peer-auto-tls"" must be set.","000068"
+(CUI),"CAT 1","CNTR-K8-000220","V-242381","SRG-APP-000023-CTR-000055","SV-242381r1043176_rule","The Kubernetes Controller Manager must create unique service accounts for each work payload.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i use-service-account-credentials * 
+
+If the setting ""--use-service-account-credentials"" is not configured in the Kubernetes Controller Manager manifest file or it is set to ""false"", this is a finding.","Edit the Kubernetes Controller Manager manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane.
+
+Set the value of ""--use-service-account-credentials"" to ""true"".","The Kubernetes Controller Manager is a background process that embeds core control loops regulating cluster system state through the API Server. Every process executed in a pod has an associated service account. By default, service accounts use the same credentials for authentication. Implementing the default settings poses a High risk to the Kubernetes Controller Manager. Setting the ""--use-service-account-credential"" value lowers the attack surface by generating unique service accounts settings for each controller instance.","000015"
+(CUI),"CAT 2","CNTR-K8-000270","V-242382","SRG-APP-000033-CTR-000090","SV-242382r1137638_rule","The Kubernetes API Server must enable Node,RBAC as the authorization mode.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i authorization-mode * 
+
+If the setting authorization-mode is set to ""AlwaysAllow"" in the Kubernetes API Server manifest file or is not configured, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--authorization-mode"" to ""Node,RBAC"".","To mitigate the risk of unauthorized access to sensitive information by entities that have been issued certificates by DOD-approved PKIs, all DOD systems (e.g., networks, web servers, and web portals) must be properly configured to incorporate access control methods that do not rely solely on the possession of a certificate for access. Successful authentication must not automatically give an entity access to an asset or security boundary. Authorization procedures and controls must be implemented to ensure each authenticated entity also has a validated and current authorization. Authorization is the process of determining whether an entity, once authenticated, is permitted to access a specific asset.
+
+Node,RBAC is the method within Kubernetes to control access of users and applications. Kubernetes uses roles to grant authorization API requests made by kubelets.
+
+Satisfies: SRG-APP-000340-CTR-000770, SRG-APP-000033-CTR-000095, SRG-APP-000378-CTR-000880, SRG-APP-000033-CTR-000090","000213"
+(CUI),"CAT 1","CNTR-K8-000290","V-242383","SRG-APP-000038-CTR-000105","SV-242383r1137641_rule","User-managed resources must be created in dedicated namespaces.","To view the available namespaces, run the command:
+
+kubectl get namespaces
+
+The default namespaces to be validated are default, kube-public, and kube-node-lease if it is created.
+
+For the default namespace, execute the commands:
+
+kubectl config set-context --current --namespace=default
+kubectl get all
+
+For the kube-public namespace, execute the commands:
+
+kubectl config set-context --current --namespace=kube-public
+kubectl get all
+
+For the kube-node-lease namespace, execute the commands:
+
+kubectl config set-context --current --namespace=kube-node-lease
+kubectl get all
+
+The only valid return values are the kubernetes service (i.e., service/kubernetes) and nothing at all.
+
+If a return value is returned from the ""kubectl get all"" command and it is not the kubernetes service (i.e., service/kubernetes), this is a finding.","Move any user-managed resources from the default, kube-public, and kube-node-lease namespaces to user namespaces.","Creating namespaces for user-managed resources is important when implementing Role-Based Access Controls (RBAC). RBAC allows for the authorization of users and helps support proper API server permissions separation and network micro segmentation. If user-managed resources are placed within the default namespaces, it becomes impossible to implement policies for RBAC permission, service account usage, network policies, and more.","000366"
+(CUI),"CAT 2","CNTR-K8-000300","V-242384","SRG-APP-000033-CTR-000090","SV-242384r1137638_rule","The Kubernetes Scheduler must have secure binding.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i bind-address * 
+
+If the setting ""bind-address"" is not set to ""127.0.0.1"" or is not found in the Kubernetes Scheduler manifest file, this is a finding.","Edit the Kubernetes Scheduler manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the argument ""--bind-address"" to ""127.0.0.1"".","Limiting the number of attack vectors and implementing authentication and encryption on the endpoints available to external sources is paramount when securing the overall Kubernetes cluster. The Scheduler API service exposes port 10251/TCP by default for health and metrics information use. This port does not encrypt or authenticate connections. If this port is exposed externally, an attacker can use this port to attack the entire Kubernetes cluster. By setting the bind address to localhost (i.e., 127.0.0.1), only those internal services that require health and metrics information can access the Scheduler API.","000213"
+(CUI),"CAT 2","CNTR-K8-000310","V-242385","SRG-APP-000033-CTR-000090","SV-242385r1137638_rule","The Kubernetes Controller Manager must have secure binding.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i bind-address * 
+
+If the setting bind-address is not set to ""127.0.0.1"" or is not found in the Kubernetes Controller Manager manifest file, this is a finding.","Edit the Kubernetes Controller Manager manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the argument ""--bind-address"" to ""127.0.0.1"".","Limiting the number of attack vectors and implementing authentication and encryption on the endpoints available to external sources is paramount when securing the overall Kubernetes cluster. The Controller Manager API service exposes port 10252/TCP by default for health and metrics information use. This port does not encrypt or authenticate connections. If this port is exposed externally, an attacker can use this port to attack the entire Kubernetes cluster. By setting the bind address to only localhost (i.e., 127.0.0.1), only those internal services that require health and metrics information can access the Control Manager API.","000213"
+(CUI),"CAT 1","CNTR-K8-000330","V-242387","SRG-APP-000033-CTR-000095","SV-242387r1137639_rule","The Kubernetes Kubelet must have the ""readOnlyPort"" flag disabled.","On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+If the ""--read-only-port"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i readOnlyPort <path_to_config_file>
+
+If the setting ""readOnlyPort"" exists and is not set to ""0"", this is a finding.","On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--read-only-port"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the config file: 
+Set ""readOnlyPort"" to ""0"" or remove the setting.
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","Kubelet serves a small REST API with read access to port 10255. The read-only port for Kubernetes provides no authentication or authorization security control. Providing unrestricted access on port 10255 exposes Kubernetes pods and containers to malicious attacks or compromise. Port 10255 is deprecated and should be disabled.","000213"
+(CUI),"CAT 2","CNTR-K8-000350","V-242389","SRG-APP-000033-CTR-000100","SV-242389r1137640_rule","The Kubernetes API server must have the secure port set.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i secure-port * 
+
+If the setting ""--secure-port"" is set to ""0"" or is not configured in the Kubernetes API manifest file, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--secure-port"" to a value greater than ""0"".","By default, the API server will listen on what is rightfully called the secure port, port 6443. Any requests to this port will perform authentication and authorization checks. If this port is disabled, anyone who gains access to the host on which the Control Plane is running has full control of the entire cluster over encrypted traffic.
+
+Open the secure port by setting the API server's ""--secure-port"" flag to a value other than ""0"".","000213"
+(CUI),"CAT 1","CNTR-K8-000360","V-242390","SRG-APP-000033-CTR-000100","SV-242390r1137640_rule","The Kubernetes API server must have anonymous authentication disabled.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i anonymous-auth * 
+
+If the setting ""--anonymous-auth"" is set to ""true"" in the Kubernetes API Server manifest file, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of  ""--anonymous-auth"" to ""false"".","The Kubernetes API Server controls Kubernetes via an API interface. A user who has access to the API essentially has root access to the entire Kubernetes cluster. To control access, users must be authenticated and authorized. By allowing anonymous connections, the controls put in place to secure the API can be bypassed.
+
+Setting ""--anonymous-auth"" to ""false"" also disables unauthenticated requests from kubelets.
+
+While there are instances where anonymous connections may be needed (e.g., health checks) and Role-Based Access Controls (RBACs) are in place to limit the anonymous access, this access should be disabled, and only enabled when necessary.","000213"
+(CUI),"CAT 1","CNTR-K8-000370","V-242391","SRG-APP-000033-CTR-000090","SV-242391r1137638_rule","The Kubernetes Kubelet must have anonymous authentication disabled.","On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+If the ""--anonymous-auth"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Inspect the content of the config file:
+Locate the ""anonymous"" section under ""authentication"".  In this section, if the field ""enabled"" does not exist or is set to ""true"", this is a finding.","On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+Remove the ""anonymous-auth"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the config file: 
+Locate the ""authentication"" section and the ""anonymous"" subsection. Within the ""anonymous"" subsection, set ""enabled"" to ""false"".
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","A user who has access to the Kubelet essentially has root access to the nodes contained within the Kubernetes Control Plane. To control access, users must be authenticated and authorized. By allowing anonymous connections, the controls put in place to secure the Kubelet can be bypassed.
+
+Setting anonymous authentication to ""false"" also disables unauthenticated requests from kubelets.
+
+While there are instances where anonymous connections may be needed (e.g., health checks) and Role-Based Access Controls (RBAC) are in place to limit the anonymous access, this access must be disabled and only enabled when necessary.","000213"
+(CUI),"CAT 1","CNTR-K8-000380","V-242392","SRG-APP-000033-CTR-000095","SV-242392r1137639_rule","The Kubernetes kubelet must enable explicit authorization.","Run the following command on each Worker Node:
+ps -ef | grep kubelet
+Verify that the --authorization-mode exists and is set to ""Webhook"".
+
+If the --authorization-mode argument is not set to ""Webhook"" or doesn't exist, this is a finding.","Edit the Kubernetes Kubelet service file in the --config directory on the Kubernetes Worker Node:
+
+Set the value of ""--authorization-mode"" to ""Webhook"" in KUBELET_SYSTEM_PODS_ARGS variable.
+
+Restart the kubelet service using the following command:
+
+systemctl daemon-reload && systemctl restart kubelet","Kubelet is the primary agent on each node. The API server communicates with each kubelet to perform tasks such as starting/stopping pods. By default, kubelets allow all authenticated requests, even anonymous ones, without requiring any authorization checks from the API server. This default behavior bypasses any authorization controls put in place to limit what users may perform within the Kubernetes cluster. To change this behavior, the default setting of AlwaysAllow for the authorization mode must be set to ""Webhook"".","000213"
+(CUI),"CAT 2","CNTR-K8-000400","V-242393","SRG-APP-000033-CTR-000095","SV-242393r1137639_rule","Kubernetes Worker Nodes must not have sshd service running.","Log in to each worker node. Verify that the sshd service is not running. To validate that the service is not running, run the command:
+
+systemctl status sshd
+
+If the service sshd is active (running), this is a finding.
+
+Note: If console access is not available, SSH access can be attempted. If the worker nodes cannot be reached, this requirement is ""not a finding"".","To stop the sshd service, run the command:
+
+systemctl stop sshd
+
+Note: If access to the worker node is through an SSH session, it is important to realize there are two requirements for disabling and stopping the sshd service and they should be done during the same SSH session. Disabling the service must be performed first and then the service stopped to guarantee both settings can be made if the session is interrupted.","Worker Nodes are maintained and monitored by the Control Plane. Direct access and manipulation of the nodes should not take place by administrators. Worker nodes should be treated as immutable and updated via replacement rather than in-place upgrades.","000213"
+(CUI),"CAT 2","CNTR-K8-000410","V-242394","SRG-APP-000033-CTR-000095","SV-242394r1137639_rule","Kubernetes Worker Nodes must not have the sshd service enabled.","Log in to each worker node. Verify that the sshd service is not enabled. To validate the service is not enabled, run the command:
+
+systemctl is-enabled sshd.service
+
+If the service sshd is enabled, this is a finding.
+
+Note: If console access is not available, SSH access can be attempted. If the worker nodes cannot be reached, this requirement is ""not a finding"".","To disable the sshd service, run the command:
+
+chkconfig sshd off
+
+Note: If access to the worker node is through an SSH session, it is important to realize there are two requirements for disabling and stopping the sshd service that must be done during the same SSH session. Disabling the service must be performed first and then the service stopped to guarantee both settings can be made if the session is interrupted.","Worker Nodes are maintained and monitored by the Control Plane. Direct access and manipulation of the nodes must not take place by administrators. Worker nodes must be treated as immutable and updated via replacement rather than in-place upgrades.","000213"
+(CUI),"CAT 2","CNTR-K8-000420","V-242395","SRG-APP-000033-CTR-000095","SV-242395r1137639_rule","Kubernetes dashboard must not be enabled.","From the Control Plane, run the command:
+
+kubectl get pods --all-namespaces -l k8s-app=kubernetes-dashboard
+
+If any resources are returned, this is a finding.","Delete the Kubernetes dashboard deployment with the following command:
+
+kubectl delete deployment kubernetes-dashboard --namespace=kube-system","While the Kubernetes dashboard is not inherently insecure on its own, it is often coupled with a misconfiguration of Role-Based Access control (RBAC) permissions that can unintentionally over-grant access. It is not commonly protected with ""NetworkPolicies"", preventing all pods from being able to reach it. In increasingly rare circumstances, the Kubernetes dashboard is exposed publicly to the internet.","000213"
+(CUI),"CAT 2","CNTR-K8-000430","V-242396","SRG-APP-000033-CTR-000090","SV-242396r1137638_rule","Kubernetes Kubectl cp command must give expected access and results.","From the Control Plane and each Worker node, check the version of kubectl by executing the command:
+
+kubectl version --client
+
+If the Control Plane or any Worker nodes are not using kubectl version 1.12.9 or newer, this is a finding.","Upgrade the Control Plane and Worker nodes to the latest version of kubectl.","One of the tools heavily used to interact with containers in the Kubernetes cluster is kubectl. The command is the tool System Administrators used to create, modify, and delete resources. One of the capabilities of the tool is to copy files to and from running containers (i.e., kubectl cp). The command uses the ""tar"" command of the container to copy files from the container to the host executing the ""kubectl cp"" command. If the ""tar"" command on the container has been replaced by a malicious user, the command can copy files anywhere on the host machine. This flaw has been fixed in later versions of the tool. It is recommended to use kubectl versions newer than 1.12.9.","000213"
+(CUI),"CAT 1","CNTR-K8-000440","V-242397","SRG-APP-000033-CTR-000090","SV-242397r1137638_rule","The Kubernetes kubelet staticPodPath must not enable static pods.","If staticPodPath is missing in the Kubelet config and in the systemd arguments, the node does not support static pods.
+
+1. To find the staticPodPath setting on Kubernetes worker nodes, follow these steps:
+
+ a. On the Worker nodes, run the command:
+     ps -ef | grep kubelet
+
+b. Note the path to the Kubelet configuration file (identified by --config).
+    (ls /var/lib/kubelet/config.yaml is the common location.)
+
+c. Run the command:
+    grep -i staticPodPath <path_to_config_file>
+
+If any of the Worker nodes return a value for ""staticPodPath"", this is a finding.
+
+If staticPodPath is not in the config file, check if it is set as a command-line argument.
+
+2. Check Kubelet Systemd Service Arguments.
+
+a. Run the following command to check the Kubelet service:
+    sudo systemctl cat kubelet | grep pod-manifest-path
+
+If there is no output, staticPodPath is not set in systemd arguments.
+
+If there is any return, this is a finding.
+
+(Example Return:ExecStart=/usr/bin/kubelet --pod-manifest-path=/etc/kubernetes/manifests
+This means static pods are defined in /etc/kubernetes/manifests.)","1. Remove staticPodPath setting on Kubernetes worker nodes:
+
+a. On each Worker node, run the command:
+    ps -ef | grep kubelet
+
+b. Note the path to the config file (identified by --config).
+
+c. Edit the Kubernetes kubelet file in the --config directory on the Worker nodes. Remove the setting ""staticPodPath"".
+
+d. Restart the kubelet service using the following command:
+    systemctl daemon-reload && systemctl restart kubelet
+
+2. Remove Kubelet Systemd Service Arguments:
+
+a. Modify the systemd Service File. Run the command:
+    sudo systemctl edit --full kubelet
+
+(Example Return:ExecStart=/usr/bin/kubelet --pod-manifest-path=/etc/kubernetes/manifests)
+
+b. Find and remove --pod-manifest-path.
+
+c. Save and exit the editor.
+
+d. Restart the kubelet service using the following command:
+    systemctl daemon-reload && systemctl restart kubelet","Allowing kubelet to set a staticPodPath gives containers with root access permissions to traverse the hosting filesystem. The danger comes when the container can create a manifest file within the /etc/kubernetes/manifests directory. When a manifest is created within this directory, containers are entirely governed by the Kubelet not the API Server. The container is not susceptible to admission control at all. Any containers or pods instantiated in this manner are called ""static pods"" and are meant to be used for pods such as the API server, scheduler, controller, etc., not workload pods that need to be governed by the API Server.","000213"
+(CUI),"CAT 2","CNTR-K8-000450","V-242398","SRG-APP-000033-CTR-000100","SV-242398r1137640_rule","Kubernetes DynamicAuditing must not be enabled.","On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+Review the feature-gates setting, if one is returned.
+
+If the feature-gates setting is available and contains the DynamicAuditing flag set to ""true"", this is a finding.
+
+On each Control Plane and Worker node, run the command:
+ps -ef | grep kubelet
+
+If the ""--feature-gates"" option exists, this is a finding. 
+
+Note the path to the config file (identified by: --config).
+
+Inspect the content of the config file:
+If the ""featureGates"" setting is present and has the ""DynamicAuditing"" flag set to ""true"", this is a finding.","On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+If any ""--feature-gates"" setting is available and contains the ""DynamicAuditing"" flag, remove the flag or set it to false.
+
+On the each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--feature-gates option"" if present.
+
+Note the path to the config file (identified by: --config).
+
+Edit the Kubernetes Kubelet config file: 
+If the ""featureGates"" setting is present, remove the ""DynamicAuditing"" flag or set the flag to false.
+
+Restart the kubelet service using the following command:
+service kubelet restart","Protecting the audit data from change or deletion is important when an attack occurs. One way an attacker can cover their tracks is to change or delete audit records. This will either make the attack unnoticeable or make it more difficult to investigate how the attack took place and what changes were made. The audit data can be protected through audit log file protections and user authorization.
+
+One way for an attacker to thwart these measures is to send the audit logs to another source and filter the audited results before sending them on to the original target. This can be done in Kubernetes through the configuration of dynamic audit webhooks through the DynamicAuditing flag.","000213"
+(CUI),"CAT 2","CNTR-K8-000460","V-242399","SRG-APP-000033-CTR-000095","SV-242399r1137639_rule","Kubernetes DynamicKubeletConfig must not be enabled.","This check is only applicable for Kubernetes versions 1.25 and older.  
+
+On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+In each manifest file, if the feature-gates does not exist, or does not contain the ""DynamicKubeletConfig"" flag, or sets the flag to ""true"", this is a finding.
+
+On each Control Plane and Worker node, run the command:
+ps -ef | grep kubelet
+
+Verify the ""feature-gates"" option is not present.
+
+Note the path to the config file (identified by --config).
+
+Inspect the content of the config file:
+If the ""featureGates"" setting is not present, or does not contain the ""DynamicKubeletConfig"", or sets the flag to ""true"", this is a finding.","This fix is only applicable to Kubernetes version 1.25 and older.
+
+On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+Edit the manifest files so that every manifest has a ""--feature-gates"" setting with ""DynamicKubeletConfig=false"".
+
+On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+Remove the ""feature-gates"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the config file: 
+Add a ""featureGates"" setting if one does not yet exist. Add the feature gate ""DynamicKubeletConfig=false"".
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","Kubernetes allows a user to configure kubelets with dynamic configurations. When dynamic configuration is used, the kubelet will watch for changes to the configuration file. When changes are made, the kubelet will automatically restart. Allowing this capability bypasses access restrictions and authorizations. Using this capability, an attacker can lower the security posture of the kubelet, which includes allowing the ability to run arbitrary commands in any container running on that node.","000213"
+(CUI),"CAT 2","CNTR-K8-000470","V-242400","SRG-APP-000033-CTR-000090","SV-242400r1137638_rule","The Kubernetes API server must have Alpha APIs disabled.","On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+Review the ""--feature-gates"" setting, if one is returned.
+
+If the ""--feature-gate""s setting is available and contains the ""AllAlpha"" flag set to ""true"", this is a finding.","Edit any manifest file that contains the ""--feature-gates"" setting with ""AllAlpha"" set to ""true"".
+
+Set the value of ""AllAlpha"" to ""false"" or remove the setting completely. (AllAlpha - default=false)","Kubernetes allows alpha API calls within the API server. The alpha features are disabled by default since they are not ready for production and likely to change without notice. These features may also contain security issues that are rectified as the feature matures. To keep the Kubernetes cluster secure and stable, these alpha features must not be used.","000213"
+(CUI),"CAT 2","CNTR-K8-000610","V-242402","SRG-APP-000092-CTR-000165","SV-242402r960888_rule","The Kubernetes API Server must have an audit log path set.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-log-path * 
+
+If the ""--audit-log-path"" is not set, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--audit-log-path"" to a secure location for the audit logs to be written.
+
+Note: If the API server is running as a Pod, then the manifest will also need to be updated to mount the host system filesystem where the audit log file is to be written.","When Kubernetes is started, components and user services are started for auditing startup events, and events for components and services, it is important that auditing begin on startup. Within Kubernetes, audit data for all components is generated by the API server. To enable auditing to begin, an audit policy must be defined for the events and the information to be stored with each event. It is also necessary to give a secure location where the audit logs are to be stored. If an audit log path is not specified, all audit data is sent to studio.","001464"
+(CUI),"CAT 2","CNTR-K8-000700","V-242403","SRG-APP-000026-CTR-000070","SV-242403r986135_rule","Kubernetes API Server must generate audit records that identify what type of event has occurred, identify the source of the event, contain the event results, identify any users, and identify any containers associated with the event.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-policy-file 
+
+If the audit-policy-file is not set, this is a finding. 
+
+The file given is the policy file and defines what is audited and what information is included with each event.
+
+The policy file must look like this:
+
+# Log all requests at the RequestResponse level.
+apiVersion: audit.k8s.io/vX (Where X is the latest apiVersion)
+kind: Policy
+rules:
+- level: RequestResponse
+
+If the audit policy file does not look like above, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of  ""--audit-policy-file"" to the path of a file with the following content:
+    
+    # Log all requests at the RequestResponse level.
+    apiVersion: audit.k8s.io/vX (Where X is the latest apiVersion)
+    kind: Policy
+    rules:
+    - level: RequestResponse
+
+Note: If the API server is running as a Pod, then the manifest will also need to be updated to mount the host system filesystem where the audit policy file resides.","Within Kubernetes, audit data for all components is generated by the API server. This audit data is important when there are issues, to include security incidents that must be investigated. To make the audit data worthwhile for the investigation of events, it is necessary to have the appropriate and required data logged. To fully understand the event, it is important to identify any users associated with the event. 
+
+The API server policy file allows for the following levels of auditing:
+      None - Do not log events that match the rule.
+      Metadata - Log request metadata (requesting user, timestamp, resource, verb, etc.) but not request or response body.
+      Request - Log event metadata and request body but not response body.
+      RequestResponse - Log event metadata, request, and response bodies.
+
+Satisfies: SRGID:SRG-APP-000092-CTR-000165, SRG-APP-000026-CTR-000070, SRG-APP-000027-CTR-000075, SRG-APP-000028-CTR-000080, SRG-APP-000101-CTR-000205, SRG-APP-000100-CTR-000200, SRG-APP-000100-CTR-000195, SRG-APP-000099-CTR-000190, SRG-APP-000098-CTR-000185, SRG-APP-000095-CTR-000170, SRG-APP-000096-CTR-000175, SRG-APP-000097-CTR-000180, SRG-APP-000507-CTR-001295, SRG-APP-000504-CTR-001280, SRG-APP-000503-CTR-001275, SRG-APP-000501-CTR-001265, SRG-APP-000500-CTR-001260, SRG-APP-000497-CTR-001245, SRG-APP-000496-CTR-001240, SRG-APP-000493-CTR-001225, SRG-APP-000492-CTR-001220, SRG-APP-000343-CTR-000780, SRG-APP-000381-CTR-000905","000018
+000130
+000131
+000132
+000133
+000134
+000135
+000172
+001403
+001404
+001487
+002264"
+(CUI),"CAT 2","CNTR-K8-000850","V-242404","SRG-APP-000133-CTR-000290","SV-242404r960960_rule","Kubernetes Kubelet must deny hostname override.","On the Control Plane and Worker nodes, run the command:
+ps -ef | grep kubelet
+
+If the option ""--hostname-override"" is present, this is a finding.","Run the command:  
+systemctl status kubelet.  
+Note the path to the drop-in file.
+
+Determine the path to the environment file(s) with the command: 
+grep -i EnvironmentFile <path_to_drop_in_file>.
+
+Remove the ""--hostname-override"" option from any environment file where it is present.  
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","Kubernetes allows for the overriding of hostnames. Allowing this feature to be implemented within the kubelets may break the TLS setup between the kubelet service and the API server. This setting also can make it difficult to associate logs with nodes if security analytics needs to take place. The better practice is to setup nodes with resolvable FQDNs and avoid overriding the hostnames.","001499"
+(CUI),"CAT 2","CNTR-K8-000860","V-242405","SRG-APP-000133-CTR-000295","SV-242405r960960_rule","The Kubernetes manifests must be owned by root.","On the Control Plane, change to the /etc/kubernetes/manifest directory. Run the command:
+ls -l *
+
+Each manifest file must be owned by root:root.
+
+If any manifest file is not owned by root:root, this is a finding.","On the Control Plane, change to the /etc/kubernetes/manifest directory. Run the command:
+chown root:root *
+
+To verify the change took place, run the command:
+ls -l *
+
+All the manifest files should be owned by root:root.","The manifest files contain the runtime configuration of the API server, proxy, scheduler, controller, and etcd. If an attacker can gain access to these files, changes can be made to open vulnerabilities and bypass user authorizations inherit within Kubernetes with RBAC implemented.","001499"
+(CUI),"CAT 2","CNTR-K8-000880","V-242406","SRG-APP-000133-CTR-000300","SV-242406r960960_rule","The Kubernetes KubeletConfiguration file must be owned by root.","On the Kubernetes Control Plane and Worker nodes, run the command:
+ps -ef | grep kubelet
+
+Check the config file (path identified by: --config):
+
+Change to the directory identified by --config (example /etc/sysconfig/) run the command:
+ls -l kubelet
+
+Each kubelet configuration file must be owned by root:root.
+
+If any manifest file is not owned by root:root, this is a finding.","On the Control Plane and Worker nodes, change to the --config directory. Run the command:
+chown root:root kubelet
+
+To verify the change took place, run the command:
+ls -l kubelet
+
+The kubelet file should now be owned by root:root.","The kubelet configuration file contains the runtime configuration of the kubelet service. If an attacker can gain access to this file, changes can be made to open vulnerabilities and bypass user authorizations inherent within Kubernetes with RBAC implemented.","001499"
+(CUI),"CAT 2","CNTR-K8-000890","V-242407","SRG-APP-000133-CTR-000305","SV-242407r960960_rule","The Kubernetes KubeletConfiguration files must have file permissions set to 644 or more restrictive.","On the Kubernetes Control Plane and Worker nodes, run the command:
+ps -ef | grep kubelet
+
+Check the config file (path identified by: --config):
+
+Change to the directory identified by --config (example /etc/sysconfig/) and run the command:
+ls -l kubelet
+
+Each KubeletConfiguration file must have permissions of ""644"" or more restrictive.
+
+If any KubeletConfiguration file is less restrictive than ""644"", this is a finding.","On the Kubernetes Control Plane and Worker nodes, run the command:
+ps -ef | grep kubelet
+
+Check the config file (path identified by: --config):
+
+Change to the directory identified by --config (example /etc/sysconfig/) and run the command:
+chmod 644 kubelet
+
+To verify the change took place, run the command:
+ls -l kubelet
+
+The kubelet file should now have the permissions of ""644"".","The kubelet configuration file contains the runtime configuration of the kubelet service. If an attacker can gain access to this file, changes can be made to open vulnerabilities and bypass user authorizations inherit within Kubernetes with RBAC implemented.","001499"
+(CUI),"CAT 2","CNTR-K8-000900","V-242408","SRG-APP-000133-CTR-000310","SV-242408r960960_rule","The Kubernetes manifest files must have least privileges.","On both Control Plane and Worker Nodes, change to the /etc/kubernetes/manifest directory. Run the command:
+ls -l *
+
+Each manifest file must have permissions ""644"" or more restrictive.
+
+If any manifest file is less restrictive than ""644"", this is a finding.","On both Control Plane and Worker Nodes, change to the /etc/kubernetes/manifest directory. Run the command:
+chmod 644 *
+
+To verify the change took place, run the command:
+ls -l *
+
+All the manifest files should now have privileges of ""644"".","The manifest files contain the runtime configuration of the API server, scheduler, controller, and etcd. If an attacker can gain access to these files, changes can be made to open vulnerabilities and bypass user authorizations inherent within Kubernetes with RBAC implemented.
+
+Satisfies: SRG-APP-000133-CTR-000310, SRG-APP-000133-CTR-000295, SRG-APP-000516-CTR-001335","000366
+001499"
+(CUI),"CAT 2","CNTR-K8-000910","V-242409","SRG-APP-000141-CTR-000315","SV-242409r960963_rule","Kubernetes Controller Manager must disable profiling.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i profiling * 
+
+If the setting ""profiling"" is not configured in the Kubernetes Controller Manager manifest file or it is set to ""True"", this is a finding.","Edit the Kubernetes Controller Manager manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the argument ""--profiling value"" to ""false"".","Kubernetes profiling provides the ability to analyze and troubleshoot Controller Manager events over a web interface on a host port. Enabling this service can expose details about the Kubernetes architecture. This service must not be enabled unless deemed necessary.","000381"
+(CUI),"CAT 2","CNTR-K8-000920","V-242410","SRG-APP-000142-CTR-000325","SV-242410r1043177_rule","The Kubernetes API Server must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep kube-apiserver.manifest -I -secure-port *
+grep kube-apiserver.manifest -I -etcd-servers *
+-edit manifest file:
+VIM <Manifest Name>
+Review livenessProbe:
+HttpGet:
+Port:
+Review ports:
+- containerPort:
+hostPort:
+- containerPort:
+hostPort:
+
+Run command: 
+kubectl describe services --all-namespaces 
+Search labels for any apiserver namespaces.
+Port:
+
+Any manifest and namespace PPS or services configuration not in compliance with PPSM CAL is a finding.
+
+Review the information systems documentation and interview the team, gain an understanding of the API Server architecture, and determine applicable PPS. If there are any PPS in the system documentation not in compliance with the CAL PPSM, this is a finding. Any PPS not set in the system documentation is a finding.
+
+Review findings against the most recent PPSM CAL:
+https://cyber.mil/ppsm/cal/
+
+Verify API Server network boundary with the PPS associated with the CAL Assurance Categories. Any PPS not in compliance with the CAL Assurance Category requirements is a finding.","Amend any system documentation requiring revision to comply with PPSM CAL. 
+
+Update Kubernetes API Server manifest and namespace PPS configuration to comply with PPSM CAL.","Kubernetes API Server PPSs must be controlled and conform to the PPSM CAL. Those PPS that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can be found in DoD Instruction 8551.01 Policy.","000382"
+(CUI),"CAT 2","CNTR-K8-000930","V-242411","SRG-APP-000142-CTR-000325","SV-242411r1043177_rule","The Kubernetes Scheduler must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep kube-scheduler.manifest -I -insecure-port
+                grep kube-scheduler.manifest -I -secure-port
+-edit manifest file:
+VIM <Manifest Name>
+Review  livenessProbe:
+HttpGet:
+Port:
+Review ports:
+- containerPort:
+       hostPort:
+- containerPort:
+       hostPort:
+
+Run Command: 
+kubectl describe services --all-namespaces 
+Search labels for any scheduler namespaces.
+Port:
+
+Any manifest and namespace PPS configuration not in compliance with PPSM CAL is a finding.
+
+Review the information systems documentation and interview the team, gain an understanding of the Scheduler architecture, and determine applicable PPS. Any PPS in the system documentation not in compliance with the CAL PPSM is a finding. Any PPSs not set in the system documentation is a finding.
+
+Review findings against the most recent PPSM CAL:
+https://cyber.mil/ppsm/cal/
+
+Verify Scheduler network boundary with the PPS associated with the CAL Assurance Categories. Any PPS not in compliance with the CAL Assurance Category requirements is a finding.","Amend any system documentation requiring revision to comply with the PPSM CAL. 
+
+Update Kubernetes Scheduler manifest and namespace PPS configuration to comply with the PPSM CAL.","Kubernetes Scheduler PPS must be controlled and conform to the PPSM CAL. Those ports, protocols, and services that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can be found in DoD Instruction 8551.01 Policy.","000382"
+(CUI),"CAT 2","CNTR-K8-000940","V-242412","SRG-APP-000142-CTR-000330","SV-242412r1043177_rule","The Kubernetes Controllers must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command: 
+grep kube-conntroller-manager.manifest -I -secure-port
+
+-Review manifest file by executing the following:
+VIM <Manifest Name>:
+Review  livenessProbe:
+HttpGet:
+Port:
+Review ports:
+- containerPort:
+       hostPort:
+- containerPort:
+       hostPort:
+
+Run Command: 
+kubectl describe services --all-namespaces 
+Search labels for any controller namespaces.
+
+Any manifest and namespace PPS or services configuration not in compliance with PPSM CAL is a finding.
+
+Review the information systems documentation and interview the team, gain an understanding of the Controller architecture, and determine applicable PPS. Any PPS in the system documentation not in compliance with the CAL PPSM is a finding. Any PPS not set in the system documentation is a finding.
+
+Review findings against the most recent PPSM CAL:
+https://cyber.mil/ppsm/cal/
+
+Verify Controller network boundary with the PPS associated with the Controller for Assurance Categories. Any PPS not in compliance with the CAL Assurance Category requirements is a finding.","Amend any system documentation requiring revision to comply with the PPSM CAL. 
+
+Update Kubernetes Controller manifest and namespace PPS configuration to comply with PPSM CAL.","Kubernetes Controller ports, protocols, and services must be controlled and conform to the PPSM CAL. Those PPS that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can be found in DoD Instruction 8551.01 Policy.","000382"
+(CUI),"CAT 2","CNTR-K8-000950","V-242413","SRG-APP-000142-CTR-000325","SV-242413r1043177_rule","The Kubernetes etcd must enforce ports, protocols, and services (PPS) that adhere to the Ports, Protocols, and Services Management Category Assurance List (PPSM CAL).","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep kube-apiserver.manifest -I -etcd-servers *
+-edit etcd-main.manifest file:
+VIM <Manifest Name:
+Review  livenessProbe:
+HttpGet:
+Port:
+Review ports:
+- containerPort:
+       hostPort:
+- containerPort:
+       hostPort:
+Run Command:
+kubectl describe services –all-namespace
+Search labels for any apiserver names spaces.
+Port:
+
+Any manifest and namespace PPS configuration not in compliance with PPSM CAL is a finding.
+
+Review the information systems documentation and interview the team, gain an understanding of the etcd architecture, and determine applicable PPS. Any PPS in the system documentation not in compliance with the CAL PPSM is a finding. Any PPS not set in the system documentation is a finding.
+
+Review findings against the most recent PPSM CAL:
+https://cyber.mil/ppsm/cal/
+
+Verify etcd network boundary with the PPS associated with the CAL Assurance Categories. Any PPS not in compliance with the CAL Assurance Category requirements is a finding.","Amend any system documentation requiring revision. Update Kubernetes etcd manifest and namespace PPS configuration to comply with PPSM CAL.","Kubernetes etcd PPS must be controlled and conform to the PPSM CAL. Those PPS that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can be found in DoD Instruction 8551.01 Policy.","000382"
+(CUI),"CAT 2","CNTR-K8-000960","V-242414","SRG-APP-000142-CTR-000330","SV-242414r1043177_rule","The Kubernetes cluster must use non-privileged host ports for user pods.","On the Control Plane, run the command:
+kubectl get pods --all-namespaces
+
+The list returned is all pods running within the Kubernetes cluster. For those pods running within the user namespaces (System namespaces are kube-system, kube-node-lease and kube-public), run the command:
+kubectl get pod podname -o yaml | grep -i port
+
+Note: In the above command, ""podname"" is the name of the pod. For the command to work correctly, the current context must be changed to the namespace for the pod. The command to do this is:
+
+kubectl config set-context --current --namespace=namespace-name
+(Note: ""namespace-name"" is the name of the namespace.)
+
+Review the ports that are returned for the pod.
+
+If any host-privileged ports are returned for any of the pods, this is a finding.","For any of the pods that are using host-privileged ports, reconfigure the pod to use a service to map a host non-privileged port to the pod port or reconfigure the image to use non-privileged ports.","Privileged ports are those ports below 1024 and that require system privileges for their use. If containers can use these ports, the container must be run as a privileged user. Kubernetes must stop containers that try to map to these ports directly. Allowing non-privileged ports to be mapped to the container-privileged port is the allowable method when a certain port is needed. An example is mapping port 8080 externally to port 80 in the container.","000382"
+(CUI),"CAT 1","CNTR-K8-001160","V-242415","SRG-APP-000171-CTR-000435","SV-242415r1069466_rule","Secrets in Kubernetes must not be stored as environment variables.","Follow these steps to check, from the Kubernetes control plane, if secrets are stored as environment variables.
+
+1. Find All Pods Using Secrets in Environment Variables.
+
+To list all pods using secrets as environment variables, execute:
+
+kubectl get pods --all-namespaces -o yaml | grep -A5 ""secretKeyRef""
+
+If any of the values returned reference environment variables, this is a finding.
+
+2. Check Environment Variables in a Specific Pod.
+
+To check if a specific pod is using secrets as environment variables, execute:
+
+kubectl get pods -n <namespace>
+(Replace <namespace> with the actual namespace, or omit -n <namespace> to check in the default namespace.)
+kubectl describe pod <pod-name> -n <namespace> | grep -A5 ""Environment:""
+
+If secrets are used, output like the following will be displayed:
+
+Environment:
+  SECRET_USERNAME:   <set from secret: my-secret key: username>
+  SECRET_PASSWORD:   <set from secret: my-secret key: password>
+
+If the output is similar to this, the pod is using Kubernetes secrets as environment variables, and this is a finding.
+
+3. Check the Pod YAML for Secret Usage.
+
+To check the full YAML definition for environment variables, execute:
+
+kubectl get pod <pod-name> -n <namespace> -o yaml | grep -A5 ""env:""
+
+Example output:
+yaml
+CopyEdit
+env:
+  - name: SECRET_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: my-secret
+        key: username
+
+This means the pod is pulling the secret named my-secret and setting SECRET_USERNAME from its username key.
+
+If the pod is pulling a secret and setting an environment variable in the ""env:"", this is a finding.
+
+4. Check Secrets in a Deployment, StatefulSet, or DaemonSet.
+
+If the pod is managed by a Deployment, StatefulSet, or DaemonSet, check their configurations:
+
+kubectl get deployment <deployment-name> -n <namespace> -o yaml | grep -A5 ""env:""
+
+or
+
+For all Deployments in all namespaces:
+
+kubectl get deployments --all-namespaces -o yaml | grep -A5 ""env:""
+
+If the pod is pulling a secret and setting an environment variable in the ""env:"", this is a finding.
+
+5. Check Environment Variables Inside a Running Pod.
+
+If needed, check the environment variables inside a running pod:
+
+kubectl exec -it <pod-name> -n <namespace> -- env | grep SECRET
+
+If any of the values returned reference environment variables, this is a finding.","Any secrets stored as environment variables must be moved to the secret files with the proper protections and enforcements or placed within a password vault.","Secrets, such as passwords, keys, tokens, and certificates must not be stored as environment variables. These environment variables are accessible inside Kubernetes by the ""Get Pod"" API call, and by any system, such as CI/CD pipeline, which has access to the definition file of the container. Secrets must be mounted from files or stored within password vaults.","004062"
+(CUI),"CAT 2","CNTR-K8-001360","V-242417","SRG-APP-000211-CTR-000530","SV-242417r1137643_rule","Kubernetes must separate user functionality.","On the Control Plane, run the command:
+kubectl get pods --all-namespaces
+
+Review the namespaces and pods that are returned. Kubernetes system namespaces are kube-node-lease, kube-public, and kube-system.
+
+If any user pods are present in the Kubernetes system namespaces, this is a finding.","Move any user pods that are present in the Kubernetes system namespaces to user specific namespaces.","Separating user functionality from management functionality is a requirement for all the components within the Kubernetes Control Plane. Without the separation, users may have access to management functions that can degrade the Kubernetes architecture and the services being offered, and can offer a method to bypass testing and validation of functions before introduced into a production environment.","001082"
+(CUI),"CAT 2","CNTR-K8-001400","V-242418","SRG-APP-000219-CTR-000550","SV-242418r1043178_rule","The Kubernetes API server must use approved cipher suites.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i tls-cipher-suites *
+
+If the setting feature tls-cipher-suites is not set in the Kubernetes API server manifest file or contains no value or does not contain TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--tls-cipher-suites"" to:
+""TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384""","The Kubernetes API server communicates to the kubelet service on the nodes to deploy, update, and delete resources. If an attacker were able to get between this communication and modify the request, the Kubernetes cluster could be compromised. Using approved cypher suites for the communication ensures the protection of the transmitted information, confidentiality, and integrity so that the attacker cannot read or alter this communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001410","V-242419","SRG-APP-000219-CTR-000550","SV-242419r1043178_rule","Kubernetes API Server must have the SSL Certificate Authority set.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i client-ca-file *
+
+If the setting feature client-ca-file is not set in the Kubernetes API server manifest file or contains no value, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--client-ca-file"" to path containing Approved Organizational Certificate.","Kubernetes control plane and external communication are managed by API Server. The main implementation of the API Server is to manage hardware resources for pods and containers using horizontal or vertical scaling. Anyone who can access the API Server can effectively control the Kubernetes architecture. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols such as TLS. TLS provides the Kubernetes API Server with a means to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for API Server, the parameter client-ca-file must be set. This parameter gives the location of the SSL Certificate Authority file used to secure API Server communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001420","V-242420","SRG-APP-000219-CTR-000550","SV-242420r1043178_rule","Kubernetes Kubelet must have the SSL Certificate Authority set.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+If the ""--client-ca-file"" option exists, this is a finding.
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i clientCAFile <path_to_config_file>
+
+If the setting ""clientCAFile"" is not set or contains no value, this is a finding.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--client-ca-file"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the Kubernetes Kubelet config file: 
+Set the value of ""clientCAFile"" to a path containing an Approved Organizational Certificate. 
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","Kubernetes container and pod configuration are maintained by Kubelet. Kubelet agents register nodes with the API Server, mount volume storage, and perform health checks for containers and pods. Anyone who gains access to Kubelet agents can effectively control applications within the pods and containers. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols such as TLS. TLS provides the Kubernetes API Server with a means to authenticate sessions and encrypt traffic.
+
+To enable encrypted communication for Kubelet, the clientCAFile must be set. This parameter gives the location of the SSL Certificate Authority file used to secure Kubelet communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001430","V-242421","SRG-APP-000219-CTR-000550","SV-242421r1043178_rule","Kubernetes Controller Manager must have the SSL Certificate Authority set.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i root-ca-file *
+
+If the setting ""--root-ca-file"" is not set in the Kubernetes Controller Manager manifest file or contains no value, this is a finding.","Edit the Kubernetes Controller Manager manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--root-ca-file"" to path containing Approved Organizational Certificate.","The Kubernetes Controller Manager is responsible for creating service accounts and tokens for the API Server, maintaining the correct number of pods for every replication controller and provides notifications when nodes are offline.  
+
+Anyone who gains access to the Controller Manager can generate backdoor accounts, take possession of, or diminish system performance without detection by disabling system notification. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes Controller Manager with a means to be able to authenticate sessions and encrypt traffic.","001184"
+(CUI),"CAT 2","CNTR-K8-001440","V-242422","SRG-APP-000219-CTR-000550","SV-242422r1043178_rule","Kubernetes API Server must have a certificate for communication.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i tls-cert-file *
+grep -i tls-private-key-file *
+
+If the setting tls-cert-file and private-key-file is not set in the Kubernetes API server manifest file or contains no value, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of tls-cert-file and tls-private-key-file to path containing Approved Organizational Certificate.","Kubernetes control plane and external communication is managed by API Server. The main implementation of the API Server is to manage hardware resources for pods and container using horizontal or vertical scaling. Anyone who can access the API Server can effectively control the Kubernetes architecture. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for API Server, the parameter etcd-cafile must be set. This parameter gives the location of the SSL Certificate Authority file used to secure API Server communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001450","V-242423","SRG-APP-000219-CTR-000550","SV-242423r1043178_rule","Kubernetes etcd must enable client authentication to secure service.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+grep -i client-cert-auth * 
+
+If the setting client-cert-auth is not configured in the Kubernetes etcd manifest file or set to ""false"", this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--client-cert-auth"" to ""true"" for the etcd.","Kubernetes container and pod configuration are maintained by Kubelet. Kubelet agents register nodes with the API Server, mount volume storage, and perform health checks for containers and pods. Anyone who gains access to Kubelet agents can effectively control applications within the pods and containers. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server with a means to be able to authenticate sessions and encrypt traffic.
+
+To enable encrypted communication for Kubelet, the parameter client-cert-auth must be set. This parameter gives the location of the SSL Certificate Authority file used to secure Kubelet communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001460","V-242424","SRG-APP-000219-CTR-000550","SV-242424r1043178_rule","Kubernetes Kubelet must enable tlsPrivateKeyFile for client authentication to secure service.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+If the ""--tls-private-key-file"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i tlsPrivateKeyFile <path_to_config_file>
+
+If the setting ""tlsPrivateKeyFile"" is not set or contains no value, this is a finding.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--tls-private-key-file"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the Kubernetes Kubelet config file: 
+Set ""tlsPrivateKeyFile"" to  a path containing the appropriate private key. 
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","Kubernetes container and pod configuration are maintained by Kubelet. Kubelet agents register nodes with the API Server, mount volume storage, and perform health checks for containers and pods. Anyone who gains access to Kubelet agents can effectively control applications within the pods and containers. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols such as TLS. TLS provides the Kubernetes API Server with a means to authenticate sessions and encrypt traffic.
+
+To enable encrypted communication for Kubelet, the tlsPrivateKeyFile must be set. This parameter gives the location of the SSL Certificate Authority file used to secure Kubelet communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001470","V-242425","SRG-APP-000219-CTR-000550","SV-242425r1043178_rule","Kubernetes Kubelet must enable tlsCertFile for client authentication to secure service.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+If the argument for ""--tls-cert-file"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i tlsCertFile <path_to_config_file>
+
+If the setting ""tlsCertFile"" is not set or contains no value, this is a finding.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--tls-cert-file"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the Kubernetes Kubelet config file: 
+Set ""tlsCertFile"" to a path containing an Approved Organization Certificate. 
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","Kubernetes container and pod configuration are maintained by Kubelet. Kubelet agents register nodes with the API Server, mount volume storage, and perform health checks for containers and pods. Anyone who gains access to Kubelet agents can effectively control applications within the pods and containers. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols such as TLS. TLS provides the Kubernetes API Server with a means to authenticate sessions and encrypt traffic.
+
+To enable encrypted communication for Kubelet, the parameter tlsCertFile must be set. This parameter gives the location of the SSL Certificate Authority file used to secure Kubelet communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001480","V-242426","SRG-APP-000219-CTR-000550","SV-242426r1043178_rule","Kubernetes etcd must enable client authentication to secure service.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i peer-client-cert-auth * 
+
+If the setting ""--peer-client-cert-auth"" is not configured in the Kubernetes etcd manifest file or set to ""false"", this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane.
+
+Set the value of ""--peer-client-cert-auth"" to ""true"" for the etcd.","Kubernetes container and pod configuration are maintained by Kubelet. Kubelet agents register nodes with the API Server, mount volume storage, and perform health checks for containers and pods. Anyone who gains access to Kubelet agents can effectively control applications within the pods and containers. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server with a means to be able to authenticate sessions and encrypt traffic.
+
+Etcd is a highly-available key value store used by Kubernetes deployments for persistent storage of all of its REST API objects. These objects are sensitive and should be accessible only by authenticated etcd peers in the etcd cluster. The parameter ""--peer-client-cert-auth"" must be set for etcd to check all incoming peer requests from the cluster for valid client certificates.","001184"
+(CUI),"CAT 2","CNTR-K8-001490","V-242427","SRG-APP-000219-CTR-000550","SV-242427r1043178_rule","Kubernetes etcd must have a key file for secure communication.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Run the command:
+    grep -i key-file *
+
+If the setting ""key-file"" is not configured in the etcd manifest  file, this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--key-file"" to the Approved Organizational Certificate.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control the Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter key-file must be set. This parameter gives the location of the key file used to secure etcd communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001500","V-242428","SRG-APP-000219-CTR-000550","SV-242428r1043178_rule","Kubernetes etcd must have a certificate for communication.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i cert-file * 
+
+If the setting ""cert-file"" is not configured in the Kubernetes etcd manifest file, this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--cert-file"" to the Approved Organizational Certificate.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control a Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter cert-file must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001510","V-242429","SRG-APP-000219-CTR-000550","SV-242429r1043178_rule","Kubernetes etcd must have the SSL Certificate Authority set.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i etcd-cafile * 
+
+If the setting ""--etcd-cafile"" is not configured in the Kubernetes API Server manifest file, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--etcd-cafile"" to the Certificate Authority for etcd.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control a Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter ""--etcd-cafile"" must be set. This parameter gives the location of the SSL Certificate Authority file used to secure etcd communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001520","V-242430","SRG-APP-000219-CTR-000550","SV-242430r1043178_rule","Kubernetes etcd must have a certificate for communication.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i etcd-certfile * 
+
+If the setting ""--etcd-certfile"" is not set in the Kubernetes API Server manifest file, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--etcd-certfile"" to the certificate to be used for communication with etcd.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control the Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter ""--etcd-certfile"" must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001530","V-242431","SRG-APP-000219-CTR-000550","SV-242431r1043178_rule","Kubernetes etcd must have a key file for secure communication.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i etcd-keyfile * 
+
+If the setting ""--etcd-keyfile"" is not configured in the Kubernetes API Server manifest file, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--etcd-keyfile"" to the certificate to be used for communication with etcd.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control a Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter ""--etcd-keyfile"" must be set. This parameter gives the location of the key file used to secure etcd communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001540","V-242432","SRG-APP-000219-CTR-000550","SV-242432r1043178_rule","Kubernetes etcd must have peer-cert-file set for secure communication.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i peer-cert-file * 
+
+If the setting ""peer-cert-file"" is not configured in the Kubernetes etcd manifest file, this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--peer-cert-file"" to the certificate to be used for communication with etcd.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control the Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter peer-cert-file must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.","001184"
+(CUI),"CAT 2","CNTR-K8-001550","V-242433","SRG-APP-000219-CTR-000550","SV-242433r1043178_rule","Kubernetes etcd must have a peer-key-file set for secure communication.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i peer-key-file *
+
+If the setting ""peer-key-file"" is not set in the Kubernetes etcd manifest file, this is a finding.","Edit the Kubernetes etcd manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--peer-key-file"" to the certificate to be used for communication with etcd.","Kubernetes stores configuration and state information in a distributed key-value store called etcd. Anyone who can write to etcd can effectively control a Kubernetes cluster. Even just reading the contents of etcd could easily provide helpful hints to a would-be attacker. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with a means to be able to authenticate sessions and encrypt traffic. 
+
+To enable encrypted communication for etcd, the parameter peer-key-file must be set. This parameter gives the location of the SSL certification file used to secure etcd communication.","001184"
+(CUI),"CAT 1","CNTR-K8-001620","V-242434","SRG-APP-000233-CTR-000585","SV-242434r961131_rule","Kubernetes Kubelet must enable kernel protection.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+If the ""--protect-kernel-defaults"" option exists, this is a finding.
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i protectKernelDefaults <path_to_config_file>
+
+If the setting ""protectKernelDefaults"" is not set or is set to false, this is a finding.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--protect-kernel-defaults"" option if present.
+
+Note the path to the Kubernetes Kubelet config file (identified by --config).
+
+Edit the Kubernetes Kubelet config file: 
+Set ""protectKernelDefaults"" to ""true"". 
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","System kernel is responsible for memory, disk, and task management. The kernel provides a gateway between the system hardware and software. Kubernetes requires kernel access to allocate resources to the Control Plane. Threat actors that penetrate the system kernel can inject malicious code or hijack the Kubernetes architecture. It is vital to implement protections through Kubernetes components to reduce the attack surface.","001084"
+(CUI),"CAT 1","CNTR-K8-002000","V-242436","SRG-APP-000342-CTR-000775","SV-242436r961359_rule","The Kubernetes API server must have the ValidatingAdmissionWebhook enabled.","Prior to version 1.21, to enforce security policiesPod Security Policies (psp) were used. Those are now deprecated and will be removed from version 1.25.
+
+Migrate from PSP to PSA:
+https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/ 
+
+Pre-version 1.25 Check:
+Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i ValidatingAdmissionWebhook * 
+
+If a line is not returned that includes enable-admission-plugins and ValidatingAdmissionWebhook, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the argument ""--enable-admission-plugins"" to include ""ValidatingAdmissionWebhook"".  Each enabled plugin is separated by commas.
+
+Note: It is best to implement policies first and then enable the webhook, otherwise a denial of service may occur.","Enabling the admissions webhook allows for Kubernetes to apply policies against objects that are to be created, read, updated, or deleted. By applying a pod security policy, control can be given to not allow images to be instantiated that run as the root user. If pods run as the root user, the pod then has root privileges to the host system and all the resources it has. An attacker can use this to attack the Kubernetes cluster. By implementing a policy that does not allow root or privileged pods, the pod users are limited in what the pod can do and access.","002263"
+(CUI),"CAT 1","CNTR-K8-002010","V-242437","SRG-APP-000342-CTR-000775","SV-242437r961359_rule","Kubernetes must have a pod security policy set.","Prior to version 1.21, to enforce security policiesPod Security Policies (psp) were used. Those are now deprecated and will be removed from version 1.25.
+
+Migrate from PSP to PSA:
+https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/ 
+
+Pre-version 1.25 Check:
+On the Control Plane, run the command:
+kubectl get podsecuritypolicy
+
+If there is no pod security policy configured, this is a finding. 
+
+For any pod security policies listed, edit the policy with the command:
+kubectl edit podsecuritypolicy policyname
+(Note: ""policyname"" is the name of the policy.)
+
+Review the runAsUser, supplementalGroups and fsGroup sections of the policy.
+
+If any of these sections are missing, this is a finding.
+
+If the rule within the runAsUser section is not set to ""MustRunAsNonRoot"", this is a finding.
+
+If the ranges within the supplementalGroups section has min set to ""0"" or min is missing, this is a finding.
+
+If the ranges within the fsGroup section has a min set to ""0"" or the min is missing, this is a finding.","From the Control Plane, save the following policy to a file called restricted.yml.
+
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+name: restricted
+annotations:
+apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default',
+seccomp.security.alpha.kubernetes.io/defaultProfileName: 'runtime/default',
+apparmor.security.beta.kubernetes.io/defaultProfileName: 'runtime/default'
+spec:
+privileged: false
+# Required to prevent escalations to root.
+allowPrivilegeEscalation: false
+# This is redundant with non-root + disallow privilege escalation,
+# but we can provide it for defense in depth.
+requiredDropCapabilities:
+- ALL
+# Allow core volume types.
+volumes:
+- 'configMap'
+- 'emptyDir'
+- 'projected'
+- 'secret'
+- 'downwardAPI'
+# Assume that persistentVolumes set up by the cluster admin are safe to use.
+- 'persistentVolumeClaim'
+hostNetwork: false
+hostIPC: false
+hostPID: false
+runAsUser:
+# Require the container to run without root privileges.
+rule: 'MustRunAsNonRoot'
+seLinux:
+# This policy assumes the nodes are using AppArmor rather than SELinux.
+rule: 'RunAsAny'
+supplementalGroups:
+rule: 'MustRunAs'
+ranges:
+# Forbid adding the root group.
+- min: 1
+max: 65535
+fsGroup:
+rule: 'MustRunAs'
+ranges:
+# Forbid adding the root group.
+- min: 1
+max: 65535
+readOnlyRootFilesystem: false
+
+To implement the policy, run the command:
+kubectl create -f restricted.yml","Enabling the admissions webhook allows for Kubernetes to apply policies against objects that are to be created, read, updated, or deleted. By applying a pod security policy, control can be given to not allow images to be instantiated that run as the root user. If pods run as the root user, the pod then has root privileges to the host system and all the resources it has. An attacker can use this to attack the Kubernetes cluster. By implementing a policy that does not allow root or privileged pods, the pod users are limited in what the pod can do and access.","002263"
+(CUI),"CAT 2","CNTR-K8-002600","V-242438","SRG-APP-000435-CTR-001070","SV-242438r961620_rule","Kubernetes API Server must configure timeouts to limit attack surface.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -I request-timeout * 
+
+If Kubernetes API Server manifest file does not exist, this is a finding. 
+
+If the setting ""--request-timeout"" is set to ""0"" in the Kubernetes API Server manifest file, or is not configured this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--request-timeout"" greater than ""0"".","Kubernetes API Server request timeouts sets the duration a request stays open before timing out. Since the API Server is the central component in the Kubernetes Control Plane, it is vital to protect this service. If request timeouts were not set, malicious attacks or unwanted activities might affect multiple deployments across different applications or environments. This might deplete all resources from the Kubernetes infrastructure causing the information system to go offline. The ""--request-timeout"" value must never be set to ""0"". This disables the request-timeout feature. (By default, the ""--request-timeout"" is set to ""1 minute"".)","002415"
+(CUI),"CAT 2","CNTR-K8-002700","V-242442","SRG-APP-000454-CTR-001110","SV-242442r1188293_rule","Kubernetes must remove old components after updated versions have been installed.","To view all pods and the images used to create the pods, from the Control Plane, run the following command:
+kubectl get pods --all-namespaces -o jsonpath=""{..image}"" | \
+tr -s '[[:space:]]' '\n' | \
+sort | \
+uniq -c
+
+Review the images used for pods running within Kubernetes.
+
+If there are multiple versions of the same image, this is a finding.","Remove any old pods that are using older images. On the Control Plane, run the command:
+kubectl delete pod podname
+(Note: ""podname"" is the name of the pod to delete.)","Previous versions of Kubernetes components that are not removed after updates have been installed may be exploited by adversaries by allowing the vulnerabilities to still exist within the cluster. It is important for Kubernetes to remove old pods when newer pods are created using new images to always be at the desired security state.","002617"
+(CUI),"CAT 2","CNTR-K8-002720","V-242443","SRG-APP-000456-CTR-001125","SV-242443r1137649_rule","Kubernetes must contain the latest updates as authorized by IAVMs, CTOs, DTMs, and STIGs.","Authenticate on the Kubernetes Control Plane. Run the command:
+kubectl version --short
+
+If kubectl version has a setting not supporting Kubernetes skew policy, this is a finding.
+
+Note: Kubernetes Skew Policy can be found at: https://kubernetes.io/docs/setup/release/version-skew-policy/#supported-versions","Upgrade Kubernetes to the supported version. Institute and adhere to the policies and procedures to ensure that patches are consistently applied within the time allowed.","Kubernetes software must stay up to date with the latest patches, service packs, and hot fixes. Not updating the Kubernetes control plane will expose the organization to vulnerabilities.
+
+Flaws discovered during security assessments, continuous monitoring, incident response activities, or information system error handling must also be addressed expeditiously. 
+
+Organization-defined time periods for updating security-relevant container platform components may vary based on a variety of factors including, for example, the security category of the information system or the criticality of the update (i.e., severity of the vulnerability related to the discovered flaw). 
+
+This requirement will apply to software patch management solutions that are used to install patches across the enclave and also to applications themselves that are not part of that patch management solution. For example, many browsers today provide the capability to install their own patch software. Patch criticality, as well as system criticality will vary. Therefore, the tactical situations regarding the patch management process will also vary. This means that the time period utilized must be a configurable parameter. Time frames for application of security-relevant software updates may be dependent upon the IAVM process.
+
+The container platform components will be configured to check for and install security-relevant software updates within an identified time period from the availability of the update. The container platform registry will ensure the images are current. The specific time period will be defined by an authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).","002635"
+(CUI),"CAT 2","CNTR-K8-003110","V-242444","SRG-APP-000516-CTR-001325","SV-242444r961863_rule","The Kubernetes component manifests must be owned by root.","Review the ownership of the Kubernetes manifests files by using the command:
+
+stat -c %U:%G /etc/kubernetes/manifests/* | grep -v root:root
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the manifest files to root: root by executing the command:
+
+chown root:root /etc/kubernetes/manifests/*","The Kubernetes manifests are those files that contain the arguments and settings for the Control Plane services. These services are etcd, the api server, controller, proxy, and scheduler. If these files can be changed, the scheduler will be implementing the changes immediately. Many of the security settings within the document are implemented through these manifests.","000366"
+(CUI),"CAT 2","CNTR-K8-003120","V-242445","SRG-APP-000516-CTR-001325","SV-242445r961863_rule","The Kubernetes component etcd must be owned by etcd.","Review the ownership of the Kubernetes etcd files by using the command:
+
+stat -c %U:%G /var/lib/etcd/* | grep -v etcd:etcd
+
+If the command returns any non etcd:etcd file permissions, this is a finding.","Change the ownership of the manifest files to etcd:etcd by executing the command:
+
+chown etcd:etcd /var/lib/etcd/*","The Kubernetes etcd key-value store provides a way to store data to the Control Plane. If these files can be changed, data to API object and the Control Plane would be compromised. The scheduler will implement the changes immediately. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003130","V-242446","SRG-APP-000516-CTR-001325","SV-242446r961863_rule","The Kubernetes conf files must be owned by root.","Review the Kubernetes conf files by using the command:
+
+stat -c %U:%G /etc/kubernetes/admin.conf | grep -v root:root
+stat -c %U:%G /etc/kubernetes/scheduler.conf | grep -v root:root
+stat -c %U:%G /etc/kubernetes/controller-manager.conf | grep -v root:root
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the conf files to root: root by executing the command:
+
+chown root:root /etc/kubernetes/admin.conf 
+chown root:root /etc/kubernetes/scheduler.conf 
+chown root:root /etc/kubernetes/controller-manager.conf","The Kubernetes conf files contain the arguments and settings for the Control Plane services. These services are controller and scheduler. If these files can be changed, the scheduler will be implementing the changes immediately. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003140","V-242447","SRG-APP-000516-CTR-001325","SV-242447r961863_rule","The Kubernetes Kube Proxy kubeconfig must have file permissions set to 644 or more restrictive.","Check if Kube-Proxy is running and obtain --kubeconfig parameter use the following command:
+ps -ef | grep kube-proxy
+
+If Kube-Proxy exists:
+Review the permissions of the Kubernetes Kube Proxy by using the command:
+stat -c %a <location from --kubeconfig>
+
+If the file has permissions more permissive than ""644"", this is a finding.","Change the permissions of the Kube Proxy to ""644"" by executing the command:
+
+chmod 644 <location from kubeconfig>.","The Kubernetes Kube Proxy kubeconfig contain the argument and setting for the Control Planes. These settings contain network rules for restricting network communication between pods, clusters, and networks. If these files can be changed, data traversing between the Kubernetes Control Panel components would be compromised. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003150","V-242448","SRG-APP-000516-CTR-001325","SV-242448r961863_rule","The Kubernetes Kube Proxy kubeconfig must be owned by root.","Check if Kube-Proxy is running use the following command:
+ps -ef | grep kube-proxy
+
+If Kube-Proxy exists:
+Review the permissions of the Kubernetes Kube Proxy by using the command:
+stat -c   %U:%G <location from --kubeconfig>| grep -v root:root
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the Kube Proxy to root:root by executing the command:
+
+chown root:root <location from kubeconfig>.","The Kubernetes Kube Proxy kubeconfig contain the argument and setting for the Control Planes. These settings contain network rules for restricting network communication between pods, clusters, and networks. If these files can be changed, data traversing between the Kubernetes Control Panel components would be compromised. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003160","V-242449","SRG-APP-000516-CTR-001325","SV-242449r961863_rule","The Kubernetes Kubelet certificate authority file must have file permissions set to 644 or more restrictive.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+If the ""--client-ca-file"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i clientCAFile <path_to_config_file>
+
+Note the path to the client ca file.
+
+Run the command:
+stat -c %a <path_to_client_ca_file>
+
+If the client ca file has permissions more permissive than ""644"", this is a finding.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--client-ca-file"" option.
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i clientCAFile <path_to_config_file>
+
+Note the path to the client ca file.
+
+Run the command:
+chmod 644 <path_to_client_ca_file>","The Kubernetes kubelet certificate authority file contains settings for the Kubernetes Node TLS certificate authority. Any request presenting a client certificate signed by one of the authorities in the client-ca-file is authenticated with an identity corresponding to the CommonName of the client certificate. If this file can be changed, the Kubernetes architecture could be compromised. The scheduler will implement the changes immediately. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003170","V-242450","SRG-APP-000516-CTR-001325","SV-242450r961863_rule","The Kubernetes Kubelet certificate authority must be owned by root.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+If the ""client-ca-file"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i clientCAFile <path_to_config_file>
+
+Note the path to the client ca file.
+
+Run the command:
+stat -c %U:%G <path_to_client_ca_file>
+
+If the command returns any non root:root file permissions, this is a finding.","On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""client-ca-file"" option.
+
+Note the path to the config file (identified by --config).
+
+Run the command:
+grep -i clientCAFile <path_to_config_file>
+
+Note the path to the client ca file.
+
+Run the command:
+chown root:root <path_to_client_ca_file>","The Kubernetes kube proxy kubeconfig contain the argument and setting for the Control Planes. These settings contain network rules for restricting network communication between pods, clusters, and networks. If these files can be changed, data traversing between the Kubernetes Control Panel components would be compromised. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003180","V-242451","SRG-APP-000516-CTR-001325","SV-242451r961863_rule","The Kubernetes component PKI must be owned by root.","Review the PKI files in Kubernetes by using the command:
+
+ls -laR /etc/kubernetes/pki/
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the PKI to root: root by executing the command:
+
+chown -R root:root /etc/kubernetes/pki/","The Kubernetes PKI directory contains all certificates (.crt files) supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003190","V-242452","SRG-APP-000516-CTR-001325","SV-242452r961863_rule","The Kubernetes kubelet KubeConfig must have file permissions set to 644 or more restrictive.","Review the permissions of the Kubernetes Kubelet conf by using the command:
+
+stat -c %a  /etc/kubernetes/kubelet.conf
+
+If any of the files are have permissions more permissive than ""644"", this is a finding.","Change the permissions of the Kubelet to ""644"" by executing the command:
+
+chmod 644 /etc/kubernetes/kubelet.conf","The Kubernetes kubelet agent registers nodes with the API Server, mounts volume storage for pods, and performs health checks to containers within pods. If these files can be modified, the information system would be unaware of pod or container degradation. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003200","V-242453","SRG-APP-000516-CTR-001325","SV-242453r961863_rule","The Kubernetes kubelet KubeConfig file must be owned by root.","Review the Kubernetes Kubelet conf files by using the command:
+
+stat -c %U:%G /etc/kubernetes/kubelet.conf| grep -v root:root
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the kubelet.conf to root: root by executing the command:
+
+chown root:root /etc/kubernetes/kubelet.conf","The Kubernetes kubelet agent registers nodes with the API server and performs health checks to containers within pods. If these files can be modified, the information system would be unaware of pod or container degradation. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003210","V-242454","SRG-APP-000516-CTR-001325","SV-242454r961863_rule","The Kubernetes kubeadm.conf must be owned by root.","Review the Kubeadm.conf file :
+
+Get the path for Kubeadm.conf by running: 
+sytstemctl status kubelet
+
+Note the configuration file installed by the kubeadm is written to 
+(Default Location: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf)
+stat -c %U:%G <kubeadm.conf path> | grep -v root:root
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the kubeadm.conf to root: root by executing the command:
+
+chown root:root <kubeadm.conf path>","The Kubernetes kubeeadm.conf contains sensitive information regarding the cluster nodes configuration. If this file can be modified, the Kubernetes Platform Plane would be degraded or compromised for malicious intent. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003220","V-242455","SRG-APP-000516-CTR-001325","SV-242455r961863_rule","The Kubernetes kubeadm.conf must have file permissions set to 644 or more restrictive.","Review the kubeadm.conf file :
+
+Get the path for kubeadm.conf by running:
+systemctl status kubelet
+
+Note the configuration file installed by the kubeadm is written to
+(Default Location: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf)
+stat -c %a  <kubeadm.conf path>
+
+If the file has permissions more permissive than ""644"", this is a finding.","Change the permissions of kubeadm.conf to ""644"" by executing the command:
+
+chmod 644 <kubeadm.conf path>","The Kubernetes kubeadm.conf contains sensitive information regarding the cluster nodes configuration. If this file can be modified, the Kubernetes Platform Plane would be degraded or compromised for malicious intent. Many of the security settings within the document are implemented through this file.","000366"
+(CUI),"CAT 2","CNTR-K8-003230","V-242456","SRG-APP-000516-CTR-001330","SV-242456r961863_rule","The Kubernetes kubelet config must have file permissions set to 644 or more restrictive.","Review the permissions of the Kubernetes config.yaml by using the command:
+
+stat -c %a /var/lib/kubelet/config.yaml
+
+If any of the files are have permissions more permissive than ""644"", this is a finding.","Change the permissions of the config.yaml to ""644"" by executing the command:
+
+chmod 644 /var/lib/kubelet/config.yaml","The Kubernetes kubelet agent registers nodes with the API server and performs health checks to containers within pods. If this file can be modified, the information system would be unaware of pod or container degradation.","000366"
+(CUI),"CAT 2","CNTR-K8-003240","V-242457","SRG-APP-000516-CTR-001330","SV-242457r961863_rule","The Kubernetes kubelet config must be owned by root.","Review the Kubernetes Kubeadm kubelet conf file by using the command:
+
+stat -c %U:%G /var/lib/kubelet/config.yaml| grep -v root:root
+
+If the command returns any non root:root file permissions, this is a finding.","Change the ownership of the kubelet config to ""root: root"" by executing the command:
+
+chown root:root /var/lib/kubelet/config.yaml","The Kubernetes kubelet agent registers nodes with the API Server and performs health checks to containers within pods. If this file can be modified, the information system would be unaware of pod or container degradation.","000366"
+(CUI),"CAT 2","CNTR-K8-003260","V-242459","SRG-APP-000516-CTR-001335","SV-242459r961863_rule","The Kubernetes etcd must have file permissions set to 644 or more restrictive.","Review the permissions of the Kubernetes etcd by using the command:
+
+ls -AR /var/lib/etcd/*
+
+If any of the files have permissions more permissive than ""644"", this is a finding.","Change the permissions of the manifest files to ""644"" by executing the command:
+
+chmod -R 644 /var/lib/etcd/*","The Kubernetes etcd key-value store provides a way to store data to the Control Plane. If these files can be changed, data to API object and Control Plane would be compromised.","000366"
+(CUI),"CAT 2","CNTR-K8-003270","V-242460","SRG-APP-000516-CTR-001335","SV-242460r961863_rule","The Kubernetes admin kubeconfig must have file permissions set to 644 or more restrictive.","Review the permissions of the Kubernetes config files by using the command:
+
+stat -c %a /etc/kubernetes/admin.conf
+stat -c %a /etc/kubernetes/scheduler.conf
+stat -c %a /etc/kubernetes/controller-manager.conf
+
+If any of the files are have permissions more permissive than ""644"", this is a finding.","Change the permissions of the conf files to ""644"" by executing the command:
+
+chmod 644 /etc/kubernetes/admin.conf 
+chmod 644 /etc/kubernetes/scheduler.conf
+chmod 644 /etc/kubernetes/controller-manager.conf","The Kubernetes admin kubeconfig files contain the arguments and settings for the Control Plane services. These services are controller and scheduler. If these files can be changed, the scheduler will be implementing the changes immediately.","000366"
+(CUI),"CAT 2","CNTR-K8-003280","V-242461","SRG-APP-000516-CTR-001335","SV-242461r961863_rule","Kubernetes API Server audit logs must be enabled.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-policy-file * 
+
+If the setting ""audit-policy-file"" is not set or is found in the Kubernetes API manifest file without valid content, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the argument ""--audit-policy-file"" to ""log file directory"".","Kubernetes API Server validates and configures pods and services for the API object. The REST operation provides frontend functionality to the cluster share state. Enabling audit logs provides a way to monitor and identify security risk events or misuse of information. Audit logs are necessary to provide evidence in the case the Kubernetes API Server is compromised requiring a Cyber Security Investigation.","000366"
+(CUI),"CAT 2","CNTR-K8-003290","V-242462","SRG-APP-000516-CTR-001335","SV-242462r961863_rule","The Kubernetes API Server must be set to audit log max size.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-log-maxsize * 
+
+If the setting ""--audit-log-maxsize"" is not set in the Kubernetes API Server manifest file or it is set to less than ""100"", this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--audit-log-maxsize"" to a minimum of ""100"".","The Kubernetes API Server must be set for enough storage to retain log information over the period required. When audit logs are large in size, the monitoring service for events becomes degraded. The function of the maximum log file size is to set these limits.","000366"
+(CUI),"CAT 2","CNTR-K8-003300","V-242463","SRG-APP-000516-CTR-001335","SV-242463r961863_rule","The Kubernetes API Server must be set to audit log maximum backup.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-log-maxbackup * 
+
+If the setting ""audit-log-maxbackup"" is not set in the Kubernetes API Server manifest file or it is set less than ""10"", this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--audit-log-maxbackup"" to a minimum of ""10"".","The Kubernetes API Server must set enough storage to retain logs for monitoring suspicious activity and system misconfiguration, and provide evidence for Cyber Security Investigations.","000366"
+(CUI),"CAT 2","CNTR-K8-003310","V-242464","SRG-APP-000516-CTR-001335","SV-242464r961863_rule","The Kubernetes API Server audit log retention must be set.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-log-maxage * 
+
+If the setting ""audit-log-maxage"" is not set in the Kubernetes API Server manifest file or it is set less than ""30"", this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--audit-log-maxage"" to a minimum of ""30"".","The Kubernetes API Server must set enough storage to retain logs for monitoring suspicious activity and system misconfiguration, and provide evidence for Cyber Security Investigations.","000366"
+(CUI),"CAT 2","CNTR-K8-003320","V-242465","SRG-APP-000516-CTR-001335","SV-242465r961863_rule","The Kubernetes API Server audit log path must be set.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i audit-log-path * 
+
+If the setting audit-log-path is not set in the Kubernetes API Server manifest file or it is not set to a valid path, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--audit-log-path"" to valid location.","Kubernetes API Server validates and configures pods and services for the API object. The REST operation provides frontend functionality to the cluster share state. Audit logs are necessary to provide evidence in the case the Kubernetes API Server is compromised requiring Cyber Security Investigation. To record events in the audit log the log path value must be set.","000366"
+(CUI),"CAT 2","CNTR-K8-003330","V-242466","SRG-APP-000516-CTR-001335","SV-242466r961863_rule","The Kubernetes PKI CRT must have file permissions set to 644 or more restrictive.","Review the permissions of the Kubernetes PKI cert files by using the command:
+
+sudo find /etc/kubernetes/pki/* -name ""*.crt"" | xargs stat -c '%n %a'
+
+If any of the files have permissions more permissive than ""644"", this is a finding.","Change the ownership of the cert files to ""644"" by executing the command: 
+
+find /etc/kubernetes/pki -name ""*.crt"" | xargs chmod 644","The Kubernetes PKI directory contains all certificates (.crt files) supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised.","000366"
+(CUI),"CAT 2","CNTR-K8-003340","V-242467","SRG-APP-000516-CTR-001335","SV-242467r961863_rule","The Kubernetes PKI keys must have file permissions set to 600 or more restrictive.","Review the permissions of the Kubernetes PKI key files by using the command:
+
+sudo find /etc/kubernetes/pki -name ""*.key"" | xargs stat -c '%n %a'
+
+If any of the files have permissions more permissive than ""600"", this is a finding.","Change the ownership of the key files to ""600"" by executing the command: 
+
+find /etc/kubernetes/pki -name ""*.key"" | xargs chmod 600","The Kubernetes PKI directory contains all certificate key files supporting secure network communications in the Kubernetes Control Plane. If these files can be modified, data traversing within the architecture components would become unsecure and compromised.","000366"
+(CUI),"CAT 2","CNTR-K8-001300","V-245541","SRG-APP-000190-CTR-000500","SV-245541r1069469_rule","Kubernetes Kubelet must not disable timeouts.","Follow these steps to check streaming-connection-idle-timeout:
+
+1. On the Control Plane, run the command:
+
+ps -ef | grep kubelet
+
+If the ""--streaming-connection-idle-timeout"" option exists, this is a finding.
+
+Note the path to the config file (identified by --config).
+
+2. Run the command:
+
+grep -i streamingConnectionIdleTimeout <path_to_config_file>
+
+If the setting ""streamingConnectionIdleTimeout"" is set to less than ""5m"" or is not configured, this is a finding.","Follow these steps to configure streaming-connection-idle-timeout:
+1. On the Control Plane, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--streaming-connection-idle-timeout"" option if present.
+
+Note the path to the config file (identified by --config).
+
+2. Edit the Kubernetes Kubelet file in the --config directory on the Kubernetes Control Plane:
+
+Set the argument ""streamingConnectionIdleTimeout"" to a value of ""5m"".","Idle connections from the Kubelet can be used by unauthorized users to perform malicious activity to the nodes, pods, containers, and cluster within the Kubernetes Control Plane. Setting the streamingConnectionIdleTimeout defines the maximum time an idle session is permitted prior to disconnect. Setting the value to ""0"" never disconnects any idle sessions. Idle timeouts must never be set to ""0"" and should be defined at ""5m"" (the default is 4hr).","001133"
+(CUI),"CAT 1","CNTR-K8-002620","V-245542","SRG-APP-000439-CTR-001080","SV-245542r961632_rule","Kubernetes API Server must disable basic authentication to protect information in transit.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i basic-auth-file * 
+
+If ""basic-auth-file"" is set in the Kubernetes API server manifest file this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Remove the setting ""--basic-auth-file"".","Kubernetes basic authentication sends and receives request containing username, uid, groups, and other fields over a clear text HTTP communication. Basic authentication does not provide any security mechanisms using encryption standards. PKI certificate-based authentication must be set over a secure channel to ensure confidentiality and integrity. Basic authentication must not be set in the manifest file.","002448"
+(CUI),"CAT 1","CNTR-K8-002630","V-245543","SRG-APP-000439-CTR-001080","SV-245543r961632_rule","Kubernetes API Server must disable token authentication to protect information in transit.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i token-auth-file * 
+
+If ""--token-auth-file"" is set in the Kubernetes API server manifest file, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Remove the setting ""--token-auth-file"".","Kubernetes token authentication uses password known as secrets in a plaintext file. This file contains sensitive information such as token, username and user uid. This token is used by service accounts within pods to authenticate with the API Server. This information is very valuable for attackers with malicious intent if the service account is privileged having access to the token. With this token a threat actor can impersonate the service account gaining access to the Rest API service.","002448"
+(CUI),"CAT 1","CNTR-K8-002640","V-245544","SRG-APP-000439-CTR-001080","SV-245544r961632_rule","Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit.","Change to the /etc/kubernetes/manifests/ directory on the Kubernetes Control Plane. Run the command:
+grep -i kubelet-client-certificate *
+grep -I kubelet-client-key * 
+
+If the setting ""--kubelet-client-certificate"" is not configured in the Kubernetes API server manifest file or contains no value, this is a finding.
+
+If the setting ""--kubelet-client-key"" is not configured in the Kubernetes API server manifest file or contains no value, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Set the value of ""--kubelet-client-certificate"" and ""--kubelet-client-key"" to an Approved Organizational Certificate and key pair.","Kubernetes control plane and external communication is managed by API Server. The main implementation of the API Server is to manage hardware resources for pods and container using horizontal or vertical scaling. Anyone who can gain access to the API Server can effectively control your Kubernetes architecture. Using authenticity protection, the communication can be protected against man-in-the-middle attacks/session hijacking and the insertion of false information into sessions.
+
+The communication session is protected by utilizing transport encryption protocols, such as TLS. TLS provides the Kubernetes API Server with a means to be able to authenticate sessions and encrypt traffic.
+
+By default, the API Server does not authenticate to the kubelet HTTPs endpoint. To enable secure communication for API Server, the parameter -kubelet-client-certificate and kubelet-client-key must be set. This parameter gives the location of the certificate and key pair used to secure API Server communication.","002448"
+(CUI),"CAT 1","CNTR-K8-002011","V-254800","SRG-APP-000342-CTR-000775","SV-254800r961359_rule","Kubernetes must have a Pod Security Admission control file configured.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. Run the command:
+
+""grep -i admission-control-config-file *""
+
+If the setting ""--admission-control-config-file"" is not configured in the Kubernetes API Server manifest file, this is a finding.
+
+Inspect the .yaml file defined by the --admission-control-config-file. Verify PodSecurity is properly configured. 
+If least privilege is not represented, this is a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Control Plane. 
+
+Set the value of ""--admission-control-config-file"" to a valid path for the file.
+
+Create an admission controller config file:
+Example File:
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: AdmissionConfiguration
+plugins:
+- name: PodSecurity
+  configuration:
+    apiVersion: pod-security.admission.config.k8s.io/v1beta1
+    kind: PodSecurityConfiguration
+    # Defaults applied when a mode label is not set.
+    defaults:
+      enforce: ""privileged""
+      enforce-version: ""latest""
+    exemptions:
+      # Don't forget to exempt namespaces or users that are responsible for deploying
+      # cluster components, because they need to run privileged containers
+      usernames: [""admin""] 
+      namespaces: [""kube-system""]
+
+See for more details:
+Migrate from PSP to PSA:
+https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/
+
+Best Practice: https://kubernetes.io/docs/concepts/security/pod-security-policy/#recommended-practice.","An admission controller intercepts and processes requests to the Kubernetes API prior to persistence of the object, but after the request is authenticated and authorized.
+
+Kubernetes (> v1.23)offers a built-in Pod Security admission controller to enforce the Pod Security Standards. Pod security restrictions are applied at the namespace level when pods are created. 
+
+The Kubernetes Pod Security Standards define different isolation levels for Pods. These standards define how to restrict the behavior of pods in a clear, consistent fashion.","002263"
+(CUI),"CAT 1","CNTR-K8-002001","V-254801","SRG-APP-000342-CTR-000775","SV-254801r961359_rule","Kubernetes must enable PodSecurity admission controller on static pods and Kubelets.","On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+For each manifest file, if the ""--feature-gates"" setting does not exist, does not contain the ""--PodSecurity"" flag, or sets the flag to ""false"", this is a finding.
+
+On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+If the ""--feature-gates"" option exists, this is a finding. 
+
+Note the path to the config file (identified by --config).
+
+Inspect the content of the config file:
+If the ""featureGates"" setting is not present, does not contain the ""PodSecurity"" flag, or sets the flag to ""false"", this is a finding.","On the Control Plane, change to the manifests' directory at /etc/kubernetes/manifests and run the command:
+grep -i feature-gates *
+
+Ensure the argument ""--feature-gates=PodSecurity=true"" is present in each manifest file.
+
+On each Control Plane and Worker Node, run the command:
+ps -ef | grep kubelet
+
+Remove the ""--feature-gates"" option if present.
+
+Note the path to the config file (identified by --config).
+
+Edit the Kubernetes Kubelet config file: 
+Add a ""featureGates"" setting if one does not yet exist. Add the feature gate ""PodSecurity=true"".
+
+Restart the kubelet service using the following command:
+systemctl daemon-reload && systemctl restart kubelet","PodSecurity admission controller is a component that validates and enforces security policies for pods running within a Kubernetes cluster. It is responsible for evaluating the security context and configuration of pods against defined policies. 
+
+To enable PodSecurity admission controller on Static Pods (kube-apiserver, kube-controller-manager, or kube-schedule), the argument ""--feature-gates=PodSecurity=true"" must be set.
+
+To enable PodSecurity admission controller on Kubelets, the featureGates PodSecurity=true argument must be set.
+
+(Note: The PodSecurity feature gate is GA as of  v1.25.)","002263"
+(CUI),"CAT 1","CNTR-K8-001162","V-274882","SRG-APP-000033-CTR-000100","SV-274882r1137640_rule","Kubernetes Secrets must be encrypted at rest.","Change to the /etc/kubernetes/manifests directory on the Kubernetes Master Node. Run the command:
+grep -i encryption-provider-config *
+
+If the setting ""encryption-provider-config"" is not configured, this is a finding.
+
+If the setting is configured, check the contents of the file specified by its argument. 
+
+If the file does not specify the Secret's resource, this is a finding. 
+
+If the identity provider is specified as the first provider for the resource, this is also a finding.","Edit the Kubernetes API Server manifest file in the /etc/kubernetes/manifests directory on the Kubernetes Master Node. 
+
+Set the value of ""--encryption-provider-config"" to the path to the encryption config. 
+
+The encryption config must specify the Secret's resource and provider. Below is an example:
+{
+  ""kind"": ""EncryptionConfiguration"",
+  ""apiVersion"": ""apiserver.config.k8s.io/v1"",
+  ""resources"": [
+    {
+      ""resources"": [
+        ""secrets""
+      ],
+      ""providers"": [
+        {
+          ""aescbc"": {
+            ""keys"": [
+              {
+                ""name"": ""aescbckey"",
+                ""secret"": ""xxxxxxxxxxxxxxxxxxx""
+              }
+            ]
+          }
+        },
+        {
+          ""identity"": {}
+        }
+      ]
+    }
+  ]
+}","Kubernetes Secrets may store sensitive information such as passwords, tokens, and keys. These values are stored in the etcd database used by Kubernetes unencrypted. To protect these Secrets at rest, these values must be encrypted.","000213"
+(CUI),"CAT 1","CNTR-K8-001161","V-274883","SRG-APP-000171-CTR-000435","SV-274883r1107239_rule","Sensitive information must be stored using Kubernetes Secrets or an external Secret store provider.","On the Kubernetes Master node, run the following command:
+kubectl get all,cm -A -o yaml 
+
+Manually review the output for sensitive information.
+
+If any sensitive information is found, this is a finding.","Any sensitive information found must be stored in an approved external Secret store provider or use Kubernetes Secrets (attached on an as-needed basis to pods).","Sensitive information, such as passwords, keys, and tokens must not be stored in application code.
+
+Kubernetes offers a resource called Secrets that are designed for storing sensitive information for use by applications. Secrets are created and managed separately from application code. Additionally, they can be encrypted at rest and access to the secrets can be controlled via RBAC.","004062"
+(CUI),"CAT 2","CNTR-K8-001163","V-274884","SRG-APP-000429-CTR-001060","SV-274884r1107245_rule","Kubernetes must limit Secret access on a need-to-know basis.","Review the Kubernetes accounts and their corresponding roles. 
+
+If any accounts have read (list, watch, get) access to Secrets without a documented organizational requirement, this is a finding. 
+
+Run the below command to list the workload resources for applications deployed to Kubernetes:
+kubectl get all -A -o yaml 
+
+If Secrets are attached to applications without a documented requirement, this is a finding.","For Kubernetes accounts that have read access to Secrets without a documented requirement, modify the corresponding Role or ClusterRole to remove list, watch, and get privileges for Secrets.","Kubernetes secrets may store sensitive information such as passwords, tokens, and keys. Access to these secrets should be limited to a need-to-know basis via Kubernetes RBAC.","002476"

@@ -32,3 +32,37 @@ Access the application:
   kubectl port-forward --namespace {{ include "trivy-glass.namespace" . }} svc/{{ include "trivy-glass.name" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
   echo "Visit http://127.0.0.1:{{ .Values.service.port }} to use your application"
 {{- end }}
+
+{{- if .Values.attestations.enabled }}
+
+STIG manual attestations:
+
+  Attestations are persisted as ConfigMaps named
+  `trivyglass-attestations-<reportName>` in namespace
+  `{{ .Values.attestations.namespace }}`. That namespace must exist before
+  attestations can be saved, and the Role in this chart grants the viewer
+  only `get, create, update, patch` on configmaps there.
+
+  {{- if ne .Values.attestations.namespace (include "trivy-glass.namespace" .) }}
+
+  This install puts trivyglass in `{{ include "trivy-glass.namespace" . }}`
+  but attestations in `{{ .Values.attestations.namespace }}`. Pre-create it:
+
+    kubectl create namespace {{ .Values.attestations.namespace }}
+
+  Or install trivyglass itself into that namespace:
+
+    helm upgrade --install {{ .Release.Name }} <chart> \
+      -n {{ .Values.attestations.namespace }} --create-namespace
+  {{- else }}
+
+  trivyglass and attestations share namespace `{{ .Values.attestations.namespace }}` —
+  nothing more to do.
+  {{- end }}
+
+  If you see "Attestation store unavailable" in the compliance page, the
+  namespace is missing or the ServiceAccount lacks RBAC there. Verify with:
+
+    kubectl auth can-i create configmaps -n {{ .Values.attestations.namespace }} \
+      --as=system:serviceaccount:{{ include "trivy-glass.namespace" . }}:{{ .Values.serviceAccount.name }}
+{{- end }}

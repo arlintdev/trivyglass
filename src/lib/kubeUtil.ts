@@ -1,4 +1,4 @@
-import { KubeConfig, CustomObjectsApi } from '@kubernetes/client-node';
+import { KubeConfig, CustomObjectsApi, CoreV1Api } from '@kubernetes/client-node';
 import redis from 'redis'; // Import default export
 import crypto from 'crypto';
 import yaml from 'js-yaml';
@@ -1341,6 +1341,147 @@ export async function getClusterResource(
 			error: `Failed to connect to Kubernetes API: ${err instanceof Error ? err.message : String(err)}`
 		};
 	}
+}
+
+/**
+ * Namespace where trivyglass stores attestation ConfigMaps. Overridable via
+ * TRIVYGLASS_ATTESTATIONS_NAMESPACE. Default 'trivyglass-system' — create it
+ * in-cluster (e.g. via the Helm chart) before enabling attestations.
+ */
+export const ATTESTATIONS_NAMESPACE =
+	process.env.TRIVYGLASS_ATTESTATIONS_NAMESPACE || 'trivyglass-system';
+
+export interface Attestation {
+	status: 'manual-pass' | 'manual-fail' | 'not-applicable';
+	reviewedBy: string;
+	reviewedAt: string;
+	evidence?: string;
+	reason?: string;
+}
+
+export type AttestationMap = Record<string, Attestation>;
+
+function attestationConfigMapName(reportName: string): string {
+	return `trivyglass-attestations-${reportName}`;
+}
+
+function isNotFound(err: unknown): boolean {
+	if (!err || typeof err !== 'object') return false;
+	const e = err as { code?: number; statusCode?: number; response?: { statusCode?: number } };
+	return e.code === 404 || e.statusCode === 404 || e.response?.statusCode === 404;
+}
+
+/**
+ * Read the attestation ConfigMap for a ClusterComplianceReport. Returns an
+ * empty object if the ConfigMap doesn't exist yet (first-use case). Throws
+ * on any other failure so the caller can surface it.
+ */
+export async function getAttestations(reportName: string): Promise<AttestationMap> {
+	const config = await getKubeConfig();
+	const coreApi = config.makeApiClient(CoreV1Api);
+	const name = attestationConfigMapName(reportName);
+	try {
+		const cm = await coreApi.readNamespacedConfigMap({
+			name,
+			namespace: ATTESTATIONS_NAMESPACE
+		});
+		const raw = cm.data?.['attestations.json'];
+		if (!raw) return {};
+		try {
+			const parsed = JSON.parse(raw);
+			return parsed && typeof parsed === 'object' ? (parsed as AttestationMap) : {};
+		} catch (parseErr) {
+			Logger.warn(`Malformed attestations.json on ${name}`, parseErr);
+			return {};
+		}
+	} catch (err) {
+		if (isNotFound(err)) return {};
+		Logger.error(`Error reading attestation ConfigMap ${name}`, err);
+		throw err;
+	}
+}
+
+/**
+ * List ConfigMaps in a namespace matching a label selector. Returns an
+ * empty array on 404 (namespace missing) so callers can degrade gracefully.
+ */
+export async function listConfigMapsByLabel(
+	namespace: string,
+	labelSelector: string
+): Promise<
+	{
+		name: string;
+		data: Record<string, string>;
+		creationTimestamp: string;
+		labels: Record<string, string>;
+	}[]
+> {
+	const config = await getKubeConfig();
+	const coreApi = config.makeApiClient(CoreV1Api);
+	try {
+		const list = await coreApi.listNamespacedConfigMap({ namespace, labelSelector });
+		return (list.items ?? []).map((cm) => ({
+			name: cm.metadata?.name ?? '',
+			data: cm.data ?? {},
+			creationTimestamp: cm.metadata?.creationTimestamp
+				? new Date(cm.metadata.creationTimestamp).toISOString()
+				: '',
+			labels: cm.metadata?.labels ?? {}
+		}));
+	} catch (err) {
+		if (isNotFound(err)) return [];
+		Logger.error(`Error listing configmaps in ${namespace} by ${labelSelector}`, err);
+		throw err;
+	}
+}
+
+/**
+ * Upsert the attestation ConfigMap. Creates it if missing, replaces data
+ * otherwise. We rewrite the full map on every PUT — the list is small
+ * (≤92 entries for the Kubernetes STIG) so optimistic concurrency via
+ * resourceVersion is enough; no need for strategic merge.
+ */
+export async function putAttestations(
+	reportName: string,
+	attestations: AttestationMap
+): Promise<AttestationMap> {
+	const config = await getKubeConfig();
+	const coreApi = config.makeApiClient(CoreV1Api);
+	const name = attestationConfigMapName(reportName);
+	const data = { 'attestations.json': JSON.stringify(attestations, null, 2) };
+	const metadata = {
+		name,
+		namespace: ATTESTATIONS_NAMESPACE,
+		labels: {
+			'app.kubernetes.io/managed-by': 'trivyglass',
+			'trivyglass.io/report': reportName
+		}
+	};
+	try {
+		const existing = await coreApi.readNamespacedConfigMap({
+			name,
+			namespace: ATTESTATIONS_NAMESPACE
+		});
+		await coreApi.replaceNamespacedConfigMap({
+			name,
+			namespace: ATTESTATIONS_NAMESPACE,
+			body: {
+				...existing,
+				metadata: { ...existing.metadata, labels: metadata.labels },
+				data
+			}
+		});
+	} catch (err) {
+		if (!isNotFound(err)) {
+			Logger.error(`Error updating attestation ConfigMap ${name}`, err);
+			throw err;
+		}
+		await coreApi.createNamespacedConfigMap({
+			namespace: ATTESTATIONS_NAMESPACE,
+			body: { metadata, data }
+		});
+	}
+	return attestations;
 }
 
 // Cleanup on process exit
